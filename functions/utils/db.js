@@ -26,7 +26,6 @@ export function isValidPassword(pwd) {
     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pwd);
 }
 
-// 新增验证年级和班级
 export function isValidGrade(grade) {
     const g = parseInt(grade);
     return g >= 6 && g <= 9;

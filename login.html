@@ -11,8 +11,8 @@
         <h2>用户登录</h2>
         <div id="error" class="error" style="display:none;"></div>
         <form id="loginForm">
-            <input type="text" id="uid" placeholder="UID（如 ml20300101）" required>
-            <input type="password" id="password" placeholder="密码（Test123456）" required>
+            <input type="text" id="uid" placeholder="UID" required>
+            <input type="password" id="password" placeholder="密码" required>
             <button type="submit">登录</button>
         </form>
         <p>还没有账号？<a href="/register.html">立即注册</a></p>
@@ -21,7 +21,6 @@
     <script>
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
-
             const uid = document.getElementById('uid').value;
             const password = document.getElementById('password').value;
             const errorEl = document.getElementById('error');
@@ -37,9 +36,7 @@
                     credentials: 'include',
                     body: formData
                 });
-
                 const result = await response.json();
-
                 if (result.success) {
                     window.location.href = '/dashboard.html';
                 } else {
@@ -49,7 +46,6 @@
             } catch (err) {
                 errorEl.textContent = '网络错误，请重试';
                 errorEl.style.display = 'block';
-                console.error('Fetch error:', err);
             }
         });
     </script>

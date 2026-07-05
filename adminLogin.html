@@ -35,7 +35,7 @@
                 if (result.success) {
                     window.location.href = '/adminDashboard.html';
                 } else {
-                    errorEl.textContent = result.error || result.detail || '登录失败';
+                    errorEl.textContent = result.error || '登录失败';
                     errorEl.style.display = 'block';
                 }
             } catch (err) {

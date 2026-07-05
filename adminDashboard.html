@@ -67,12 +67,29 @@
                 });
                 tbody.innerHTML = html;
 
-                // 绑定删除事件（删除功能还未实现，可暂不启用）
+                // 绑定删除事件
                 document.querySelectorAll('.delete-btn').forEach(btn => {
                     btn.addEventListener('click', async function() {
                         const uid = this.dataset.uid;
-                        if (!confirm(`确定要删除用户 ${uid} 吗？`)) return;
-                        alert('删除功能开发中，暂不可用');
+                        if (!confirm(`确定要删除用户 ${uid} 吗？此操作不可恢复！`)) return;
+                        try {
+                            const formData = new FormData();
+                            formData.append('uid', uid);
+                            const res = await fetch('/api/adminDeleteUser', {
+                                method: 'POST',
+                                credentials: 'include',
+                                body: formData
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                alert('删除成功！');
+                                loadAdminData(); // 刷新列表
+                            } else {
+                                alert('删除失败：' + (result.error || '未知错误'));
+                            }
+                        } catch (err) {
+                            alert('网络错误，请重试');
+                        }
                     });
                 });
             } catch (err) {

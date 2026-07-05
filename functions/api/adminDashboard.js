@@ -51,14 +51,14 @@ export async function onRequest(context) {
         }
 
         const users = getUsers();
-        // 返回所有字段，包括 grade, class
+        // 返回所有用户，包含年级和班级
         const userList = users.map(u => ({
             uid: u.uid,
             name: u.name,
             gender: u.gender,
-            password: u.password,   // 可选，为了演示保留
-            grade: u.grade,
-            class: u.class
+            password: u.password,
+            grade: u.grade || '-',
+            class: u.class || '-'
         }));
 
         return new Response(JSON.stringify({ users: userList }), {

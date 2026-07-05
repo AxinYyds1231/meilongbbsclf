@@ -32,7 +32,6 @@ export async function onRequest(context) {
         const grade = formData.get('grade');
         const cls = formData.get('class');
 
-        // 必填字段验证
         if (!uid || !name || !gender || !password || !confirmPassword || !grade || !cls) {
             return new Response(JSON.stringify({ error: '请填写所有字段' }), {
                 status: 400,
@@ -82,7 +81,6 @@ export async function onRequest(context) {
             });
         }
 
-        // 保存用户（包含 grade, class）
         const users = getUsers();
         users.push({
             uid,
