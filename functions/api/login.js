@@ -1,8 +1,17 @@
 // functions/api/login.js
+// UTF-8 安全的 Base64 编码
+function utf8ToBase64(str) {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
 export async function onRequest(context) {
     const { request } = context;
 
-    // 处理 OPTIONS 预检
     if (request.method === 'OPTIONS') {
         return new Response(null, {
             status: 204,
@@ -29,7 +38,6 @@ export async function onRequest(context) {
         const uid = formData.get('uid');
         const password = formData.get('password');
 
-        // 硬编码测试用户
         const validUsers = [
             { uid: 'ml20300101', name: '张三', pwd: 'Test123456' }
         ];
@@ -38,8 +46,7 @@ export async function onRequest(context) {
 
         if (user) {
             const sessionData = JSON.stringify({ uid: user.uid, name: user.name });
-            // 使用 btoa 替代 Buffer
-            const encoded = btoa(sessionData);
+            const encoded = utf8ToBase64(sessionData);
             const cookie = `session=${encoded}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
 
             return new Response(JSON.stringify({

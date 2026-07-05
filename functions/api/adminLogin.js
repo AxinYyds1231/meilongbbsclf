@@ -1,6 +1,14 @@
 // functions/api/adminLogin.js
-const ADMIN_PASSWORD = 'meilongbbsadmin123';
+function utf8ToBase64(str) {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
 
+const ADMIN_PASSWORD = 'meilongbbsadmin123';
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -28,7 +36,7 @@ export async function onRequest(context) {
 
         if (password === ADMIN_PASSWORD) {
             const sessionData = JSON.stringify({ isAdmin: true });
-            const encoded = btoa(sessionData);
+            const encoded = utf8ToBase64(sessionData);
             const cookie = `adminSession=${encoded}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
 
             return new Response(JSON.stringify({ success: true }), {

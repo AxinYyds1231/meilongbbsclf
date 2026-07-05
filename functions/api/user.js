@@ -1,4 +1,13 @@
 // functions/api/user.js
+function base64ToUtf8(base64) {
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return new TextDecoder().decode(bytes);
+}
+
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -31,8 +40,7 @@ export async function onRequest(context) {
     }
 
     try {
-        // 使用 atob 解码
-        const sessionData = JSON.parse(atob(sessionMatch[1]));
+        const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
         return new Response(JSON.stringify({ user: sessionData }), {
             status: 200,
             headers: CORS_HEADERS
