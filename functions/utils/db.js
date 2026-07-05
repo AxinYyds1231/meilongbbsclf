@@ -1,5 +1,4 @@
 // functions/utils/db.js
-// 内存存储（每个实例独立，跨请求不共享，但保留接口）
 let users = [];
 
 export function getUsers() {
@@ -25,4 +24,15 @@ export function isValidUID(uid) {
 
 export function isValidPassword(pwd) {
     return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pwd);
+}
+
+// 新增验证年级和班级
+export function isValidGrade(grade) {
+    const g = parseInt(grade);
+    return g >= 6 && g <= 9;
+}
+
+export function isValidClass(cls) {
+    const c = parseInt(cls);
+    return c >= 1 && c <= 13;
 }

@@ -1,4 +1,6 @@
 // functions/api/adminDashboard.js
+import { getUsers } from '../utils/db.js';
+
 function base64ToUtf8(base64) {
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
@@ -48,7 +50,18 @@ export async function onRequest(context) {
             });
         }
 
-        return new Response(JSON.stringify({ users: [] }), {
+        const users = getUsers();
+        // 返回所有字段，包括 grade, class
+        const userList = users.map(u => ({
+            uid: u.uid,
+            name: u.name,
+            gender: u.gender,
+            password: u.password,   // 可选，为了演示保留
+            grade: u.grade,
+            class: u.class
+        }));
+
+        return new Response(JSON.stringify({ users: userList }), {
             status: 200,
             headers: CORS_HEADERS
         });

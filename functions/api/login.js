@@ -1,5 +1,6 @@
 // functions/api/login.js
-// UTF-8 安全的 Base64 编码
+import { getUsers } from '../utils/db.js';
+
 function utf8ToBase64(str) {
     const bytes = new TextEncoder().encode(str);
     let binary = '';
@@ -38,11 +39,18 @@ export async function onRequest(context) {
         const uid = formData.get('uid');
         const password = formData.get('password');
 
-        const validUsers = [
-            { uid: 'ml20300101', name: '张三', pwd: 'Test123456' }
-        ];
+        if (!uid || !password) {
+            return new Response(JSON.stringify({ error: '请填写完整信息' }), {
+                status: 400,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
+            });
+        }
 
-        const user = validUsers.find(u => u.uid === uid && u.pwd === password);
+        const users = getUsers();
+        const user = users.find(u => u.uid === uid && u.password === password);
 
         if (user) {
             const sessionData = JSON.stringify({ uid: user.uid, name: user.name });
