@@ -1,49 +1,50 @@
 // functions/api/login.js
-const CORS_HEADERS = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json'
-};
-
-// 硬编码测试用户
-const TEST_USERS = [
-    { uid: 'ml20300101', name: '张三', password: 'Test123456' },
-    { uid: 'ml20300102', name: '李四', password: 'Test123456' }
-];
+// 极简安全版 - 不导入任何外部文件，不使用任何外部变量
 
 export async function onRequest(context) {
     const { request } = context;
 
+    // 处理 OPTIONS（CORS 预检）
     if (request.method === 'OPTIONS') {
-        return new Response(null, { status: 204, headers: CORS_HEADERS });
+        return new Response(null, {
+            status: 204,
+            headers: {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Methods': 'POST, OPTIONS',
+                'Access-Control-Allow-Headers': 'Content-Type',
+            }
+        });
     }
 
+    // 只允许 POST
     if (request.method !== 'POST') {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
             status: 405,
-            headers: CORS_HEADERS
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
         });
     }
 
     try {
+        // 解析表单数据
         const formData = await request.formData();
         const uid = formData.get('uid');
         const password = formData.get('password');
 
-        if (!uid || !password) {
-            return new Response(JSON.stringify({ error: '请填写完整信息' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
-        }
+        // 硬编码测试用户
+        const validUsers = [
+            { uid: 'ml20300101', name: '张三', pwd: 'Test123456' }
+        ];
 
-        const user = TEST_USERS.find(u => u.uid === uid && u.password === password);
+        const user = validUsers.find(u => u.uid === uid && u.pwd === password);
 
         if (user) {
+            // 登录成功，创建 session
             const sessionData = JSON.stringify({ uid: user.uid, name: user.name });
-            const encodedSession = Buffer.from(sessionData).toString('base64');
-            const cookie = `session=${encodedSession}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
+            const encoded = Buffer.from(sessionData).toString('base64');
+            const cookie = `session=${encoded}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
 
             return new Response(JSON.stringify({
                 success: true,
@@ -51,24 +52,35 @@ export async function onRequest(context) {
             }), {
                 status: 200,
                 headers: {
-                    ...CORS_HEADERS,
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*',
                     'Set-Cookie': cookie
                 }
             });
         } else {
-            return new Response(JSON.stringify({ error: '账号或密码错误' }), {
+            // 用户名或密码错误
+            return new Response(JSON.stringify({
+                error: '账号或密码错误'
+            }), {
                 status: 401,
-                headers: CORS_HEADERS
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                }
             });
         }
-    } catch (error) {
+    } catch (err) {
+        // 捕获任何异常，返回详细错误
         return new Response(JSON.stringify({
             error: '服务器内部错误',
-            detail: error.message,
-            stack: error.stack
+            detail: err.message,
+            stack: err.stack
         }), {
             status: 500,
-            headers: CORS_HEADERS
+            headers: {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            }
         });
     }
 }
