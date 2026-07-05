@@ -28,7 +28,7 @@
             try {
                 const response = await fetch('/api/adminLogin', {
                     method: 'POST',
-                    credentials: 'include',   // ← 关键修改
+                    credentials: 'include',
                     body: formData
                 });
                 const result = await response.json();

@@ -1,7 +1,6 @@
-// cloud-functions/api/login.js
+// functions/api/login.js
 import { getUsers } from '../utils/db.js';
 
-// 跨域响应头
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
@@ -12,7 +11,6 @@ const CORS_HEADERS = {
 export async function onRequest(context) {
     const { request } = context;
 
-    // 处理预检请求
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
@@ -55,7 +53,12 @@ export async function onRequest(context) {
             });
         }
     } catch (error) {
-        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), {
+        // 返回详细错误
+        return new Response(JSON.stringify({
+            error: '服务器内部错误',
+            detail: error.message,
+            stack: error.stack
+        }), {
             status: 500,
             headers: CORS_HEADERS
         });

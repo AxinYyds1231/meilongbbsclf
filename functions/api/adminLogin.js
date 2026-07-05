@@ -1,4 +1,4 @@
-// cloud-functions/api/adminLogin.js
+// functions/api/adminLogin.js
 const ADMIN_PASSWORD = 'meilongbbsadmin123';
 
 const CORS_HEADERS = {
@@ -11,10 +11,12 @@ const CORS_HEADERS = {
 export async function onRequest(context) {
     const { request } = context;
 
+    // 处理预检请求
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
+    // 只接受 POST
     if (request.method !== 'POST') {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
             status: 405,
@@ -26,6 +28,7 @@ export async function onRequest(context) {
         const formData = await request.formData();
         const password = formData.get('password');
 
+        // 检查密码
         if (password === ADMIN_PASSWORD) {
             const sessionData = JSON.stringify({ isAdmin: true });
             return new Response(JSON.stringify({ success: true }), {
@@ -42,7 +45,12 @@ export async function onRequest(context) {
             });
         }
     } catch (error) {
-        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), {
+        // 返回详细错误信息
+        return new Response(JSON.stringify({
+            error: '服务器错误',
+            detail: error.message,
+            stack: error.stack
+        }), {
             status: 500,
             headers: CORS_HEADERS
         });

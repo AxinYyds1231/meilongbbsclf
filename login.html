@@ -33,7 +33,7 @@
             try {
                 const response = await fetch('/api/login', {
                     method: 'POST',
-                    credentials: 'include',   // ← 关键修改
+                    credentials: 'include',
                     body: formData
                 });
                 const result = await response.json();
