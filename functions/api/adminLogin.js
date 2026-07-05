@@ -11,9 +11,12 @@ const CORS_HEADERS = {
 export async function onRequest(context) {
     const { request } = context;
 
-    // 处理预检请求
+    // 处理 OPTIONS 预检请求
     if (request.method === 'OPTIONS') {
-        return new Response(null, { status: 204, headers: CORS_HEADERS });
+        return new Response(null, { 
+            status: 204, 
+            headers: CORS_HEADERS 
+        });
     }
 
     // 只接受 POST
@@ -25,17 +28,21 @@ export async function onRequest(context) {
     }
 
     try {
+        // 解析表单数据
         const formData = await request.formData();
         const password = formData.get('password');
 
-        // 检查密码
+        // 验证密码
         if (password === ADMIN_PASSWORD) {
+            // 创建 session
             const sessionData = JSON.stringify({ isAdmin: true });
+            const encodedSession = Buffer.from(sessionData).toString('base64');
+
             return new Response(JSON.stringify({ success: true }), {
                 status: 200,
                 headers: {
                     ...CORS_HEADERS,
-                    'Set-Cookie': `adminSession=${Buffer.from(sessionData).toString('base64')}; Path=/; HttpOnly; Max-Age=86400`
+                    'Set-Cookie': `adminSession=${encodedSession}; Path=/; HttpOnly; Max-Age=86400`
                 }
             });
         } else {
@@ -45,9 +52,9 @@ export async function onRequest(context) {
             });
         }
     } catch (error) {
-        // 返回详细错误信息
+        // 捕获任何异常并返回详细信息
         return new Response(JSON.stringify({
-            error: '服务器错误',
+            error: '服务器内部错误',
             detail: error.message,
             stack: error.stack
         }), {

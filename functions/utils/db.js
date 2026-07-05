@@ -1,5 +1,5 @@
 // functions/utils/db.js
-// 纯内存存储（适合演示，数据在冷启动后重置）
+// 纯内存存储，适用于 Cloudflare Pages Functions
 
 let users = [];
 
