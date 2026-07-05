@@ -1,46 +1,17 @@
-// cloud-functions/utils/db.js
-import fs from 'fs';
-import path from 'path';
+// functions/utils/db.js
+// 纯内存存储（适合演示，数据在冷启动后重置）
 
-// EdgeOne 云函数环境可写的临时目录
-const DATA_DIR = '/tmp/data';
-const USER_DATA_PATH = path.join(DATA_DIR, 'users.json');
-
-function ensureDataFile() {
-    try {
-        if (!fs.existsSync(DATA_DIR)) {
-            fs.mkdirSync(DATA_DIR, { recursive: true });
-        }
-        if (!fs.existsSync(USER_DATA_PATH)) {
-            fs.writeFileSync(USER_DATA_PATH, JSON.stringify([]));
-        }
-    } catch (err) {
-        console.error('创建数据文件失败:', err);
-    }
-}
+let users = [];
 
 export function getUsers() {
-    ensureDataFile();
-    try {
-        const data = fs.readFileSync(USER_DATA_PATH, 'utf-8');
-        return JSON.parse(data);
-    } catch (err) {
-        console.error('读取数据失败:', err);
-        return [];
-    }
+    return users;
 }
 
-export function saveUsers(users) {
-    ensureDataFile();
-    try {
-        fs.writeFileSync(USER_DATA_PATH, JSON.stringify(users, null, 2));
-    } catch (err) {
-        console.error('保存数据失败:', err);
-    }
+export function saveUsers(newUsers) {
+    users = newUsers;
 }
 
 export function findUserByUid(uid) {
-    const users = getUsers();
     return users.find(u => u.uid === uid);
 }
 
