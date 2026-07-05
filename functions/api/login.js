@@ -43,7 +43,6 @@ export async function onRequest(context) {
         if (user) {
             const sessionData = JSON.stringify({ uid: user.uid, name: user.name });
             const encodedSession = Buffer.from(sessionData).toString('base64');
-            // Cookie 设置：Path=/ 确保全站可访问
             const cookie = `session=${encodedSession}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
 
             return new Response(JSON.stringify({

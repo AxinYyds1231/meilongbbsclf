@@ -1,6 +1,5 @@
 // functions/utils/db.js
-// 纯内存存储，适用于 Cloudflare Pages Functions
-
+// 内存存储（每个实例独立，跨请求不共享，但保留接口）
 let users = [];
 
 export function getUsers() {

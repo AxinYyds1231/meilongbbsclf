@@ -13,25 +13,24 @@ export async function onRequest(context) {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
-    // 获取 Cookie 头
-    const cookieHeader = request.headers.get('Cookie') || '';
-    console.log('Cookie 原始值:', cookieHeader); // 调试日志
+    if (request.method !== 'GET') {
+        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
+            status: 405,
+            headers: CORS_HEADERS
+        });
+    }
 
-    // 尝试从 Cookie 中提取 session
+    const cookieHeader = request.headers.get('Cookie') || '';
     const sessionMatch = cookieHeader.match(/session=([^;]+)/);
 
     if (!sessionMatch) {
-        return new Response(JSON.stringify({
-            error: '未登录',
-            cookie_received: cookieHeader || '(无)'
-        }), {
+        return new Response(JSON.stringify({ error: '未登录' }), {
             status: 401,
             headers: CORS_HEADERS
         });
     }
 
     try {
-        // 解码 session
         const sessionData = JSON.parse(Buffer.from(sessionMatch[1], 'base64').toString());
         return new Response(JSON.stringify({
             user: sessionData
@@ -40,10 +39,7 @@ export async function onRequest(context) {
             headers: CORS_HEADERS
         });
     } catch (error) {
-        return new Response(JSON.stringify({
-            error: '会话无效',
-            detail: error.message
-        }), {
+        return new Response(JSON.stringify({ error: '会话无效' }), {
             status: 401,
             headers: CORS_HEADERS
         });

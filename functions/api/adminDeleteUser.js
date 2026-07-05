@@ -1,6 +1,4 @@
-// cloud-functions/api/adminDeleteUser.js
-import { getUsers, saveUsers } from '../utils/db.js';
-
+// functions/api/adminDeleteUser.js
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -22,9 +20,9 @@ export async function onRequest(context) {
         });
     }
 
-    // 检查管理员登录状态
-    const cookie = request.headers.get('Cookie') || '';
-    const sessionMatch = cookie.match(/adminSession=([^;]+)/);
+    // 简单检查管理员身份
+    const cookieHeader = request.headers.get('Cookie') || '';
+    const sessionMatch = cookieHeader.match(/adminSession=([^;]+)/);
     if (!sessionMatch) {
         return new Response(JSON.stringify({ error: '未登录' }), {
             status: 401,
@@ -41,36 +39,16 @@ export async function onRequest(context) {
             });
         }
 
-        // 获取要删除的 UID
-        const formData = await request.formData();
-        const uid = formData.get('uid');
-        if (!uid) {
-            return new Response(JSON.stringify({ error: '缺少 UID 参数' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
-        }
-
-        // 读取用户列表，过滤掉该 UID
-        let users = getUsers();
-        const existed = users.find(u => u.uid === uid);
-        if (!existed) {
-            return new Response(JSON.stringify({ error: '用户不存在' }), {
-                status: 404,
-                headers: CORS_HEADERS
-            });
-        }
-
-        users = users.filter(u => u.uid !== uid);
-        saveUsers(users);
-
-        return new Response(JSON.stringify({ success: true, message: '用户已删除' }), {
-            status: 200,
+        // 暂未实现删除逻辑
+        return new Response(JSON.stringify({
+            error: '删除功能暂未开放'
+        }), {
+            status: 501,
             headers: CORS_HEADERS
         });
     } catch (error) {
-        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), {
-            status: 500,
+        return new Response(JSON.stringify({ error: '会话无效' }), {
+            status: 401,
             headers: CORS_HEADERS
         });
     }

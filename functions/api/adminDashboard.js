@@ -1,6 +1,4 @@
-// cloud-functions/api/adminDashboard.js
-import { getUsers } from '../utils/db.js';
-
+// functions/api/adminDashboard.js
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -22,8 +20,8 @@ export async function onRequest(context) {
         });
     }
 
-    const cookie = request.headers.get('Cookie') || '';
-    const sessionMatch = cookie.match(/adminSession=([^;]+)/);
+    const cookieHeader = request.headers.get('Cookie') || '';
+    const sessionMatch = cookieHeader.match(/adminSession=([^;]+)/);
 
     if (!sessionMatch) {
         return new Response(JSON.stringify({ error: '未登录' }), {
@@ -41,20 +39,13 @@ export async function onRequest(context) {
             });
         }
 
-        const users = getUsers();
-        // 返回所有字段，包括密码（明文，注意安全）
-        const userList = users.map(u => ({
-            uid: u.uid,
-            name: u.name,
-            gender: u.gender,
-            password: u.password   // ← 明文密码（仅演示）
-        }));
-        return new Response(JSON.stringify({ users: userList }), {
+        // 暂时返回空列表（后续可以集成内存存储）
+        return new Response(JSON.stringify({ users: [] }), {
             status: 200,
             headers: CORS_HEADERS
         });
     } catch (error) {
-        return new Response(JSON.stringify({ error: '会话无效', detail: error.message }), {
+        return new Response(JSON.stringify({ error: '会话无效' }), {
             status: 401,
             headers: CORS_HEADERS
         });
