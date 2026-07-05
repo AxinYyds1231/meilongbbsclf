@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>管理员登录</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>👑 管理员登录</h1>
+        <div id="error" class="error" style="display:none;"></div>
+        <form id="adminLoginForm">
+            <input type="password" id="password" placeholder="管理员密码" required>
+            <button type="submit">登录</button>
+        </form>
+        <p><a href="/login.html">返回用户登录</a></p>
+    </div>
+    <script>
+        document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const password = document.getElementById('password').value;
+            const errorEl = document.getElementById('error');
+            errorEl.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('password', password);
+
+            try {
+                const response = await fetch('/api/adminLogin', {
+                    method: 'POST',
+                    credentials: 'include',   // ← 关键修改
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    window.location.href = '/adminDashboard.html';
+                } else {
+                    errorEl.textContent = result.error || result.detail || '登录失败';
+                    errorEl.style.display = 'block';
+                }
+            } catch (err) {
+                errorEl.textContent = '网络错误，请重试';
+                errorEl.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

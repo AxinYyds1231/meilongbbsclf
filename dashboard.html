@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>用户面板</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎉 欢迎，<span id="username">用户</span>！</h1>
+        <p><strong>您的UID：</strong><span id="userUid"></span></p>
+        <button onclick="logout()" style="margin-top:20px;">退出登录</button>
+    </div>
+    <script>
+        async function loadUser() {
+            try {
+                const res = await fetch('/api/user', {
+                    credentials: 'include'   // ← 关键修改
+                });
+                if (res.status === 401) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+                const data = await res.json();
+                document.getElementById('username').innerText = data.user.name;
+                document.getElementById('userUid').innerText = data.user.uid;
+            } catch (err) {
+                window.location.href = '/login.html';
+            }
+        }
+        async function logout() {
+            await fetch('/api/logout', {
+                credentials: 'include'   // ← 关键修改
+            });
+            window.location.href = '/login.html';
+        }
+        loadUser();
+    </script>
+</body>
+</html>

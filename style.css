@@ -1,0 +1,15 @@
+body { font-family: Arial, sans-serif; background: #f0f2f5; margin: 0; padding: 20px; }
+.container { max-width: 400px; margin: 60px auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+h1 { text-align: center; color: #1a3c6e; }
+h2 { text-align: center; color: #333; font-size: 1.2em; }
+input, select, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+button { background: #1a3c6e; color: white; border: none; cursor: pointer; font-weight: bold; }
+button:hover { background: #2a5a8e; }
+.error { color: red; background: #ffe6e6; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+.success { color: green; background: #e6ffe6; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
+a { color: #1a3c6e; text-decoration: none; }
+a:hover { text-decoration: underline; }
+p { text-align: center; margin-top: 15px; }
+table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+th { background-color: #f2f2f2; }

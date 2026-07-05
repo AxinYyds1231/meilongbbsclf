@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>梅陇中学论坛 - 注册</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📝 注册新账号</h1>
+        <div id="error" class="error" style="display:none;"></div>
+        <div id="success" class="success" style="display:none;"></div>
+        <form id="registerForm">
+            <input type="text" id="uid" placeholder="UID（如 ml20300323）" required>
+            <input type="text" id="name" placeholder="真实姓名" required>
+            <select id="gender" required>
+                <option value="">选择性别</option>
+                <option value="男">男</option>
+                <option value="女">女</option>
+            </select>
+            <input type="password" id="password" placeholder="密码（大小写+数字，≥8位）" required>
+            <input type="password" id="confirmPassword" placeholder="确认密码" required>
+            <button type="submit">注册</button>
+        </form>
+        <p>已有账号？<a href="/login.html">去登录</a></p>
+    </div>
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const uid = document.getElementById('uid').value;
+            const name = document.getElementById('name').value;
+            const gender = document.getElementById('gender').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorEl = document.getElementById('error');
+            const successEl = document.getElementById('success');
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('uid', uid);
+            formData.append('name', name);
+            formData.append('gender', gender);
+            formData.append('password', password);
+            formData.append('confirmPassword', confirmPassword);
+
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    credentials: 'include',   // ← 关键修改
+                    body: formData
+                });
+                const result = await response.json();
+                if (result.success) {
+                    successEl.textContent = '注册成功！3秒后跳转到登录页...';
+                    successEl.style.display = 'block';
+                    setTimeout(() => {
+                        window.location.href = '/login.html';
+                    }, 3000);
+                } else {
+                    errorEl.textContent = result.error || result.detail || '注册失败';
+                    errorEl.style.display = 'block';
+                }
+            } catch (err) {
+                errorEl.textContent = '网络错误，请重试';
+                errorEl.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

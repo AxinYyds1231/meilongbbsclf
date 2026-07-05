@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>管理后台</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        /* 额外样式让表格可滚动 */
+        .table-wrapper { max-height: 400px; overflow-y: auto; }
+        .delete-btn { background: #d9534f; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+        .delete-btn:hover { background: #c9302c; }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 700px;">
+        <h1>👥 注册用户列表</h1>
+        <div id="error" class="error" style="display:none;"></div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>UID</th>
+                        <th>姓名</th>
+                        <th>性别</th>
+                        <th>密码</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="userList">
+                    <tr><td colspan="5">加载中...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <button onclick="logoutAdmin()" style="margin-top:20px;">退出管理</button>
+        <p><a href="/login.html">返回用户登录</a></p>
+    </div>
+    <script>
+        async function loadAdminData() {
+            try {
+                const res = await fetch('/api/adminDashboard', {
+                    credentials: 'include'
+                });
+                if (res.status === 401 || res.status === 403) {
+                    window.location.href = '/adminLogin.html';
+                    return;
+                }
+                const data = await res.json();
+                const tbody = document.getElementById('userList');
+                if (data.users.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5">暂无注册用户</td></tr>';
+                    return;
+                }
+                let html = '';
+                data.users.forEach(u => {
+                    html += `
+                        <tr>
+                            <td>${u.uid}</td>
+                            <td>${u.name}</td>
+                            <td>${u.gender}</td>
+                            <td><span style="font-family: monospace; background: #f4f4f4; padding: 0 4px;">${u.password}</span></td>
+                            <td><button class="delete-btn" data-uid="${u.uid}">删除</button></td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+
+                // 给所有删除按钮绑定事件
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const uid = this.dataset.uid;
+                        if (!confirm(`确定要删除用户 ${uid} 吗？此操作不可恢复！`)) return;
+                        try {
+                            const formData = new FormData();
+                            formData.append('uid', uid);
+                            const res = await fetch('/api/adminDeleteUser', {
+                                method: 'POST',
+                                credentials: 'include',
+                                body: formData
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                alert('删除成功！');
+                                loadAdminData();  // 刷新列表
+                            } else {
+                                alert('删除失败：' + (result.error || '未知错误'));
+                            }
+                        } catch (err) {
+                            alert('网络错误，请重试');
+                        }
+                    });
+                });
+            } catch (err) {
+                document.getElementById('error').textContent = '加载失败，请刷新重试';
+                document.getElementById('error').style.display = 'block';
+            }
+        }
+
+        async function logoutAdmin() {
+            document.cookie = 'adminSession=; Path=/; Max-Age=0';
+            window.location.href = '/adminLogin.html';
+        }
+
+        loadAdminData();
+    </script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+{
+  "name": "meilongbbs",
+  "version": "1.0.0",
+  "description": "梅陇中学论坛登录注册",
+  "type": "module",
+  "scripts": {
+    "build": "echo 'No build needed'"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
