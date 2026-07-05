@@ -1,4 +1,4 @@
-// cloud-functions/api/user.js
+// functions/api/user.js
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -13,18 +13,17 @@ export async function onRequest(context) {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
-    if (request.method !== 'GET') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: CORS_HEADERS
-        });
-    }
+    // 获取所有 Cookie
+    const cookieHeader = request.headers.get('Cookie') || '';
+    console.log('收到 Cookie:', cookieHeader); // 调试日志
 
-    const cookie = request.headers.get('Cookie') || '';
-    const sessionMatch = cookie.match(/session=([^;]+)/);
-
+    // 解析 session
+    const sessionMatch = cookieHeader.match(/session=([^;]+)/);
     if (!sessionMatch) {
-        return new Response(JSON.stringify({ error: '未登录' }), {
+        return new Response(JSON.stringify({ 
+            error: '未登录',
+            cookie: cookieHeader 
+        }), {
             status: 401,
             headers: CORS_HEADERS
         });
@@ -32,12 +31,17 @@ export async function onRequest(context) {
 
     try {
         const sessionData = JSON.parse(Buffer.from(sessionMatch[1], 'base64').toString());
-        return new Response(JSON.stringify({ user: sessionData }), {
+        return new Response(JSON.stringify({ 
+            user: sessionData 
+        }), {
             status: 200,
             headers: CORS_HEADERS
         });
     } catch (error) {
-        return new Response(JSON.stringify({ error: '会话无效', detail: error.message }), {
+        return new Response(JSON.stringify({ 
+            error: '会话无效',
+            detail: error.message 
+        }), {
             status: 401,
             headers: CORS_HEADERS
         });

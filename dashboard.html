@@ -15,22 +15,25 @@
         async function loadUser() {
             try {
                 const res = await fetch('/api/user', {
-                    credentials: 'include'   // ← 关键修改
+                    credentials: 'include'
                 });
+                console.log('状态码:', res.status);
                 if (res.status === 401) {
-                    window.location.href = '/login.html';
-                    return;
+                    document.getElementById('username').innerText = '(未登录)';
+                    document.getElementById('userUid').innerText = '请重新登录';
+                    return; // ← 不再跳转，只是显示提示
                 }
                 const data = await res.json();
                 document.getElementById('username').innerText = data.user.name;
                 document.getElementById('userUid').innerText = data.user.uid;
             } catch (err) {
-                window.location.href = '/login.html';
+                document.getElementById('username').innerText = '(加载失败)';
+                document.getElementById('userUid').innerText = err.message;
             }
         }
         async function logout() {
             await fetch('/api/logout', {
-                credentials: 'include'   // ← 关键修改
+                credentials: 'include'
             });
             window.location.href = '/login.html';
         }
