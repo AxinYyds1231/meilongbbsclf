@@ -9,6 +9,11 @@ const CORS_HEADERS = {
 export async function onRequest(context) {
     const { request } = context;
 
+    // 处理预检请求
+    if (request.method === 'OPTIONS') {
+        return new Response(null, { status: 204, headers: CORS_HEADERS });
+    }
+
     // 只允许 POST
     if (request.method !== 'POST') {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
@@ -23,6 +28,7 @@ export async function onRequest(context) {
         const uid = formData.get('uid');
         const password = formData.get('password');
 
+        // 返回收到的数据（测试用）
         return new Response(JSON.stringify({
             success: true,
             received: { uid, password }
@@ -33,7 +39,8 @@ export async function onRequest(context) {
     } catch (error) {
         return new Response(JSON.stringify({
             error: '解析请求失败',
-            detail: error.message
+            detail: error.message,
+            stack: error.stack
         }), {
             status: 500,
             headers: CORS_HEADERS
