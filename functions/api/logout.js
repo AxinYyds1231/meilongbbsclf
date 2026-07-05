@@ -11,7 +11,6 @@ export async function onRequest(context) {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
-    // 清除 session cookie
     const clearSession = 'session=; Path=/; Max-Age=0';
     const clearAdmin = 'adminSession=; Path=/; Max-Age=0';
 

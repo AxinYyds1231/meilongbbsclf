@@ -31,7 +31,7 @@ export async function onRequest(context) {
     }
 
     try {
-        const sessionData = JSON.parse(Buffer.from(sessionMatch[1], 'base64').toString());
+        const sessionData = JSON.parse(atob(sessionMatch[1]));
         if (!sessionData.isAdmin) {
             return new Response(JSON.stringify({ error: '无权限' }), {
                 status: 403,
@@ -39,7 +39,6 @@ export async function onRequest(context) {
             });
         }
 
-        // 暂时返回空列表（后续可以集成内存存储）
         return new Response(JSON.stringify({ users: [] }), {
             status: 200,
             headers: CORS_HEADERS

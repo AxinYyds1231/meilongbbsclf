@@ -1,10 +1,8 @@
 // functions/api/login.js
-// 极简安全版 - 不导入任何外部文件，不使用任何外部变量
-
 export async function onRequest(context) {
     const { request } = context;
 
-    // 处理 OPTIONS（CORS 预检）
+    // 处理 OPTIONS 预检
     if (request.method === 'OPTIONS') {
         return new Response(null, {
             status: 204,
@@ -16,7 +14,6 @@ export async function onRequest(context) {
         });
     }
 
-    // 只允许 POST
     if (request.method !== 'POST') {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
             status: 405,
@@ -28,7 +25,6 @@ export async function onRequest(context) {
     }
 
     try {
-        // 解析表单数据
         const formData = await request.formData();
         const uid = formData.get('uid');
         const password = formData.get('password');
@@ -41,9 +37,9 @@ export async function onRequest(context) {
         const user = validUsers.find(u => u.uid === uid && u.pwd === password);
 
         if (user) {
-            // 登录成功，创建 session
             const sessionData = JSON.stringify({ uid: user.uid, name: user.name });
-            const encoded = Buffer.from(sessionData).toString('base64');
+            // 使用 btoa 替代 Buffer
+            const encoded = btoa(sessionData);
             const cookie = `session=${encoded}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
 
             return new Response(JSON.stringify({
@@ -58,10 +54,7 @@ export async function onRequest(context) {
                 }
             });
         } else {
-            // 用户名或密码错误
-            return new Response(JSON.stringify({
-                error: '账号或密码错误'
-            }), {
+            return new Response(JSON.stringify({ error: '账号或密码错误' }), {
                 status: 401,
                 headers: {
                     'Content-Type': 'application/json',
@@ -70,7 +63,6 @@ export async function onRequest(context) {
             });
         }
     } catch (err) {
-        // 捕获任何异常，返回详细错误
         return new Response(JSON.stringify({
             error: '服务器内部错误',
             detail: err.message,

@@ -31,10 +31,9 @@ export async function onRequest(context) {
     }
 
     try {
-        const sessionData = JSON.parse(Buffer.from(sessionMatch[1], 'base64').toString());
-        return new Response(JSON.stringify({
-            user: sessionData
-        }), {
+        // 使用 atob 解码
+        const sessionData = JSON.parse(atob(sessionMatch[1]));
+        return new Response(JSON.stringify({ user: sessionData }), {
             status: 200,
             headers: CORS_HEADERS
         });

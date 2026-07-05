@@ -28,8 +28,8 @@ export async function onRequest(context) {
 
         if (password === ADMIN_PASSWORD) {
             const sessionData = JSON.stringify({ isAdmin: true });
-            const encodedSession = Buffer.from(sessionData).toString('base64');
-            const cookie = `adminSession=${encodedSession}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
+            const encoded = btoa(sessionData);
+            const cookie = `adminSession=${encoded}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
 
             return new Response(JSON.stringify({ success: true }), {
                 status: 200,
