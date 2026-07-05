@@ -7,11 +7,36 @@ const CORS_HEADERS = {
 };
 
 export async function onRequest(context) {
-    return new Response(JSON.stringify({
-        success: true,
-        message: 'login.js 工作正常！'
-    }), {
-        status: 200,
-        headers: CORS_HEADERS
-    });
+    const { request } = context;
+
+    // 只允许 POST
+    if (request.method !== 'POST') {
+        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
+            status: 405,
+            headers: CORS_HEADERS
+        });
+    }
+
+    try {
+        // 解析 formData
+        const formData = await request.formData();
+        const uid = formData.get('uid');
+        const password = formData.get('password');
+
+        return new Response(JSON.stringify({
+            success: true,
+            received: { uid, password }
+        }), {
+            status: 200,
+            headers: CORS_HEADERS
+        });
+    } catch (error) {
+        return new Response(JSON.stringify({
+            error: '解析请求失败',
+            detail: error.message
+        }), {
+            status: 500,
+            headers: CORS_HEADERS
+        });
+    }
 }
