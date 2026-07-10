@@ -13,10 +13,12 @@
         .btn-reject { background: #d9534f; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; }
         .btn-approve:hover { background: #449d44; }
         .btn-reject:hover { background: #c9302c; }
-        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; }
+        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
         .nav-links a { color: #1a3c6e; text-decoration: none; }
         .nav-links a:hover { text-decoration: underline; }
         .empty { text-align: center; color: #999; padding: 30px 0; }
+        .attachment-link { color: #337ab7; text-decoration: none; margin-right: 6px; }
+        .attachment-link:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -48,12 +50,21 @@
                 let html = '';
                 data.posts.forEach(p => {
                     const time = new Date(p.createdAt).toLocaleString('zh-CN');
+                    let attHtml = '';
+                    if (p.attachments && p.attachments.length > 0) {
+                        attHtml = '<div style="font-size:0.85em;color:#888;">📎 附件：';
+                        p.attachments.forEach(att => {
+                            const dataUri = `data:${att.type};base64,${att.data}`;
+                            attHtml += `<a href="${dataUri}" download="${att.name}" class="attachment-link">${att.name}</a>`;
+                        });
+                        attHtml += '</div>';
+                    }
                     html += `
                         <div class="post-item">
                             <div class="post-title">${p.title}</div>
                             <div class="post-meta">✍️ ${p.authorName}  ·  🕒 ${time}</div>
                             <div class="post-content">${p.content}</div>
-                            ${p.attachments.length > 0 ? `<div style="font-size:0.85em;color:#888;">📎 附件 ${p.attachments.length} 个</div>` : ''}
+                            ${attHtml}
                             <div style="margin-top:6px;">
                                 <button class="btn-approve" data-id="${p.id}" data-action="approve">✅ 通过</button>
                                 <button class="btn-reject" data-id="${p.id}" data-action="reject">❌ 拒绝</button>
@@ -63,7 +74,6 @@
                 });
                 container.innerHTML = html;
 
-                // 绑定审核按钮
                 document.querySelectorAll('.btn-approve, .btn-reject').forEach(btn => {
                     btn.addEventListener('click', async function() {
                         const postId = this.dataset.id;
@@ -81,7 +91,7 @@
                             const result = await res.json();
                             if (result.success) {
                                 alert('操作成功！');
-                                loadPendingPosts(); // 刷新列表
+                                loadPendingPosts();
                             } else {
                                 alert(result.error || '操作失败');
                             }

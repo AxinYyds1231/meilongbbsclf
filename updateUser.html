@@ -5,7 +5,7 @@
     <title>修改个人信息</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; }
+        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
         .nav-links a { color: #1a3c6e; text-decoration: none; }
         .nav-links a:hover { text-decoration: underline; }
     </style>
@@ -49,7 +49,6 @@
     </div>
 
     <script>
-        // 加载当前用户信息
         async function loadUser() {
             try {
                 const res = await fetch('/api/user', { credentials: 'include' });
@@ -61,8 +60,8 @@
                 const user = data.user;
                 document.getElementById('name').value = user.name || '';
                 document.getElementById('gender').value = user.gender || '';
-                // grade, class 需要从数据库加载，这里暂不处理，后续改进
-                // 我们可以再调用一个接口获取完整信息，但为了简化，先这样
+                // 由于 session 不包含 grade/class，用户需重新选择，或通过额外接口获取。
+                // 此处可调用 /api/adminDashboard?uid=... 但需要管理员权限，简化：让用户重新选择。
             } catch (err) {
                 console.error(err);
             }

@@ -25,6 +25,9 @@
         .status-pending { background: #fff3cd; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
         .status-rejected { background: #f8d7da; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
         .status-approved { background: #d4edda; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
+        .btn-delete-post { background: #d9534f; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; margin-top: 8px; }
+        .btn-delete-post:hover { background: #c9302c; }
+        .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
     </style>
 </head>
 <body>
@@ -41,6 +44,27 @@
         const urlParams = new URLSearchParams(window.location.search);
         const postId = urlParams.get('id');
 
+        async function getCurrentUser() {
+            try {
+                const res = await fetch('/api/user', { credentials: 'include' });
+                if (res.status === 200) {
+                    const data = await res.json();
+                    return data.user;
+                }
+            } catch (e) {}
+            return null;
+        }
+
+        async function checkAdmin() {
+            try {
+                const res = await fetch('/api/adminDashboard', { credentials: 'include' });
+                if (res.status === 200) {
+                    return true;
+                }
+            } catch (e) {}
+            return false;
+        }
+
         async function loadPost() {
             if (!postId) {
                 document.getElementById('postContainer').innerHTML = '<div style="color:red;">缺少帖子ID</div>';
@@ -55,6 +79,16 @@
                 const data = await res.json();
                 const post = data.post;
                 const time = new Date(post.createdAt).toLocaleString('zh-CN');
+
+                // 获取当前用户信息
+                const currentUser = await getCurrentUser();
+                const isAdmin = await checkAdmin();
+
+                // 权限控制：作者或管理员可删除
+                let deleteBtnHtml = '';
+                if (currentUser && (currentUser.uid === post.authorUid || isAdmin)) {
+                    deleteBtnHtml = `<button id="deletePostBtn" class="btn-delete-post">🗑️ 删除帖子</button>`;
+                }
 
                 // 状态提示
                 let statusHtml = '';
@@ -84,6 +118,7 @@
                         <div class="post-meta">✍️ ${post.authorName}  ·  🕒 ${time}</div>
                         <div class="post-content">${post.content.replace(/\n/g, '<br>')}</div>
                         ${attachmentsHtml}
+                        <div class="btn-group">${deleteBtnHtml}</div>
                     </div>
                     <h3>💬 全部回复 (${post.replies.length})</h3>
                     <div id="replies">
@@ -116,7 +151,7 @@
                     document.getElementById('replyCharCount').textContent = this.value.length;
                 });
 
-                // 绑定回复事件
+                // 回复事件
                 document.getElementById('replyBtn').addEventListener('click', async function() {
                     const content = document.getElementById('replyContent').value.trim();
                     if (!content) {
@@ -139,7 +174,7 @@
                         const result = await res.json();
                         if (result.success) {
                             alert('回复成功！');
-                            loadPost(); // 刷新页面
+                            loadPost();
                         } else {
                             alert(result.error || '回复失败');
                         }
@@ -147,6 +182,32 @@
                         alert('网络错误，请重试');
                     }
                 });
+
+                // 删除帖子事件
+                const deleteBtn = document.getElementById('deletePostBtn');
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', async function() {
+                        if (!confirm('确定要删除此帖子吗？此操作不可恢复！')) return;
+                        const formData = new FormData();
+                        formData.append('postId', postId);
+                        try {
+                            const res = await fetch('/api/deletePost', {
+                                method: 'POST',
+                                credentials: 'include',
+                                body: formData
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                alert('删除成功！');
+                                window.location.href = '/index.html';
+                            } else {
+                                alert(result.error || '删除失败');
+                            }
+                        } catch (err) {
+                            alert('网络错误，请重试');
+                        }
+                    });
+                }
             } catch (err) {
                 document.getElementById('postContainer').innerHTML = '<div style="color:red;">加载失败，请刷新</div>';
             }

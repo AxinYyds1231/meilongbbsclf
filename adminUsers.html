@@ -25,7 +25,7 @@
         }
         .modal-content input, .modal-content select { width: 100%; margin: 6px 0; padding: 6px; }
         .modal-content button { margin-top: 10px; }
-        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; }
+        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
         .nav-links a { color: #1a3c6e; text-decoration: none; }
         .nav-links a:hover { text-decoration: underline; }
     </style>
@@ -129,7 +129,6 @@
             });
             tbody.innerHTML = html;
 
-            // 绑定编辑事件
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const uid = this.dataset.uid;
@@ -143,8 +142,8 @@
             document.getElementById('editUid').value = user.uid;
             document.getElementById('editName').value = user.name;
             document.getElementById('editGender').value = user.gender;
-            document.getElementById('editGrade').value = user.grade;
-            document.getElementById('editClass').value = user.class;
+            document.getElementById('editGrade').value = user.grade || '6';
+            document.getElementById('editClass').value = user.class || '1';
             document.getElementById('editModal').style.display = 'flex';
         }
 
@@ -181,7 +180,7 @@
                 if (result.success) {
                     alert('修改成功！');
                     closeModal();
-                    loadUsers(); // 刷新列表
+                    loadUsers();
                 } else {
                     alert(result.error || '修改失败');
                 }
@@ -190,7 +189,6 @@
             }
         });
 
-        // 点击模态框外部关闭
         document.getElementById('editModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });

@@ -57,7 +57,7 @@ export async function onRequest(context) {
             authorName: p.authorName,
             content: p.content.substring(0, 100) + (p.content.length > 100 ? '...' : ''),
             createdAt: p.createdAt,
-            attachments: p.attachments || []
+            attachments: p.attachments || []  // 包含完整附件信息
         }));
 
         return new Response(JSON.stringify({ posts: list }), {
