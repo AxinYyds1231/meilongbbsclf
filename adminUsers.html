@@ -66,6 +66,7 @@
                     <option value="男">男</option>
                     <option value="女">女</option>
                 </select>
+                <!-- 年级下拉：value 用数字 -->
                 <select id="editGrade">
                     <option value="6">六年级</option>
                     <option value="7">七年级</option>
@@ -142,8 +143,9 @@
             document.getElementById('editUid').value = user.uid;
             document.getElementById('editName').value = user.name;
             document.getElementById('editGender').value = user.gender;
-            document.getElementById('editGrade').value = user.grade || '6';
-            document.getElementById('editClass').value = user.class || '1';
+            // 设置年级下拉为数字（若数据库中年级是数字，直接赋值；若为空则默认为6）
+            document.getElementById('editGrade').value = user.grade || 6;
+            document.getElementById('editClass').value = user.class || 1;
             document.getElementById('editModal').style.display = 'flex';
         }
 

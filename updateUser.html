@@ -26,6 +26,7 @@
                 <option value="男">男</option>
                 <option value="女">女</option>
             </select>
+            <!-- 年级下拉：value 用数字 -->
             <select id="grade" required>
                 <option value="">选择年级</option>
                 <option value="6">六年级</option>
@@ -33,6 +34,7 @@
                 <option value="8">八年级</option>
                 <option value="9">九年级</option>
             </select>
+            <!-- 班级下拉 -->
             <select id="class" required>
                 <option value="">选择班级</option>
                 <option value="1">1班</option><option value="2">2班</option>
@@ -60,8 +62,8 @@
                 const user = data.user;
                 document.getElementById('name').value = user.name || '';
                 document.getElementById('gender').value = user.gender || '';
-                // 由于 session 不包含 grade/class，用户需重新选择，或通过额外接口获取。
-                // 此处可调用 /api/adminDashboard?uid=... 但需要管理员权限，简化：让用户重新选择。
+                // 年级和班级需要用户自己重新选择，因为 session 不包含这些信息
+                // 也可以额外调用接口获取，但为简化，让用户重新选
             } catch (err) {
                 console.error(err);
             }
@@ -87,7 +89,7 @@
             const formData = new FormData();
             formData.append('name', name);
             formData.append('gender', gender);
-            formData.append('grade', grade);
+            formData.append('grade', grade);   // 这里传的是数字字符串
             formData.append('class', cls);
 
             try {
