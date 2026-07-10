@@ -1,5 +1,5 @@
 // functions/api/post.js
-import { getPostById } from '../utils/db.js';
+import { createDb } from '../utils/db.js';
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -9,7 +9,8 @@ const CORS_HEADERS = {
 };
 
 export async function onRequest(context) {
-    const { request } = context;
+    const { request, env } = context;
+    const db = createDb(env.USER_DATA);
 
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -31,7 +32,7 @@ export async function onRequest(context) {
         });
     }
 
-    const post = await getPostById(id);  // 加 await
+    const post = await db.getPostById(id);
     if (!post) {
         return new Response(JSON.stringify({ error: '帖子不存在' }), {
             status: 404,

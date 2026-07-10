@@ -1,5 +1,5 @@
 // functions/api/createPost.js
-import { createPost } from '../utils/db.js';
+import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
     const binary = atob(base64);
@@ -18,7 +18,8 @@ const CORS_HEADERS = {
 };
 
 export async function onRequest(context) {
-    const { request } = context;
+    const { request, env } = context;
+    const db = createDb(env.USER_DATA);
 
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -55,7 +56,7 @@ export async function onRequest(context) {
             });
         }
 
-        const post = await createPost(title, content, uid, name);  // 加 await
+        const post = await db.createPost(title, content, uid, name);
         return new Response(JSON.stringify({ success: true, post }), {
             status: 200,
             headers: CORS_HEADERS

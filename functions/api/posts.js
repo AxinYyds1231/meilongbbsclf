@@ -1,5 +1,5 @@
 // functions/api/posts.js
-import { getPosts } from '../utils/db.js';
+import { createDb } from '../utils/db.js';
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -9,7 +9,8 @@ const CORS_HEADERS = {
 };
 
 export async function onRequest(context) {
-    const { request } = context;
+    const { request, env } = context;
+    const db = createDb(env.USER_DATA);
 
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -22,7 +23,7 @@ export async function onRequest(context) {
         });
     }
 
-    const posts = await getPosts();  // 加 await
+    const posts = await db.getPosts();
     const list = posts.map(p => ({
         id: p.id,
         title: p.title,

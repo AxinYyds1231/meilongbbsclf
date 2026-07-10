@@ -1,5 +1,5 @@
 // functions/api/register.js
-import { getUsers, saveUsers, findUserByUid, isValidUID, isValidPassword, isValidGrade, isValidClass } from '../utils/db.js';
+import { createDb } from '../utils/db.js';
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -9,7 +9,8 @@ const CORS_HEADERS = {
 };
 
 export async function onRequest(context) {
-    const { request } = context;
+    const { request, env } = context;
+    const db = createDb(env.USER_DATA);
 
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -46,42 +47,42 @@ export async function onRequest(context) {
             });
         }
 
-        if (!isValidUID(uid)) {
+        if (!db.isValidUID(uid)) {
             return new Response(JSON.stringify({ error: 'UID格式错误，请参照：ml(或ms)+毕业年份+班级+学号，例如ml20300323' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        if (!isValidPassword(password)) {
+        if (!db.isValidPassword(password)) {
             return new Response(JSON.stringify({ error: '密码必须包含大小写字母和数字，且长度至少8位' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        if (!isValidGrade(grade)) {
+        if (!db.isValidGrade(grade)) {
             return new Response(JSON.stringify({ error: '年级必须是6~9之间的数字' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        if (!isValidClass(cls)) {
+        if (!db.isValidClass(cls)) {
             return new Response(JSON.stringify({ error: '班级必须是1~13之间的数字' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        if (await findUserByUid(uid)) {  // 加 await
+        if (await db.findUserByUid(uid)) {
             return new Response(JSON.stringify({ error: '该UID已被注册' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        const users = await getUsers();  // 加 await
+        const users = await db.getUsers();
         users.push({
             uid,
             name,
@@ -90,7 +91,7 @@ export async function onRequest(context) {
             grade: parseInt(grade),
             class: parseInt(cls)
         });
-        await saveUsers(users);  // 加 await
+        await db.saveUsers(users);
 
         return new Response(JSON.stringify({ success: true, message: '注册成功' }), {
             status: 200,

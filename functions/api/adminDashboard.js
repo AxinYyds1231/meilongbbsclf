@@ -1,5 +1,5 @@
 // functions/api/adminDashboard.js
-import { getUsers } from '../utils/db.js';
+import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
     const binary = atob(base64);
@@ -18,7 +18,8 @@ const CORS_HEADERS = {
 };
 
 export async function onRequest(context) {
-    const { request } = context;
+    const { request, env } = context;
+    const db = createDb(env.USER_DATA);
 
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -50,7 +51,7 @@ export async function onRequest(context) {
             });
         }
 
-        const users = await getUsers();  // 加 await
+        const users = await db.getUsers();
         const userList = users.map(u => ({
             uid: u.uid,
             name: u.name,

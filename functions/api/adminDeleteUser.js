@@ -1,5 +1,5 @@
 // functions/api/adminDeleteUser.js
-import { getUsers, saveUsers } from '../utils/db.js';
+import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
     const binary = atob(base64);
@@ -18,7 +18,8 @@ const CORS_HEADERS = {
 };
 
 export async function onRequest(context) {
-    const { request } = context;
+    const { request, env } = context;
+    const db = createDb(env.USER_DATA);
 
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -58,7 +59,7 @@ export async function onRequest(context) {
             });
         }
 
-        let users = await getUsers();  // 加 await
+        let users = await db.getUsers();
         const index = users.findIndex(u => u.uid === uid);
         if (index === -1) {
             return new Response(JSON.stringify({ error: '用户不存在' }), {
@@ -68,7 +69,7 @@ export async function onRequest(context) {
         }
 
         users.splice(index, 1);
-        await saveUsers(users);  // 加 await
+        await db.saveUsers(users);
 
         return new Response(JSON.stringify({ success: true, message: '已删除' }), {
             status: 200,

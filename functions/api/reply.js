@@ -1,5 +1,5 @@
 // functions/api/reply.js
-import { addReply } from '../utils/db.js';
+import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
     const binary = atob(base64);
@@ -18,7 +18,8 @@ const CORS_HEADERS = {
 };
 
 export async function onRequest(context) {
-    const { request } = context;
+    const { request, env } = context;
+    const db = createDb(env.USER_DATA);
 
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
@@ -55,7 +56,7 @@ export async function onRequest(context) {
             });
         }
 
-        const updatedPost = await addReply(postId, content, uid, name);  // 加 await
+        const updatedPost = await db.addReply(postId, content, uid, name);
         if (!updatedPost) {
             return new Response(JSON.stringify({ error: '帖子不存在' }), {
                 status: 404,

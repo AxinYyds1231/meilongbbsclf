@@ -1,5 +1,5 @@
 // functions/api/login.js
-import { getUsers } from '../utils/db.js';
+import { createDb } from '../utils/db.js';
 
 function utf8ToBase64(str) {
     const bytes = new TextEncoder().encode(str);
@@ -11,7 +11,8 @@ function utf8ToBase64(str) {
 }
 
 export async function onRequest(context) {
-    const { request } = context;
+    const { request, env } = context;
+    const db = createDb(env.USER_DATA); // 从 env 获取 KV
 
     if (request.method === 'OPTIONS') {
         return new Response(null, {
@@ -49,7 +50,7 @@ export async function onRequest(context) {
             });
         }
 
-        const users = await getUsers();  // 加 await
+        const users = await db.getUsers();
         const user = users.find(u => u.uid === uid && u.password === password);
 
         if (user) {
