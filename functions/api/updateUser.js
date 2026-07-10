@@ -10,6 +10,16 @@ function base64ToUtf8(base64) {
     return new TextDecoder().decode(bytes);
 }
 
+// 安全编码：UTF-8 -> base64
+function utf8ToBase64(str) {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -58,7 +68,6 @@ export async function onRequest(context) {
             });
         }
 
-        // 使用兼容验证
         if (!db.isValidGrade(grade)) {
             return new Response(JSON.stringify({ error: '年级必须是6~9' }), {
                 status: 400,
@@ -72,7 +81,6 @@ export async function onRequest(context) {
             });
         }
 
-        // 转换为数字存储
         const gradeNum = parseInt(grade);
         const classNum = parseInt(cls);
 
@@ -90,9 +98,9 @@ export async function onRequest(context) {
             });
         }
 
-        // 更新 session 中的 name
+        // 更新 session 中的 name（使用安全编码）
         const newSessionData = JSON.stringify({ uid: updatedUser.uid, name: updatedUser.name });
-        const encoded = btoa(newSessionData);
+        const encoded = utf8ToBase64(newSessionData);
         const cookie = `session=${encoded}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
 
         return new Response(JSON.stringify({ success: true, user: updatedUser }), {
