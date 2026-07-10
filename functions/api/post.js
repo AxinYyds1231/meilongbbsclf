@@ -31,7 +31,7 @@ export async function onRequest(context) {
         });
     }
 
-    const post = getPostById(id);
+    const post = await getPostById(id);  // 加 await
     if (!post) {
         return new Response(JSON.stringify({ error: '帖子不存在' }), {
             status: 404,

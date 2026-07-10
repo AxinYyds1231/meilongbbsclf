@@ -50,8 +50,7 @@ export async function onRequest(context) {
             });
         }
 
-        const users = getUsers();
-        // 返回所有用户，包含年级和班级
+        const users = await getUsers();  // 加 await
         const userList = users.map(u => ({
             uid: u.uid,
             name: u.name,

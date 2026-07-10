@@ -49,7 +49,7 @@ export async function onRequest(context) {
             });
         }
 
-        const users = getUsers();
+        const users = await getUsers();  // 加 await
         const user = users.find(u => u.uid === uid && u.password === password);
 
         if (user) {

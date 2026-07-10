@@ -58,7 +58,7 @@ export async function onRequest(context) {
             });
         }
 
-        let users = getUsers();
+        let users = await getUsers();  // 加 await
         const index = users.findIndex(u => u.uid === uid);
         if (index === -1) {
             return new Response(JSON.stringify({ error: '用户不存在' }), {
@@ -68,7 +68,7 @@ export async function onRequest(context) {
         }
 
         users.splice(index, 1);
-        saveUsers(users);
+        await saveUsers(users);  // 加 await
 
         return new Response(JSON.stringify({ success: true, message: '已删除' }), {
             status: 200,

@@ -31,7 +31,6 @@ export async function onRequest(context) {
         });
     }
 
-    // 验证登录
     const cookieHeader = request.headers.get('Cookie') || '';
     const sessionMatch = cookieHeader.match(/session=([^;]+)/);
     if (!sessionMatch) {
@@ -56,7 +55,7 @@ export async function onRequest(context) {
             });
         }
 
-        const post = createPost(title, content, uid, name);
+        const post = await createPost(title, content, uid, name);  // 加 await
         return new Response(JSON.stringify({ success: true, post }), {
             status: 200,
             headers: CORS_HEADERS

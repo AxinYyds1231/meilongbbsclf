@@ -22,8 +22,7 @@ export async function onRequest(context) {
         });
     }
 
-    const posts = getPosts();
-    // 返回列表（不包含回复内容，只含回复数）
+    const posts = await getPosts();  // 加 await
     const list = posts.map(p => ({
         id: p.id,
         title: p.title,

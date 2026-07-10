@@ -55,7 +55,7 @@ export async function onRequest(context) {
             });
         }
 
-        const updatedPost = addReply(postId, content, uid, name);
+        const updatedPost = await addReply(postId, content, uid, name);  // 加 await
         if (!updatedPost) {
             return new Response(JSON.stringify({ error: '帖子不存在' }), {
                 status: 404,

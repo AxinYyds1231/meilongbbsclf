@@ -1,20 +1,36 @@
-// functions/utils/db.js
-let users = [];
-let posts = [];
-let postIdCounter = 1;
+// functions/utils/db.js - KV 持久化版本
+// 需要提前在 Cloudflare Pages 中绑定 KV 命名空间，变量名为 USER_DATA
 
-export function getUsers() {
-    return users;
+const USERS_KEY = 'users';
+const POSTS_KEY = 'posts';
+const COUNTER_KEY = 'postCounter';
+
+// -------- 辅助函数 --------
+async function getData(key) {
+    const value = await USER_DATA.get(key, 'json');
+    return value || null;
 }
 
-export function saveUsers(newUsers) {
-    users = newUsers;
+async function setData(key, value) {
+    await USER_DATA.put(key, JSON.stringify(value));
 }
 
-export function findUserByUid(uid) {
+// -------- 用户相关 --------
+export async function getUsers() {
+    const users = await getData(USERS_KEY);
+    return users || [];
+}
+
+export async function saveUsers(users) {
+    await setData(USERS_KEY, users);
+}
+
+export async function findUserByUid(uid) {
+    const users = await getUsers();
     return users.find(u => u.uid === uid);
 }
 
+// -------- 验证函数（同步）--------
 export function isValidUID(uid) {
     const regex = /^(ml|ms)\d{4}\d{2}\d{2}$/;
     if (!regex.test(uid)) return false;
@@ -38,18 +54,24 @@ export function isValidClass(cls) {
     return c >= 1 && c <= 13;
 }
 
-// ============ 帖子相关 ============
-export function getPosts() {
-    return posts;
+// -------- 帖子相关 --------
+export async function getPosts() {
+    const posts = await getData(POSTS_KEY);
+    return posts || [];
 }
 
-export function getPostById(id) {
+export async function getPostById(id) {
+    const posts = await getPosts();
     return posts.find(p => p.id === id);
 }
 
-export function createPost(title, content, authorUid, authorName) {
+export async function createPost(title, content, authorUid, authorName) {
+    const posts = await getPosts();
+    let counter = await getData(COUNTER_KEY);
+    if (counter === null) counter = 1;
+    else counter = parseInt(counter);
     const post = {
-        id: postIdCounter++,
+        id: counter++,
         title,
         content,
         authorUid,
@@ -57,12 +79,15 @@ export function createPost(title, content, authorUid, authorName) {
         createdAt: Date.now(),
         replies: []
     };
-    posts.unshift(post); // 最新在前
+    posts.unshift(post);
+    await setData(POSTS_KEY, posts);
+    await setData(COUNTER_KEY, counter);
     return post;
 }
 
-export function addReply(postId, content, uid, name) {
-    const post = getPostById(postId);
+export async function addReply(postId, content, uid, name) {
+    const posts = await getPosts();
+    const post = posts.find(p => p.id === postId);
     if (!post) return null;
     post.replies.push({
         uid,
@@ -70,9 +95,11 @@ export function addReply(postId, content, uid, name) {
         content,
         createdAt: Date.now()
     });
+    await setData(POSTS_KEY, posts);
     return post;
 }
 
-export function getPostsByUser(uid) {
+export async function getPostsByUser(uid) {
+    const posts = await getPosts();
     return posts.filter(p => p.authorUid === uid);
 }

@@ -74,14 +74,14 @@ export async function onRequest(context) {
             });
         }
 
-        if (findUserByUid(uid)) {
+        if (await findUserByUid(uid)) {  // 加 await
             return new Response(JSON.stringify({ error: '该UID已被注册' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        const users = getUsers();
+        const users = await getUsers();  // 加 await
         users.push({
             uid,
             name,
@@ -90,7 +90,7 @@ export async function onRequest(context) {
             grade: parseInt(grade),
             class: parseInt(cls)
         });
-        saveUsers(users);
+        await saveUsers(users);  // 加 await
 
         return new Response(JSON.stringify({ success: true, message: '注册成功' }), {
             status: 200,
