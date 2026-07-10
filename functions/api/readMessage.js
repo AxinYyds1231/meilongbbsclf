@@ -1,4 +1,4 @@
-// functions/api/uploadAvatar.js
+// functions/api/readMessage.js
 import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
@@ -16,8 +16,6 @@ const CORS_HEADERS = {
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json'
 };
-
-const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2MB
 
 export async function onRequest(context) {
     const { request, env } = context;
@@ -44,50 +42,23 @@ export async function onRequest(context) {
     }
 
     try {
-        const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
-        const uid = sessionData.uid;
-
         const formData = await request.formData();
-        const file = formData.get('avatar');
-        if (!file) {
-            return new Response(JSON.stringify({ error: '未选择图片' }), {
+        const msgId = parseInt(formData.get('msgId'));
+        if (!msgId) {
+            return new Response(JSON.stringify({ error: '缺少消息ID' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        if (!file.type.startsWith('image/')) {
-            return new Response(JSON.stringify({ error: '请上传图片文件' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
-        }
-
-        if (file.size > MAX_AVATAR_SIZE) {
-            return new Response(JSON.stringify({ error: `图片大小不能超过 ${MAX_AVATAR_SIZE / 1024 / 1024}MB` }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
-        }
-
-        const arrayBuffer = await file.arrayBuffer();
-        const bytes = new Uint8Array(arrayBuffer);
-        let binary = '';
-        for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        const base64 = btoa(binary);
-        const avatarData = `data:${file.type};base64,${base64}`;
-
-        const updatedUser = await db.updateUser(uid, { avatar: avatarData });
-        if (!updatedUser) {
-            return new Response(JSON.stringify({ error: '用户不存在' }), {
+        const success = await db.markMessageRead(msgId);
+        if (!success) {
+            return new Response(JSON.stringify({ error: '消息不存在' }), {
                 status: 404,
                 headers: CORS_HEADERS
             });
         }
-
-        return new Response(JSON.stringify({ success: true, avatar: avatarData }), {
+        return new Response(JSON.stringify({ success: true }), {
             status: 200,
             headers: CORS_HEADERS
         });

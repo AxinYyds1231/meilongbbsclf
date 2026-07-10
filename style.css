@@ -13,3 +13,9 @@ p { text-align: center; margin-top: 15px; }
 table { width: 100%; border-collapse: collapse; margin-top: 15px; }
 th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
 th { background-color: #f2f2f2; }
+/* 追加样式 */
+.avatar-small { width: 24px; height: 24px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
+.avatar-img { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 2px solid #ccc; }
+.notif-item.unread { background: #e8f0fe; border-left: 4px solid #1a3c6e; }
+.category-btn { background: #e8e8e8; border: none; padding: 4px 12px; border-radius: 12px; cursor: pointer; margin: 2px; }
+.category-btn.active { background: #1a3c6e; color: white; }

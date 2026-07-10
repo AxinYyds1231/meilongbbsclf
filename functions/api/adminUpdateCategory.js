@@ -1,4 +1,4 @@
-// functions/api/uploadAvatar.js
+// functions/api/adminUpdateCategory.js
 import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
@@ -17,8 +17,6 @@ const CORS_HEADERS = {
     'Content-Type': 'application/json'
 };
 
-const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2MB
-
 export async function onRequest(context) {
     const { request, env } = context;
     const db = createDb(env.USER_DATA);
@@ -35,59 +33,44 @@ export async function onRequest(context) {
     }
 
     const cookieHeader = request.headers.get('Cookie') || '';
-    const sessionMatch = cookieHeader.match(/session=([^;]+)/);
-    if (!sessionMatch) {
-        return new Response(JSON.stringify({ error: '请先登录' }), {
+    const adminMatch = cookieHeader.match(/adminSession=([^;]+)/);
+    if (!adminMatch) {
+        return new Response(JSON.stringify({ error: '未登录' }), {
             status: 401,
             headers: CORS_HEADERS
         });
     }
 
     try {
-        const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
-        const uid = sessionData.uid;
+        const adminData = JSON.parse(base64ToUtf8(adminMatch[1]));
+        if (!adminData.isAdmin) {
+            return new Response(JSON.stringify({ error: '无权限' }), {
+                status: 403,
+                headers: CORS_HEADERS
+            });
+        }
 
         const formData = await request.formData();
-        const file = formData.get('avatar');
-        if (!file) {
-            return new Response(JSON.stringify({ error: '未选择图片' }), {
+        const id = parseInt(formData.get('id'));
+        const name = formData.get('name');
+        const description = formData.get('description') || '';
+
+        if (!id || !name) {
+            return new Response(JSON.stringify({ error: '参数不完整' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        if (!file.type.startsWith('image/')) {
-            return new Response(JSON.stringify({ error: '请上传图片文件' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
-        }
-
-        if (file.size > MAX_AVATAR_SIZE) {
-            return new Response(JSON.stringify({ error: `图片大小不能超过 ${MAX_AVATAR_SIZE / 1024 / 1024}MB` }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
-        }
-
-        const arrayBuffer = await file.arrayBuffer();
-        const bytes = new Uint8Array(arrayBuffer);
-        let binary = '';
-        for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        const base64 = btoa(binary);
-        const avatarData = `data:${file.type};base64,${base64}`;
-
-        const updatedUser = await db.updateUser(uid, { avatar: avatarData });
-        if (!updatedUser) {
-            return new Response(JSON.stringify({ error: '用户不存在' }), {
+        const updated = await db.updateCategory(id, name, description);
+        if (!updated) {
+            return new Response(JSON.stringify({ error: '分类不存在' }), {
                 status: 404,
                 headers: CORS_HEADERS
             });
         }
 
-        return new Response(JSON.stringify({ success: true, avatar: avatarData }), {
+        return new Response(JSON.stringify({ success: true, category: updated }), {
             status: 200,
             headers: CORS_HEADERS
         });

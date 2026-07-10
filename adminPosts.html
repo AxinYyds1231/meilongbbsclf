@@ -2,111 +2,59 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>管理员 - 帖子审核</title>
+    <title>帖子管理</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .post-item { background: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
-        .post-title { font-weight: bold; }
-        .post-meta { font-size: 0.85em; color: #666; }
-        .post-content { margin: 6px 0; }
-        .btn-approve { background: #5cb85c; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; }
-        .btn-reject { background: #d9534f; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; }
-        .btn-approve:hover { background: #449d44; }
-        .btn-reject:hover { background: #c9302c; }
-        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
-        .nav-links a { color: #1a3c6e; text-decoration: none; }
-        .nav-links a:hover { text-decoration: underline; }
-        .empty { text-align: center; color: #999; padding: 30px 0; }
-        .attachment-link { color: #337ab7; text-decoration: none; margin-right: 6px; }
-        .attachment-link:hover { text-decoration: underline; }
+        .post-item { background: #f9f9f9; padding: 8px; border-radius: 4px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+        .delete-btn { background: #d9534f; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
+        .delete-btn:hover { background: #c9302c; }
     </style>
 </head>
 <body>
     <div class="container" style="max-width: 700px;">
-        <div class="nav-links">
-            <a href="/index.html">🏠 首页</a>
-            <a href="/adminDashboard.html">🔙 管理后台</a>
-        </div>
-        <h1>📝 待审核帖子</h1>
-        <div id="error" class="error" style="display:none;"></div>
+        <h1>📝 帖子管理</h1>
         <div id="postList">加载中...</div>
-        <p><a href="/adminDashboard.html">返回管理后台</a></p>
+        <a href="/adminDashboard.html">返回管理后台</a>
     </div>
-
     <script>
-        async function loadPendingPosts() {
+        async function loadPosts() {
             try {
-                const res = await fetch('/api/adminGetPendingPosts', { credentials: 'include' });
-                if (res.status === 401 || res.status === 403) {
-                    window.location.href = '/adminLogin.html';
-                    return;
-                }
+                const res = await fetch('/api/posts');
                 const data = await res.json();
                 const container = document.getElementById('postList');
-                if (data.posts.length === 0) {
-                    container.innerHTML = '<div class="empty">✅ 暂无待审核帖子</div>';
-                    return;
-                }
                 let html = '';
                 data.posts.forEach(p => {
-                    const time = new Date(p.createdAt).toLocaleString('zh-CN');
-                    let attHtml = '';
-                    if (p.attachments && p.attachments.length > 0) {
-                        attHtml = '<div style="font-size:0.85em;color:#888;">📎 附件：';
-                        p.attachments.forEach(att => {
-                            const dataUri = `data:${att.type};base64,${att.data}`;
-                            attHtml += `<a href="${dataUri}" download="${att.name}" class="attachment-link">${att.name}</a>`;
-                        });
-                        attHtml += '</div>';
-                    }
                     html += `
                         <div class="post-item">
-                            <div class="post-title">${p.title}</div>
-                            <div class="post-meta">✍️ ${p.authorName}  ·  🕒 ${time}</div>
-                            <div class="post-content">${p.content}</div>
-                            ${attHtml}
-                            <div style="margin-top:6px;">
-                                <button class="btn-approve" data-id="${p.id}" data-action="approve">✅ 通过</button>
-                                <button class="btn-reject" data-id="${p.id}" data-action="reject">❌ 拒绝</button>
-                            </div>
+                            <div><a href="/post.html?id=${p.id}">${p.title}</a> - ${p.authorName}</div>
+                            <button class="delete-btn" data-id="${p.id}">删除</button>
                         </div>
                     `;
                 });
                 container.innerHTML = html;
 
-                document.querySelectorAll('.btn-approve, .btn-reject').forEach(btn => {
-                    btn.addEventListener('click', async function() {
-                        const postId = this.dataset.id;
-                        const action = this.dataset.action;
-                        if (!confirm(`确定要 ${action === 'approve' ? '通过' : '拒绝'} 该帖子吗？`)) return;
-                        try {
-                            const formData = new FormData();
-                            formData.append('postId', postId);
-                            formData.append('action', action);
-                            const res = await fetch('/api/adminApprovePost', {
-                                method: 'POST',
-                                credentials: 'include',
-                                body: formData
-                            });
-                            const result = await res.json();
-                            if (result.success) {
-                                alert('操作成功！');
-                                loadPendingPosts();
-                            } else {
-                                alert(result.error || '操作失败');
-                            }
-                        } catch (err) {
-                            alert('网络错误，请重试');
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.dataset.id;
+                        const reason = prompt('请输入删除原因：');
+                        if (reason && reason.trim()) {
+                            const fd = new FormData();
+                            fd.append('postId', id);
+                            fd.append('reason', reason);
+                            fetch('/api/adminDeletePostWithReason', { method: 'POST', credentials: 'include', body: fd })
+                                .then(r => r.json())
+                                .then(res => {
+                                    if (res.success) { alert('已删除'); loadPosts(); }
+                                    else alert(res.error);
+                                });
                         }
                     });
                 });
             } catch (err) {
-                document.getElementById('error').textContent = '加载失败，请刷新重试';
-                document.getElementById('error').style.display = 'block';
+                document.getElementById('postList').innerHTML = '加载失败';
             }
         }
-
-        loadPendingPosts();
+        loadPosts();
     </script>
 </body>
 </html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>用户主页</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .profile-avatar { width: 120px; border-radius: 50%; }
+        .container { max-width: 500px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="profileContainer">加载中...</div>
+    </div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const uid = params.get('uid');
+        if (!uid) {
+            document.getElementById('profileContainer').innerHTML = '<p>缺少参数</p>';
+        } else {
+            fetch(`/api/getUserProfile?uid=${uid}`)
+                .then(r => r.json())
+                .then(data => {
+                    const u = data.user;
+                    document.getElementById('profileContainer').innerHTML = `
+                        <div style="text-align:center;">
+                            <img src="${u.avatar || ''}" class="profile-avatar">
+                            <h2>${u.name}</h2>
+                            <p>UID: ${u.uid}</p>
+                            <p>性别: ${u.gender}</p>
+                            <p>年级: ${u.grade} 班级: ${u.class}</p>
+                            <p>简介: ${u.bio || '这个人很懒...'}</p>
+                            <button onclick="location.href='/sendMessage.html?to=${u.uid}'" class="btn-primary">发送私信</button>
+                            <a href="/index.html" style="display:block;margin-top:10px;">返回首页</a>
+                        </div>
+                    `;
+                })
+                .catch(() => document.getElementById('profileContainer').innerHTML = '<p>加载失败</p>');
+        }
+    </script>
+</body>
+</html>

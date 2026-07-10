@@ -7,13 +7,12 @@
     <style>
         .form-group { margin-bottom: 16px; }
         .form-group label { display: block; font-weight: bold; margin-bottom: 4px; }
-        .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .form-group textarea { resize: vertical; }
         .file-list { margin-top: 8px; }
         .file-item { background: #f4f4f4; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-right: 6px; margin-bottom: 4px; }
-        .file-item button { background: #d9534f; color: white; border: none; border-radius: 50%; cursor: pointer; width: 18px; height: 18px; line-height: 18px; text-align: center; padding: 0; }
         .char-counter { font-size: 0.85em; color: #888; text-align: right; }
-        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; }
+        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
         .nav-links a { color: #1a3c6e; text-decoration: none; }
         .nav-links a:hover { text-decoration: underline; }
     </style>
@@ -28,6 +27,12 @@
         <div id="error" class="error" style="display:none;"></div>
         <form id="createForm">
             <div class="form-group">
+                <label>分类</label>
+                <select id="categoryId" required>
+                    <option value="">选择分类</option>
+                </select>
+            </div>
+            <div class="form-group">
                 <label>标题</label>
                 <input type="text" id="title" placeholder="输入标题..." required>
             </div>
@@ -41,9 +46,8 @@
                 <input type="file" id="fileInput" multiple accept=".txt,.zip,.rar,.pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.bmp">
                 <div id="fileList" class="file-list"></div>
             </div>
-            <button type="submit" class="btn-primary">提交审核</button>
+            <button type="submit" class="btn-primary">发布</button>
             <button type="button" onclick="history.back()" style="margin-left:10px;">取消</button>
-            <p style="font-size:0.85em;color:#888;margin-top:10px;">帖子发布后需要管理员审核才能显示。</p>
         </form>
     </div>
 
@@ -56,13 +60,11 @@
 
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
-            // 限制总文件数2个
             if (selectedFiles.length + files.length > 2) {
                 alert('最多只能上传2个附件');
                 this.value = '';
                 return;
             }
-            // 检查每个文件大小
             const MAX_SIZE = 2 * 1024 * 1024;
             for (let f of files) {
                 if (f.size > MAX_SIZE) {
@@ -94,10 +96,28 @@
             renderFileList();
         }
 
+        // 加载分类
+        async function loadCategories() {
+            try {
+                const res = await fetch('/api/categories');
+                const data = await res.json();
+                const select = document.getElementById('categoryId');
+                data.categories.forEach(cat => {
+                    const opt = document.createElement('option');
+                    opt.value = cat.id;
+                    opt.textContent = cat.name;
+                    select.appendChild(opt);
+                });
+            } catch (err) {
+                console.error('加载分类失败', err);
+            }
+        }
+
         document.getElementById('createForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const title = document.getElementById('title').value.trim();
             const content = document.getElementById('content').value.trim();
+            const categoryId = document.getElementById('categoryId').value;
             if (!title || !content) {
                 alert('标题和内容都不能为空');
                 return;
@@ -106,8 +126,12 @@
                 alert('内容超过1000字限制');
                 return;
             }
+            if (!categoryId) {
+                alert('请选择分类');
+                return;
+            }
 
-            // 上传附件（如果有）
+            // 上传附件
             let attachments = [];
             for (let f of selectedFiles) {
                 const formData = new FormData();
@@ -131,10 +155,10 @@
                 }
             }
 
-            // 发布帖子
             const postFormData = new FormData();
             postFormData.append('title', title);
             postFormData.append('content', content);
+            postFormData.append('categoryId', categoryId);
             postFormData.append('attachments', JSON.stringify(attachments));
 
             try {
@@ -145,7 +169,7 @@
                 });
                 const result = await res.json();
                 if (result.success) {
-                    alert('发布成功！等待管理员审核');
+                    alert('发布成功！');
                     window.location.href = '/index.html';
                 } else {
                     alert(result.error || '发布失败');
@@ -154,6 +178,8 @@
                 alert('网络错误，请重试');
             }
         });
+
+        loadCategories();
     </script>
 </body>
 </html>

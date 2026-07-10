@@ -1,4 +1,4 @@
-// functions/api/uploadAvatar.js
+// functions/api/updateProfile.js
 import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
@@ -16,8 +16,6 @@ const CORS_HEADERS = {
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json'
 };
-
-const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2MB
 
 export async function onRequest(context) {
     const { request, env } = context;
@@ -48,46 +46,23 @@ export async function onRequest(context) {
         const uid = sessionData.uid;
 
         const formData = await request.formData();
-        const file = formData.get('avatar');
-        if (!file) {
-            return new Response(JSON.stringify({ error: '未选择图片' }), {
+        const bio = formData.get('bio');
+
+        if (bio === null) {
+            return new Response(JSON.stringify({ error: '缺少简介内容' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        if (!file.type.startsWith('image/')) {
-            return new Response(JSON.stringify({ error: '请上传图片文件' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
-        }
-
-        if (file.size > MAX_AVATAR_SIZE) {
-            return new Response(JSON.stringify({ error: `图片大小不能超过 ${MAX_AVATAR_SIZE / 1024 / 1024}MB` }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
-        }
-
-        const arrayBuffer = await file.arrayBuffer();
-        const bytes = new Uint8Array(arrayBuffer);
-        let binary = '';
-        for (let i = 0; i < bytes.length; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        const base64 = btoa(binary);
-        const avatarData = `data:${file.type};base64,${base64}`;
-
-        const updatedUser = await db.updateUser(uid, { avatar: avatarData });
-        if (!updatedUser) {
+        const updated = await db.updateUser(uid, { bio: bio.trim() });
+        if (!updated) {
             return new Response(JSON.stringify({ error: '用户不存在' }), {
                 status: 404,
                 headers: CORS_HEADERS
             });
         }
-
-        return new Response(JSON.stringify({ success: true, avatar: avatarData }), {
+        return new Response(JSON.stringify({ success: true, bio: updated.bio }), {
             status: 200,
             headers: CORS_HEADERS
         });

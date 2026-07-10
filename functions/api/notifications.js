@@ -1,4 +1,4 @@
-// functions/api/adminDeletePost.js
+// functions/api/notifications.js
 import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
@@ -12,7 +12,7 @@ function base64ToUtf8(base64) {
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json'
 };
@@ -25,7 +25,7 @@ export async function onRequest(context) {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
-    if (request.method !== 'POST') {
+    if (request.method !== 'GET') {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
             status: 405,
             headers: CORS_HEADERS
@@ -33,41 +33,20 @@ export async function onRequest(context) {
     }
 
     const cookieHeader = request.headers.get('Cookie') || '';
-    const adminMatch = cookieHeader.match(/adminSession=([^;]+)/);
-    if (!adminMatch) {
-        return new Response(JSON.stringify({ error: '未登录' }), {
+    const sessionMatch = cookieHeader.match(/session=([^;]+)/);
+    if (!sessionMatch) {
+        return new Response(JSON.stringify({ error: '请先登录' }), {
             status: 401,
             headers: CORS_HEADERS
         });
     }
 
     try {
-        const adminData = JSON.parse(base64ToUtf8(adminMatch[1]));
-        if (!adminData.isAdmin) {
-            return new Response(JSON.stringify({ error: '无权限' }), {
-                status: 403,
-                headers: CORS_HEADERS
-            });
-        }
+        const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
+        const uid = sessionData.uid;
 
-        const formData = await request.formData();
-        const postId = parseInt(formData.get('postId'));
-        if (!postId) {
-            return new Response(JSON.stringify({ error: '缺少帖子ID' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
-        }
-
-        const success = await db.deletePost(postId);
-        if (!success) {
-            return new Response(JSON.stringify({ error: '帖子不存在' }), {
-                status: 404,
-                headers: CORS_HEADERS
-            });
-        }
-
-        return new Response(JSON.stringify({ success: true, message: '已删除' }), {
+        const notifications = await db.getNotificationsForUser(uid);
+        return new Response(JSON.stringify({ notifications }), {
             status: 200,
             headers: CORS_HEADERS
         });

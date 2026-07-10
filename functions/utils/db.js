@@ -1,44 +1,37 @@
-// functions/utils/db.js - KV 工厂版本
+// functions/utils/db.js
 export function createDb(kv) {
     const USERS_KEY = 'users';
     const POSTS_KEY = 'posts';
     const COUNTER_KEY = 'postCounter';
+    const CATEGORIES_KEY = 'categories';
+    const MESSAGES_KEY = 'messages';
+    const NOTIFICATIONS_KEY = 'notifications';
 
     async function getData(key) {
         if (!kv) return null;
         const value = await kv.get(key, 'json');
         return value || null;
     }
-
     async function setData(key, value) {
         if (!kv) return;
         await kv.put(key, JSON.stringify(value));
     }
 
-    // -------- 用户相关 --------
-    async function getUsers() {
-        const users = await getData(USERS_KEY);
-        return users || [];
-    }
-
-    async function saveUsers(users) {
-        await setData(USERS_KEY, users);
-    }
-
+    // ---- 用户 ----
+    async function getUsers() { return (await getData(USERS_KEY)) || []; }
+    async function saveUsers(users) { await setData(USERS_KEY, users); }
     async function findUserByUid(uid) {
         const users = await getUsers();
         return users.find(u => u.uid === uid);
     }
-
     async function updateUser(uid, updates) {
         const users = await getUsers();
-        const index = users.findIndex(u => u.uid === uid);
-        if (index === -1) return null;
-        users[index] = { ...users[index], ...updates };
+        const idx = users.findIndex(u => u.uid === uid);
+        if (idx === -1) return null;
+        users[idx] = { ...users[idx], ...updates };
         await saveUsers(users);
-        return users[index];
+        return users[idx];
     }
-
     async function deleteUser(uid) {
         let users = await getUsers();
         users = users.filter(u => u.uid !== uid);
@@ -46,7 +39,7 @@ export function createDb(kv) {
         return true;
     }
 
-    // -------- 验证函数（同步）--------
+    // ---- 验证 ----
     function isValidUID(uid) {
         const regex = /^(ml|ms)\d{4}\d{2}\d{2}$/;
         if (!regex.test(uid)) return false;
@@ -55,40 +48,60 @@ export function createDb(kv) {
         const num = parseInt(uid.substring(8, 10));
         return year >= 2024 && year <= 2040 && cls >= 1 && cls <= 12 && num >= 1 && num <= 99;
     }
-
     function isValidPassword(pwd) {
         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pwd);
     }
-
-    // 兼容汉字和数字
     function isValidGrade(grade) {
-        const gradeMap = {
-            '六年级': 6, '七年级': 7, '八年级': 8, '九年级': 9,
-            '6': 6, '7': 7, '8': 8, '9': 9
-        };
+        const map = { '六年级':6, '七年级':7, '八年级':8, '九年级':9, '6':6, '7':7, '8':8, '9':9 };
         const key = String(grade);
-        if (gradeMap[key] !== undefined) return true;
+        if (map[key] !== undefined) return true;
         const num = parseInt(grade);
         return num >= 6 && num <= 9;
     }
-
     function isValidClass(cls) {
         const num = parseInt(cls);
         return num >= 1 && num <= 13;
     }
 
-    // -------- 帖子相关 --------
-    async function getPosts() {
-        const posts = await getData(POSTS_KEY);
-        return posts || [];
+    // ---- 分类 ----
+    async function getCategories() { return (await getData(CATEGORIES_KEY)) || []; }
+    async function saveCategories(cats) { await setData(CATEGORIES_KEY, cats); }
+    async function getCategoryById(id) {
+        const cats = await getCategories();
+        return cats.find(c => c.id === id);
+    }
+    async function createCategory(name, desc) {
+        const cats = await getCategories();
+        const id = cats.length ? Math.max(...cats.map(c=>c.id)) + 1 : 1;
+        const newCat = { id, name: name.trim(), description: desc ? desc.trim() : '', created_at: Date.now() };
+        cats.push(newCat);
+        await saveCategories(cats);
+        return newCat;
+    }
+    async function updateCategory(id, name, desc) {
+        const cats = await getCategories();
+        const idx = cats.findIndex(c => c.id === id);
+        if (idx === -1) return null;
+        cats[idx].name = name.trim();
+        cats[idx].description = desc ? desc.trim() : '';
+        await saveCategories(cats);
+        return cats[idx];
+    }
+    async function deleteCategory(id) {
+        let cats = await getCategories();
+        cats = cats.filter(c => c.id !== id);
+        await saveCategories(cats);
+        return true;
     }
 
+    // ---- 帖子 ----
+    async function getPosts() { return (await getData(POSTS_KEY)) || []; }
+    async function savePosts(posts) { await setData(POSTS_KEY, posts); }
     async function getPostById(id) {
         const posts = await getPosts();
         return posts.find(p => p.id === id);
     }
-
-    async function createPost(title, content, authorUid, authorName, attachments = []) {
+    async function createPost(title, content, authorUid, authorName, attachments = [], categoryId = 0) {
         const posts = await getPosts();
         let counter = await getData(COUNTER_KEY);
         if (counter === null) counter = 1;
@@ -100,92 +113,100 @@ export function createDb(kv) {
             authorUid,
             authorName,
             createdAt: Date.now(),
-            status: 'pending',
-            attachments: attachments,
-            replies: []
+            categoryId,
+            attachments,
+            replies: [],
+            deleted: false,
+            deleteReason: null,
+            deletedBy: null
         };
         posts.unshift(post);
         await setData(POSTS_KEY, posts);
         await setData(COUNTER_KEY, counter);
         return post;
     }
-
     async function addReply(postId, content, uid, name) {
         const posts = await getPosts();
         const post = posts.find(p => p.id === postId);
         if (!post) return null;
-        post.replies.push({
-            uid,
-            name,
-            content,
-            createdAt: Date.now()
-        });
+        post.replies.push({ uid, name, content, createdAt: Date.now() });
         await setData(POSTS_KEY, posts);
         return post;
     }
-
-    async function getPostsByUser(uid) {
-        const posts = await getPosts();
-        return posts.filter(p => p.authorUid === uid);
-    }
-
-    async function deletePost(postId) {
-        let posts = await getPosts();
-        const index = posts.findIndex(p => p.id === postId);
-        if (index === -1) return false;
-        posts.splice(index, 1);
-        await setData(POSTS_KEY, posts);
-        return true;
-    }
-
-    async function approvePost(postId) {
+    async function deletePostById(postId, reason, adminUid) {
         const posts = await getPosts();
         const post = posts.find(p => p.id === postId);
         if (!post) return false;
-        post.status = 'approved';
+        post.deleted = true;
+        post.deleteReason = reason;
+        post.deletedBy = adminUid;
         await setData(POSTS_KEY, posts);
         return true;
     }
 
-    async function rejectPost(postId) {
-        const posts = await getPosts();
-        const post = posts.find(p => p.id === postId);
-        if (!post) return false;
-        post.status = 'rejected';
-        await setData(POSTS_KEY, posts);
-        return true;
+    // ---- 私信 ----
+    async function getMessages() { return (await getData(MESSAGES_KEY)) || []; }
+    async function saveMessages(msgs) { await setData(MESSAGES_KEY, msgs); }
+    async function sendMessage(fromUid, toUid, content) {
+        const msgs = await getMessages();
+        const msg = {
+            id: msgs.length ? Math.max(...msgs.map(m=>m.id)) + 1 : 1,
+            fromUid,
+            toUid,
+            content,
+            sentAt: Date.now(),
+            read: false
+        };
+        msgs.push(msg);
+        await saveMessages(msgs);
+        return msg;
+    }
+    async function getInbox(uid) {
+        const msgs = await getMessages();
+        return msgs.filter(m => m.toUid === uid).sort((a,b) => b.sentAt - a.sentAt);
+    }
+    async function markMessageRead(msgId) {
+        const msgs = await getMessages();
+        const msg = msgs.find(m => m.id === msgId);
+        if (msg) { msg.read = true; await saveMessages(msgs); return true; }
+        return false;
     }
 
-    async function getPendingPosts() {
-        const posts = await getPosts();
-        return posts.filter(p => p.status === 'pending');
+    // ---- 通知 ----
+    async function getNotifications() { return (await getData(NOTIFICATIONS_KEY)) || []; }
+    async function saveNotifications(notifs) { await setData(NOTIFICATIONS_KEY, notifs); }
+    async function addNotification(uid, type, content, link = '') {
+        const notifs = await getNotifications();
+        const notif = {
+            id: notifs.length ? Math.max(...notifs.map(n=>n.id)) + 1 : 1,
+            uid,
+            type,
+            content,
+            link,
+            createdAt: Date.now(),
+            read: false
+        };
+        notifs.push(notif);
+        await saveNotifications(notifs);
+        return notif;
+    }
+    async function getNotificationsForUser(uid) {
+        const notifs = await getNotifications();
+        return notifs.filter(n => n.uid === uid).sort((a,b) => b.createdAt - a.createdAt);
+    }
+    async function markNotificationRead(notifId) {
+        const notifs = await getNotifications();
+        const n = notifs.find(n => n.id === notifId);
+        if (n) { n.read = true; await saveNotifications(notifs); return true; }
+        return false;
     }
 
-    async function getApprovedPosts() {
-        const posts = await getPosts();
-        return posts.filter(p => p.status === 'approved');
-    }
-
-    // -------- 返回所有方法 --------
     return {
-        getUsers,
-        saveUsers,
-        findUserByUid,
-        updateUser,
-        deleteUser,
-        isValidUID,
-        isValidPassword,
-        isValidGrade,
-        isValidClass,
-        getPosts,
-        getPostById,
-        createPost,
-        addReply,
-        getPostsByUser,
-        deletePost,
-        approvePost,
-        rejectPost,
-        getPendingPosts,
-        getApprovedPosts
+        getUsers, saveUsers, findUserByUid, updateUser, deleteUser,
+        isValidUID, isValidPassword, isValidGrade, isValidClass,
+        getCategories, saveCategories, getCategoryById, createCategory, updateCategory, deleteCategory,
+        getPosts, savePosts, getPostById, createPost, addReply, deletePostById,
+        getMessages, saveMessages, sendMessage, getInbox, markMessageRead,
+        getNotifications, saveNotifications, addNotification, getNotificationsForUser, markNotificationRead
     };
 }

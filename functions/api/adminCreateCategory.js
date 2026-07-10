@@ -1,4 +1,4 @@
-// functions/api/adminDeleteUser.js
+// functions/api/adminCreateCategory.js
 import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
@@ -24,39 +24,55 @@ export async function onRequest(context) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
+
     if (request.method !== 'POST') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: CORS_HEADERS });
+        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
+            status: 405,
+            headers: CORS_HEADERS
+        });
     }
 
     const cookieHeader = request.headers.get('Cookie') || '';
     const adminMatch = cookieHeader.match(/adminSession=([^;]+)/);
     if (!adminMatch) {
-        return new Response(JSON.stringify({ error: '未登录' }), { status: 401, headers: CORS_HEADERS });
+        return new Response(JSON.stringify({ error: '未登录' }), {
+            status: 401,
+            headers: CORS_HEADERS
+        });
     }
 
     try {
         const adminData = JSON.parse(base64ToUtf8(adminMatch[1]));
         if (!adminData.isAdmin) {
-            return new Response(JSON.stringify({ error: '无权限' }), { status: 403, headers: CORS_HEADERS });
+            return new Response(JSON.stringify({ error: '无权限' }), {
+                status: 403,
+                headers: CORS_HEADERS
+            });
         }
 
         const formData = await request.formData();
-        const uid = formData.get('uid');
-        if (!uid) {
-            return new Response(JSON.stringify({ error: '缺少UID' }), { status: 400, headers: CORS_HEADERS });
+        const name = formData.get('name');
+        const description = formData.get('description') || '';
+
+        if (!name) {
+            return new Response(JSON.stringify({ error: '分类名称不能为空' }), {
+                status: 400,
+                headers: CORS_HEADERS
+            });
         }
 
-        const user = await db.findUserByUid(uid);
-        if (!user) {
-            return new Response(JSON.stringify({ error: '用户不存在' }), { status: 404, headers: CORS_HEADERS });
-        }
-
-        await db.deleteUser(uid);
-        return new Response(JSON.stringify({ success: true, message: '已删除' }), {
+        const newCategory = await db.createCategory(name, description);
+        return new Response(JSON.stringify({ success: true, category: newCategory }), {
             status: 200,
             headers: CORS_HEADERS
         });
     } catch (error) {
-        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), { status: 500, headers: CORS_HEADERS });
+        return new Response(JSON.stringify({
+            error: '服务器错误',
+            detail: error.message
+        }), {
+            status: 500,
+            headers: CORS_HEADERS
+        });
     }
 }

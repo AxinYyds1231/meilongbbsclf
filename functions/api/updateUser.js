@@ -10,16 +10,6 @@ function base64ToUtf8(base64) {
     return new TextDecoder().decode(bytes);
 }
 
-// 安全编码：UTF-8 -> base64
-function utf8ToBase64(str) {
-    const bytes = new TextEncoder().encode(str);
-    let binary = '';
-    for (let i = 0; i < bytes.length; i++) {
-        binary += String.fromCharCode(bytes[i]);
-    }
-    return btoa(binary);
-}
-
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
@@ -34,21 +24,14 @@ export async function onRequest(context) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
-
     if (request.method !== 'POST') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: CORS_HEADERS });
     }
 
     const cookieHeader = request.headers.get('Cookie') || '';
     const sessionMatch = cookieHeader.match(/session=([^;]+)/);
     if (!sessionMatch) {
-        return new Response(JSON.stringify({ error: '请先登录' }), {
-            status: 401,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: '请先登录' }), { status: 401, headers: CORS_HEADERS });
     }
 
     try {
@@ -62,61 +45,37 @@ export async function onRequest(context) {
         const cls = formData.get('class');
 
         if (!name || !gender || !grade || !cls) {
-            return new Response(JSON.stringify({ error: '请填写完整信息' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '请填写完整信息' }), { status: 400, headers: CORS_HEADERS });
         }
 
         if (!db.isValidGrade(grade)) {
-            return new Response(JSON.stringify({ error: '年级必须是6~9' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '年级必须是6~9' }), { status: 400, headers: CORS_HEADERS });
         }
         if (!db.isValidClass(cls)) {
-            return new Response(JSON.stringify({ error: '班级必须是1~13' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '班级必须是1~13' }), { status: 400, headers: CORS_HEADERS });
         }
-
-        const gradeNum = parseInt(grade);
-        const classNum = parseInt(cls);
 
         const updatedUser = await db.updateUser(uid, {
             name,
             gender,
-            grade: gradeNum,
-            class: classNum
+            grade: parseInt(grade),
+            class: parseInt(cls)
         });
 
         if (!updatedUser) {
-            return new Response(JSON.stringify({ error: '用户不存在' }), {
-                status: 404,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '用户不存在' }), { status: 404, headers: CORS_HEADERS });
         }
 
-        // 更新 session 中的 name（使用安全编码）
+        // 更新 session 中的 name
         const newSessionData = JSON.stringify({ uid: updatedUser.uid, name: updatedUser.name });
-        const encoded = utf8ToBase64(newSessionData);
+        const encoded = btoa(newSessionData);
         const cookie = `session=${encoded}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
 
         return new Response(JSON.stringify({ success: true, user: updatedUser }), {
             status: 200,
-            headers: {
-                ...CORS_HEADERS,
-                'Set-Cookie': cookie
-            }
+            headers: { ...CORS_HEADERS, 'Set-Cookie': cookie }
         });
     } catch (error) {
-        return new Response(JSON.stringify({
-            error: '服务器错误',
-            detail: error.message
-        }), {
-            status: 500,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), { status: 500, headers: CORS_HEADERS });
     }
 }

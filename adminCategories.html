@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>分类管理</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .category-item { background: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        .category-name { font-weight: bold; }
+        .category-desc { color: #666; font-size: 0.9em; }
+        .btn-group button { margin-left: 6px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal-content { background: #fff; padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; }
+        .modal-content input, .modal-content textarea { width: 100%; margin: 6px 0; padding: 6px; }
+        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
+        .nav-links a { color: #1a3c6e; text-decoration: none; }
+        .nav-links a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 700px;">
+        <div class="nav-links">
+            <a href="/index.html">🏠 首页</a>
+            <a href="/adminDashboard.html">🔙 管理后台</a>
+        </div>
+        <h1>📂 分类管理</h1>
+        <button id="addCategoryBtn" class="btn-primary">➕ 新建分类</button>
+        <div id="categoryList">加载中...</div>
+    </div>
+
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">新建分类</h3>
+            <input type="hidden" id="editId">
+            <input type="text" id="editName" placeholder="分类名称" required>
+            <textarea id="editDesc" placeholder="分类描述（可选）" rows="3"></textarea>
+            <button id="saveBtn" class="btn-primary">保存</button>
+            <button onclick="closeModal()">取消</button>
+        </div>
+    </div>
+
+    <script>
+        async function loadCategories() {
+            try {
+                const res = await fetch('/api/categories');
+                const data = await res.json();
+                const container = document.getElementById('categoryList');
+                if (data.categories.length === 0) {
+                    container.innerHTML = '<div style="color:#999;">暂无分类</div>';
+                    return;
+                }
+                let html = '';
+                data.categories.forEach(c => {
+                    html += `
+                        <div class="category-item">
+                            <div>
+                                <div class="category-name">${c.name}</div>
+                                <div class="category-desc">${c.description || '无描述'}</div>
+                            </div>
+                            <div class="btn-group">
+                                <button class="edit-btn" data-id="${c.id}" data-name="${c.name}" data-desc="${c.description || ''}">编辑</button>
+                                <button class="delete-btn" data-id="${c.id}">删除</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+
+                document.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const id = this.dataset.id;
+                        const name = this.dataset.name;
+                        const desc = this.dataset.desc;
+                        openEditModal(id, name, desc);
+                    });
+                });
+
+                document.querySelectorAll('.delete-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const id = this.dataset.id;
+                        if (!confirm('确定要删除此分类吗？')) return;
+                        try {
+                            const formData = new FormData();
+                            formData.append('id', id);
+                            const res = await fetch('/api/adminDeleteCategory', {
+                                method: 'POST',
+                                credentials: 'include',
+                                body: formData
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                alert('删除成功');
+                                loadCategories();
+                            } else {
+                                alert(result.error || '删除失败');
+                            }
+                        } catch (err) {
+                            alert('网络错误');
+                        }
+                    });
+                });
+            } catch (err) {
+                document.getElementById('categoryList').innerHTML = '<div style="color:red;">加载失败</div>';
+            }
+        }
+
+        function openEditModal(id = null, name = '', desc = '') {
+            document.getElementById('editId').value = id || '';
+            document.getElementById('editName').value = name;
+            document.getElementById('editDesc').value = desc;
+            document.getElementById('modalTitle').textContent = id ? '编辑分类' : '新建分类';
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+
+        document.getElementById('addCategoryBtn').addEventListener('click', function() {
+            openEditModal();
+        });
+
+        document.getElementById('saveBtn').addEventListener('click', async function() {
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('editName').value.trim();
+            const description = document.getElementById('editDesc').value.trim();
+
+            if (!name) {
+                alert('请输入分类名称');
+                return;
+            }
+
+            const endpoint = id ? '/api/adminUpdateCategory' : '/api/adminCreateCategory';
+            const formData = new FormData();
+            if (id) formData.append('id', id);
+            formData.append('name', name);
+            formData.append('description', description);
+
+            try {
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert(id ? '更新成功' : '创建成功');
+                    closeModal();
+                    loadCategories();
+                } else {
+                    alert(result.error || '操作失败');
+                }
+            } catch (err) {
+                alert('网络错误');
+            }
+        });
+
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        loadCategories();
+    </script>
+</body>
+</html>

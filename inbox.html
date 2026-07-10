@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>收件箱</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .msg-item { background: #f9f9f9; padding: 8px; border-radius: 4px; margin-bottom: 6px; }
+        .msg-item.unread { background: #e8f0fe; border-left: 4px solid #1a3c6e; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📩 收件箱</h1>
+        <div id="inboxList">加载中...</div>
+        <a href="/index.html">返回首页</a>
+    </div>
+    <script>
+        async function loadInbox() {
+            try {
+                const res = await fetch('/api/inbox', { credentials: 'include' });
+                if (res.status === 401) { window.location.href = '/login.html'; return; }
+                const data = await res.json();
+                const container = document.getElementById('inboxList');
+                if (data.messages.length === 0) {
+                    container.innerHTML = '<p>暂无消息</p>';
+                    return;
+                }
+                let html = '';
+                data.messages.forEach(m => {
+                    const cls = m.read ? '' : 'unread';
+                    html += `
+                        <div class="msg-item ${cls}">
+                            <strong>来自 ${m.fromUid}</strong> 
+                            <span style="font-size:0.8em;color:#888;">${new Date(m.sentAt).toLocaleString()}</span>
+                            <div>${m.content}</div>
+                            ${!m.read ? `<button onclick="markRead(${m.id})">标记已读</button>` : ''}
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (err) { document.getElementById('inboxList').innerHTML = '<p>加载失败</p>'; }
+        }
+
+        async function markRead(id) {
+            const fd = new FormData();
+            fd.append('msgId', id);
+            await fetch('/api/readMessage', { method: 'POST', credentials: 'include', body: fd });
+            loadInbox();
+        }
+
+        loadInbox();
+    </script>
+</body>
+</html>

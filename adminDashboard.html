@@ -5,120 +5,25 @@
     <title>管理后台</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .table-wrapper { max-height: 400px; overflow-y: auto; }
-        .btn-danger { background: #d9534f; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
-        .btn-danger:hover { background: #c9302c; }
-        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
-        .nav-links a { color: #1a3c6e; text-decoration: none; }
-        .nav-links a:hover { text-decoration: underline; }
-        .admin-actions { margin: 16px 0; display: flex; gap: 10px; flex-wrap: wrap; }
-        .admin-actions a { background: #337ab7; color: white; padding: 8px 16px; border-radius: 4px; text-decoration: none; }
-        .admin-actions a:hover { background: #286090; }
+        .admin-links a { display: inline-block; background: #1a3c6e; color: white; padding: 8px 16px; border-radius: 4px; margin: 4px; text-decoration: none; }
+        .admin-links a:hover { background: #2a5a8e; }
     </style>
 </head>
 <body>
-    <div class="container" style="max-width: 800px;">
-        <div class="nav-links">
-            <a href="/index.html">🏠 首页</a>
-            <a href="/dashboard.html">👤 个人中心</a>
-            <a href="/adminLogin.html">🔑 管理</a>
+    <div class="container" style="max-width: 700px;">
+        <h1>🔧 管理后台</h1>
+        <div class="admin-links">
+            <a href="/adminUsers.html">👥 用户管理</a>
+            <a href="/adminPosts.html">📝 帖子管理</a>
+            <a href="/adminCategories.html">📂 分类管理</a>
         </div>
-        <h1>👥 用户管理</h1>
-        <div class="admin-actions">
-            <a href="/adminUsers.html">👥 用户列表</a>
-            <a href="/adminPosts.html">📝 帖子审核</a>
-        </div>
-        <div id="error" class="error" style="display:none;"></div>
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>UID</th>
-                        <th>姓名</th>
-                        <th>性别</th>
-                        <th>年级</th>
-                        <th>班级</th>
-                        <th>操作</th>
-                    </tr>
-                </thead>
-                <tbody id="userList">
-                    <tr><td colspan="6">加载中...</td></tr>
-                </tbody>
-            </table>
-        </div>
-        <button onclick="logoutAdmin()" style="margin-top:20px;">退出管理</button>
-        <p><a href="/login.html">返回用户登录</a></p>
+        <button onclick="logoutAdmin()">退出管理</button>
     </div>
-
     <script>
-        async function loadAdminData() {
-            try {
-                const res = await fetch('/api/adminDashboard', { credentials: 'include' });
-                if (res.status === 401 || res.status === 403) {
-                    window.location.href = '/adminLogin.html';
-                    return;
-                }
-                const data = await res.json();
-                const tbody = document.getElementById('userList');
-                if (data.users.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6">暂无用户</td></tr>';
-                    return;
-                }
-                let html = '';
-                data.users.forEach(u => {
-                    html += `
-                        <tr>
-                            <td>${u.uid}</td>
-                            <td>${u.name}</td>
-                            <td>${u.gender}</td>
-                            <td>${u.grade}</td>
-                            <td>${u.class}</td>
-                            <td><button class="btn-danger" data-uid="${u.uid}">删除</button></td>
-                        </tr>
-                    `;
-                });
-                tbody.innerHTML = html;
-
-                // 绑定删除用户（管理员直接删除用户，也可跳转到编辑页）
-                document.querySelectorAll('.btn-danger').forEach(btn => {
-                    btn.addEventListener('click', async function() {
-                        const uid = this.dataset.uid;
-                        if (!confirm(`确定要删除用户 ${uid} 吗？此操作不可恢复！`)) return;
-                        // 删除用户需要调用 adminDeleteUser? 但那个是删除帖子，我们需要删除用户。
-                        // 我们可以使用 /api/adminDeleteUser 但那是删除用户，我们已有接口，但命名不同。我们已有 adminDeleteUser 删除用户，但之前我们用于删除用户，而帖子删除是 adminDeletePost。所以这里应调用 adminDeleteUser。
-                        // 但 adminDeleteUser 需要 uid，我们在这里调用。
-                        try {
-                            const formData = new FormData();
-                            formData.append('uid', uid);
-                            const res = await fetch('/api/adminDeleteUser', {
-                                method: 'POST',
-                                credentials: 'include',
-                                body: formData
-                            });
-                            const result = await res.json();
-                            if (result.success) {
-                                alert('删除成功！');
-                                loadAdminData();
-                            } else {
-                                alert(result.error || '删除失败');
-                            }
-                        } catch (err) {
-                            alert('网络错误，请重试');
-                        }
-                    });
-                });
-            } catch (err) {
-                document.getElementById('error').textContent = '加载失败，请刷新重试';
-                document.getElementById('error').style.display = 'block';
-            }
-        }
-
         async function logoutAdmin() {
             document.cookie = 'adminSession=; Path=/; Max-Age=0';
             window.location.href = '/adminLogin.html';
         }
-
-        loadAdminData();
     </script>
 </body>
 </html>

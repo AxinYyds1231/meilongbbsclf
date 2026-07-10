@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>发送私信</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>📩 发送私信</h1>
+        <form id="msgForm">
+            <input type="text" id="toUid" placeholder="收件人UID" required>
+            <textarea id="content" rows="6" placeholder="消息内容" required></textarea>
+            <button type="submit" class="btn-primary">发送</button>
+        </form>
+        <a href="/index.html">返回首页</a>
+    </div>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const to = params.get('to');
+        if (to) document.getElementById('toUid').value = to;
+
+        document.getElementById('msgForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const fd = new FormData();
+            fd.append('toUid', document.getElementById('toUid').value);
+            fd.append('content', document.getElementById('content').value);
+            try {
+                const res = await fetch('/api/sendMessage', { method: 'POST', credentials: 'include', body: fd });
+                const result = await res.json();
+                if (result.success) alert('发送成功');
+                else alert(result.error);
+            } catch (err) { alert('网络错误'); }
+        });
+    </script>
+</body>
+</html>

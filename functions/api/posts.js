@@ -15,27 +15,36 @@ export async function onRequest(context) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
-
     if (request.method !== 'GET') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: CORS_HEADERS });
     }
 
+    const url = new URL(request.url);
+    const categoryId = parseInt(url.searchParams.get('category')) || 0;
+
     const allPosts = await db.getPosts();
-    // 只返回审核通过的
-    const approved = allPosts.filter(p => p.status === 'approved');
-    const list = approved.map(p => ({
-        id: p.id,
-        title: p.title,
-        authorName: p.authorName,
-        createdAt: p.createdAt,
-        replyCount: p.replies.length
+    // 过滤掉已删除的帖子
+    let posts = allPosts.filter(p => !p.deleted);
+
+    if (categoryId) {
+        posts = posts.filter(p => p.categoryId === categoryId);
+    }
+
+    // 补充分类名和作者头像
+    const result = await Promise.all(posts.map(async p => {
+        const author = await db.findUserByUid(p.authorUid);
+        const cat = p.categoryId ? await db.getCategoryById(p.categoryId) : null;
+        return {
+            id: p.id,
+            title: p.title,
+            authorName: p.authorName,
+            authorUid: p.authorUid,
+            authorAvatar: author?.avatar || '',
+            categoryName: cat?.name || '未分类',
+            createdAt: p.createdAt,
+            replyCount: p.replies.length
+        };
     }));
 
-    return new Response(JSON.stringify({ posts: list }), {
-        status: 200,
-        headers: CORS_HEADERS
-    });
+    return new Response(JSON.stringify({ posts: result }), { status: 200, headers: CORS_HEADERS });
 }
