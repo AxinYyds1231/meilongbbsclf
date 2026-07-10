@@ -3,9 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <title>梅陇中学论坛</title>
-    <meta http-equiv="refresh" content="0; url=/login.html">
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .post-list { margin-top: 20px; }
+        .post-item {
+            background: #f9f9f9;
+            padding: 12px 16px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .post-item:hover { background: #f0f0f0; }
+        .post-title { font-size: 1.1em; font-weight: bold; color: #1a3c6e; }
+        .post-meta { font-size: 0.85em; color: #666; margin-top: 4px; }
+        .post-meta span { margin-right: 15px; }
+        .header { display: flex; justify-content: space-between; align-items: center; }
+        .btn-primary { background: #1a3c6e; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; }
+        .btn-primary:hover { background: #2a5a8e; }
+        .empty { text-align: center; color: #999; padding: 40px 0; }
+        .nav-links { margin-top: 10px; display: flex; gap: 15px; }
+        .nav-links a { color: #1a3c6e; text-decoration: none; }
+        .nav-links a:hover { text-decoration: underline; }
+    </style>
 </head>
 <body>
-    <p>正在跳转到登录页...</p>
+    <div class="container" style="max-width: 700px;">
+        <div class="header">
+            <h1>📚 梅陇中学论坛</h1>
+            <div>
+                <button id="createBtn" class="btn-primary" style="display:none;">➕ 发帖</button>
+                <span id="userInfo" style="margin-left:10px;"></span>
+                <button id="logoutBtn" class="btn-primary" style="display:none; background:#888;">退出</button>
+            </div>
+        </div>
+        <div class="nav-links">
+            <a href="/index.html">🏠 首页</a>
+            <a href="/dashboard.html">👤 个人中心</a>
+            <a href="/adminLogin.html">🔑 管理</a>
+        </div>
+        <div id="postList" class="post-list">加载中...</div>
+    </div>
+
+    <script>
+        // 检查登录状态
+        async function checkLogin() {
+            try {
+                const res = await fetch('/api/user', { credentials: 'include' });
+                if (res.status === 200) {
+                    const data = await res.json();
+                    document.getElementById('userInfo').innerText = '👋 ' + data.user.name;
+                    document.getElementById('createBtn').style.display = 'inline-block';
+                    document.getElementById('logoutBtn').style.display = 'inline-block';
+                }
+            } catch (e) {}
+        }
+
+        // 加载帖子列表
+        async function loadPosts() {
+            try {
+                const res = await fetch('/api/posts');
+                const data = await res.json();
+                const container = document.getElementById('postList');
+                if (data.posts.length === 0) {
+                    container.innerHTML = '<div class="empty">📭 暂无帖子，快来发布第一个吧！</div>';
+                    return;
+                }
+                let html = '';
+                data.posts.forEach(p => {
+                    const time = new Date(p.createdAt).toLocaleString('zh-CN');
+                    html += `
+                        <div class="post-item" onclick="location.href='/post.html?id=${p.id}'">
+                            <div class="post-title">${p.title}</div>
+                            <div class="post-meta">
+                                <span>✍️ ${p.authorName}</span>
+                                <span>🕒 ${time}</span>
+                                <span>💬 ${p.replyCount} 回复</span>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (err) {
+                document.getElementById('postList').innerHTML = '<div style="color:red;">加载失败，请刷新</div>';
+            }
+        }
+
+        // 退出登录
+        document.getElementById('logoutBtn')?.addEventListener('click', async function() {
+            await fetch('/api/logout', { credentials: 'include' });
+            window.location.href = '/login.html';
+        });
+
+        document.getElementById('createBtn')?.addEventListener('click', function() {
+            window.location.href = '/createPost.html';
+        });
+
+        checkLogin();
+        loadPosts();
+    </script>
 </body>
 </html>

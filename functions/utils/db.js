@@ -1,5 +1,7 @@
 // functions/utils/db.js
 let users = [];
+let posts = [];
+let postIdCounter = 1;
 
 export function getUsers() {
     return users;
@@ -34,4 +36,43 @@ export function isValidGrade(grade) {
 export function isValidClass(cls) {
     const c = parseInt(cls);
     return c >= 1 && c <= 13;
+}
+
+// ============ 帖子相关 ============
+export function getPosts() {
+    return posts;
+}
+
+export function getPostById(id) {
+    return posts.find(p => p.id === id);
+}
+
+export function createPost(title, content, authorUid, authorName) {
+    const post = {
+        id: postIdCounter++,
+        title,
+        content,
+        authorUid,
+        authorName,
+        createdAt: Date.now(),
+        replies: []
+    };
+    posts.unshift(post); // 最新在前
+    return post;
+}
+
+export function addReply(postId, content, uid, name) {
+    const post = getPostById(postId);
+    if (!post) return null;
+    post.replies.push({
+        uid,
+        name,
+        content,
+        createdAt: Date.now()
+    });
+    return post;
+}
+
+export function getPostsByUser(uid) {
+    return posts.filter(p => p.authorUid === uid);
 }

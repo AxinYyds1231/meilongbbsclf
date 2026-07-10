@@ -79,7 +79,7 @@
                         window.location.href = '/login.html';
                     }, 3000);
                 } else {
-                    errorEl.textContent = result.error || result.detail || '注册失败';
+                    errorEl.textContent = result.error || '注册失败';
                     errorEl.style.display = 'block';
                 }
             } catch (err) {

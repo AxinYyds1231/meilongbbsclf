@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>发布新帖子</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-weight: bold; margin-bottom: 4px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .form-group textarea { resize: vertical; }
+        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; }
+        .nav-links a { color: #1a3c6e; text-decoration: none; }
+        .nav-links a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 600px;">
+        <div class="nav-links">
+            <a href="/index.html">🏠 首页</a>
+            <a href="/dashboard.html">👤 个人中心</a>
+            <a href="/adminLogin.html">🔑 管理</a>
+        </div>
+        <h1>📝 发布新帖子</h1>
+        <form id="createForm">
+            <div class="form-group">
+                <label>标题</label>
+                <input type="text" id="title" placeholder="输入标题..." required>
+            </div>
+            <div class="form-group">
+                <label>内容</label>
+                <textarea id="content" rows="8" placeholder="写正文..." required></textarea>
+            </div>
+            <button type="submit" class="btn-primary">发布</button>
+            <button type="button" onclick="history.back()" style="margin-left:10px;">取消</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('createForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const title = document.getElementById('title').value.trim();
+            const content = document.getElementById('content').value.trim();
+            if (!title || !content) {
+                alert('标题和内容都不能为空');
+                return;
+            }
+            const formData = new FormData();
+            formData.append('title', title);
+            formData.append('content', content);
+            try {
+                const res = await fetch('/api/createPost', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert('发布成功！');
+                    window.location.href = '/index.html';
+                } else {
+                    alert(result.error || '发布失败，请重新登录');
+                }
+            } catch (err) {
+                alert('网络错误，请重试');
+            }
+        });
+    </script>
+</body>
+</html>

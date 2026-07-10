@@ -2,42 +2,76 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>用户面板</title>
+    <title>个人中心</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .post-item { background: #f9f9f9; padding: 10px 14px; border-radius: 4px; margin-bottom: 8px; cursor: pointer; }
+        .post-item:hover { background: #f0f0f0; }
+        .post-title { font-weight: bold; color: #1a3c6e; }
+        .post-meta { font-size: 0.85em; color: #666; }
+        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; }
+        .nav-links a { color: #1a3c6e; text-decoration: none; }
+        .nav-links a:hover { text-decoration: underline; }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎉 欢迎，<span id="username">用户</span>！</h1>
-        <p><strong>您的UID：</strong><span id="userUid"></span></p>
-        <button onclick="logout()" style="margin-top:20px;">退出登录</button>
+    <div class="container" style="max-width: 700px;">
+        <div class="nav-links">
+            <a href="/index.html">🏠 首页</a>
+            <a href="/dashboard.html">👤 个人中心</a>
+            <a href="/adminLogin.html">🔑 管理</a>
+        </div>
+        <h1>👤 个人中心</h1>
+        <div id="userInfo">加载中...</div>
+        <h3>📝 我的帖子</h3>
+        <div id="myPosts">加载中...</div>
+        <button id="logoutBtn" style="margin-top:20px;">退出登录</button>
     </div>
+
     <script>
-        async function loadUser() {
+        async function loadProfile() {
             try {
-                const res = await fetch('/api/user', {
-                    credentials: 'include'
-                });
-                console.log('状态码:', res.status);
+                const res = await fetch('/api/user', { credentials: 'include' });
                 if (res.status === 401) {
-                    document.getElementById('username').innerText = '(未登录)';
-                    document.getElementById('userUid').innerText = '请重新登录';
-                    return; // ← 不再跳转，只是显示提示
+                    window.location.href = '/login.html';
+                    return;
                 }
                 const data = await res.json();
-                document.getElementById('username').innerText = data.user.name;
-                document.getElementById('userUid').innerText = data.user.uid;
+                document.getElementById('userInfo').innerHTML = `
+                    <p><strong>姓名：</strong>${data.user.name}</p>
+                    <p><strong>UID：</strong>${data.user.uid}</p>
+                `;
+                // 加载我的帖子
+                const postsRes = await fetch('/api/posts');
+                const postsData = await postsRes.json();
+                const myPosts = postsData.posts.filter(p => p.authorName === data.user.name);
+                const container = document.getElementById('myPosts');
+                if (myPosts.length === 0) {
+                    container.innerHTML = '<div style="color:#999;">你还没有发布过帖子</div>';
+                } else {
+                    let html = '';
+                    myPosts.forEach(p => {
+                        const time = new Date(p.createdAt).toLocaleString('zh-CN');
+                        html += `
+                            <div class="post-item" onclick="location.href='/post.html?id=${p.id}'">
+                                <div class="post-title">${p.title}</div>
+                                <div class="post-meta">🕒 ${time}  ·  💬 ${p.replyCount} 回复</div>
+                            </div>
+                        `;
+                    });
+                    container.innerHTML = html;
+                }
             } catch (err) {
-                document.getElementById('username').innerText = '(加载失败)';
-                document.getElementById('userUid').innerText = err.message;
+                document.getElementById('userInfo').innerHTML = '<div style="color:red;">加载失败</div>';
             }
         }
-        async function logout() {
-            await fetch('/api/logout', {
-                credentials: 'include'
-            });
+
+        document.getElementById('logoutBtn')?.addEventListener('click', async function() {
+            await fetch('/api/logout', { credentials: 'include' });
             window.location.href = '/login.html';
-        }
-        loadUser();
+        });
+
+        loadProfile();
     </script>
 </body>
 </html>
