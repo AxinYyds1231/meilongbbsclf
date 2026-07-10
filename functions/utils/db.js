@@ -1,4 +1,4 @@
-// functions/utils/db.js - KV 工厂版本（完整，包含兼容验证）
+// functions/utils/db.js - KV 工厂版本
 export function createDb(kv) {
     const USERS_KEY = 'users';
     const POSTS_KEY = 'posts';
@@ -46,8 +46,8 @@ export function createDb(kv) {
         return true;
     }
 
-    // -------- 验证函数（同步），兼容汉字 --------
-    export function isValidUID(uid) {
+    // -------- 验证函数（同步）--------
+    function isValidUID(uid) {
         const regex = /^(ml|ms)\d{4}\d{2}\d{2}$/;
         if (!regex.test(uid)) return false;
         const year = parseInt(uid.substring(2, 6));
@@ -56,12 +56,12 @@ export function createDb(kv) {
         return year >= 2024 && year <= 2040 && cls >= 1 && cls <= 12 && num >= 1 && num <= 99;
     }
 
-    export function isValidPassword(pwd) {
+    function isValidPassword(pwd) {
         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pwd);
     }
 
-    // 关键修复：兼容汉字和数字
-    export function isValidGrade(grade) {
+    // 兼容汉字和数字
+    function isValidGrade(grade) {
         const gradeMap = {
             '六年级': 6, '七年级': 7, '八年级': 8, '九年级': 9,
             '6': 6, '7': 7, '8': 8, '9': 9
@@ -72,8 +72,7 @@ export function createDb(kv) {
         return num >= 6 && num <= 9;
     }
 
-    // 班级验证（只支持数字）
-    export function isValidClass(cls) {
+    function isValidClass(cls) {
         const num = parseInt(cls);
         return num >= 1 && num <= 13;
     }
@@ -167,6 +166,7 @@ export function createDb(kv) {
         return posts.filter(p => p.status === 'approved');
     }
 
+    // -------- 返回所有方法 --------
     return {
         getUsers,
         saveUsers,
