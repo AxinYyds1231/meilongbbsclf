@@ -32,7 +32,6 @@ export async function onRequest(context) {
         });
     }
 
-    // 验证管理员
     const cookieHeader = request.headers.get('Cookie') || '';
     const adminMatch = cookieHeader.match(/adminSession=([^;]+)/);
     if (!adminMatch) {
@@ -78,11 +77,14 @@ export async function onRequest(context) {
             });
         }
 
+        const gradeNum = parseInt(grade);
+        const classNum = parseInt(cls);
+
         const updatedUser = await db.updateUser(targetUid, {
             name,
             gender,
-            grade: parseInt(grade),
-            class: parseInt(cls)
+            grade: gradeNum,
+            class: classNum
         });
 
         if (!updatedUser) {

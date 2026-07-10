@@ -58,6 +58,7 @@ export async function onRequest(context) {
             });
         }
 
+        // 使用兼容验证
         if (!db.isValidGrade(grade)) {
             return new Response(JSON.stringify({ error: '年级必须是6~9' }), {
                 status: 400,
@@ -71,11 +72,15 @@ export async function onRequest(context) {
             });
         }
 
+        // 转换为数字存储
+        const gradeNum = parseInt(grade);
+        const classNum = parseInt(cls);
+
         const updatedUser = await db.updateUser(uid, {
             name,
             gender,
-            grade: parseInt(grade),
-            class: parseInt(cls)
+            grade: gradeNum,
+            class: classNum
         });
 
         if (!updatedUser) {
