@@ -12,6 +12,14 @@
         .nav-links { margin-bottom: 16px; display: flex; gap: 15px; }
         .nav-links a { color: #1a3c6e; text-decoration: none; }
         .nav-links a:hover { text-decoration: underline; }
+        .btn-group { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .btn-group button { padding: 6px 16px; border: none; border-radius: 4px; cursor: pointer; }
+        .btn-edit { background: #337ab7; color: white; }
+        .btn-logout { background: #888; color: white; }
+        .btn-delete { background: #d9534f; color: white; }
+        .btn-edit:hover { background: #286090; }
+        .btn-logout:hover { background: #666; }
+        .btn-delete:hover { background: #c9302c; }
     </style>
 </head>
 <body>
@@ -25,7 +33,11 @@
         <div id="userInfo">加载中...</div>
         <h3>📝 我的帖子</h3>
         <div id="myPosts">加载中...</div>
-        <button id="logoutBtn" style="margin-top:20px;">退出登录</button>
+        <div class="btn-group">
+            <button class="btn-edit" onclick="location.href='/updateUser.html'">✏️ 修改信息</button>
+            <button class="btn-logout" id="logoutBtn">🚪 退出登录</button>
+            <button class="btn-delete" id="deleteAccountBtn">🗑️ 注销账号</button>
+        </div>
     </div>
 
     <script>
@@ -37,11 +49,14 @@
                     return;
                 }
                 const data = await res.json();
+                // 为了获取年级班级，我们额外调用 adminDashboard? 或者我们可以从 session 中得不到年级班级，所以另做接口？
+                // 但我们可以直接显示已有信息，年级班级暂不显示，或者让用户自己补充。
+                // 为了简化，我们只显示名字和UID。
                 document.getElementById('userInfo').innerHTML = `
                     <p><strong>姓名：</strong>${data.user.name}</p>
                     <p><strong>UID：</strong>${data.user.uid}</p>
                 `;
-                // 加载我的帖子
+                // 加载我的帖子（只显示已审核的）
                 const postsRes = await fetch('/api/posts');
                 const postsData = await postsRes.json();
                 const myPosts = postsData.posts.filter(p => p.authorName === data.user.name);
@@ -66,9 +81,39 @@
             }
         }
 
+        // 退出登录
         document.getElementById('logoutBtn')?.addEventListener('click', async function() {
             await fetch('/api/logout', { credentials: 'include' });
             window.location.href = '/login.html';
+        });
+
+        // 注销账号
+        document.getElementById('deleteAccountBtn')?.addEventListener('click', async function() {
+            const password = prompt('请输入您的密码以确认注销账号：');
+            if (password === null) return; // 取消
+            if (!password) {
+                alert('密码不能为空');
+                return;
+            }
+            if (!confirm('确定要注销账号吗？此操作不可恢复！')) return;
+            const formData = new FormData();
+            formData.append('password', password);
+            try {
+                const res = await fetch('/api/deleteAccount', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: formData
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert('账号已注销');
+                    window.location.href = '/login.html';
+                } else {
+                    alert(result.error || '注销失败');
+                }
+            } catch (err) {
+                alert('网络错误，请重试');
+            }
         });
 
         loadProfile();

@@ -8,17 +8,23 @@
         .post-detail { background: #f9f9f9; padding: 16px; border-radius: 6px; margin-bottom: 20px; }
         .post-title { font-size: 1.5em; font-weight: bold; color: #1a3c6e; }
         .post-meta { color: #666; font-size: 0.9em; margin: 8px 0; }
-        .post-content { margin: 16px 0; line-height: 1.6; }
+        .post-content { margin: 16px 0; line-height: 1.6; word-wrap: break-word; white-space: pre-wrap; }
         .reply-item { background: #fff; padding: 10px 14px; border-radius: 4px; margin-bottom: 8px; border-left: 3px solid #1a3c6e; }
         .reply-meta { font-size: 0.85em; color: #888; }
-        .reply-content { margin-top: 4px; }
+        .reply-content { margin-top: 4px; word-wrap: break-word; white-space: pre-wrap; }
         .reply-form { margin-top: 20px; }
         .reply-form textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; }
         .reply-form button { margin-top: 6px; }
-        .back-link { display: inline-block; margin-bottom: 16px; color: #1a3c6e; }
-        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; }
+        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
         .nav-links a { color: #1a3c6e; text-decoration: none; }
         .nav-links a:hover { text-decoration: underline; }
+        .attachment-item { background: #f0f0f0; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-right: 6px; margin-top: 6px; }
+        .char-counter { font-size: 0.85em; color: #888; text-align: right; }
+        .file-link { color: #337ab7; text-decoration: none; }
+        .file-link:hover { text-decoration: underline; }
+        .status-pending { background: #fff3cd; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
+        .status-rejected { background: #f8d7da; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
+        .status-approved { background: #d4edda; padding: 8px; border-radius: 4px; margin-bottom: 10px; }
     </style>
 </head>
 <body>
@@ -50,11 +56,34 @@
                 const post = data.post;
                 const time = new Date(post.createdAt).toLocaleString('zh-CN');
 
+                // 状态提示
+                let statusHtml = '';
+                if (post.status === 'pending') {
+                    statusHtml = '<div class="status-pending">⏳ 该帖子正在审核中，仅作者和管理员可见</div>';
+                } else if (post.status === 'rejected') {
+                    statusHtml = '<div class="status-rejected">❌ 该帖子已被拒绝</div>';
+                } else if (post.status === 'approved') {
+                    statusHtml = '<div class="status-approved">✅ 已通过审核</div>';
+                }
+
+                // 附件
+                let attachmentsHtml = '';
+                if (post.attachments && post.attachments.length > 0) {
+                    attachmentsHtml = '<div><strong>📎 附件：</strong>';
+                    post.attachments.forEach((att, idx) => {
+                        const dataUri = `data:${att.type};base64,${att.data}`;
+                        attachmentsHtml += `<span class="attachment-item"><a href="${dataUri}" download="${att.name}" class="file-link">${att.name}</a> (${(att.size/1024).toFixed(1)}KB)</span>`;
+                    });
+                    attachmentsHtml += '</div>';
+                }
+
                 let html = `
                     <div class="post-detail">
+                        ${statusHtml}
                         <div class="post-title">${post.title}</div>
                         <div class="post-meta">✍️ ${post.authorName}  ·  🕒 ${time}</div>
                         <div class="post-content">${post.content.replace(/\n/g, '<br>')}</div>
+                        ${attachmentsHtml}
                     </div>
                     <h3>💬 全部回复 (${post.replies.length})</h3>
                     <div id="replies">
@@ -67,7 +96,7 @@
                         html += `
                             <div class="reply-item">
                                 <div class="reply-meta">${r.name}  ·  ${rt}</div>
-                                <div class="reply-content">${r.content}</div>
+                                <div class="reply-content">${r.content.replace(/\n/g, '<br>')}</div>
                             </div>
                         `;
                     });
@@ -75,17 +104,27 @@
                 html += `
                     </div>
                     <div class="reply-form" id="replyForm">
-                        <textarea id="replyContent" rows="3" placeholder="写下你的回复..."></textarea>
+                        <textarea id="replyContent" rows="3" placeholder="写下你的回复...（最多500字）" maxlength="500"></textarea>
+                        <div class="char-counter"><span id="replyCharCount">0</span>/500</div>
                         <button id="replyBtn" class="btn-primary">提交回复</button>
                     </div>
                 `;
                 document.getElementById('postContainer').innerHTML = html;
+
+                // 字数统计
+                document.getElementById('replyContent').addEventListener('input', function() {
+                    document.getElementById('replyCharCount').textContent = this.value.length;
+                });
 
                 // 绑定回复事件
                 document.getElementById('replyBtn').addEventListener('click', async function() {
                     const content = document.getElementById('replyContent').value.trim();
                     if (!content) {
                         alert('请输入回复内容');
+                        return;
+                    }
+                    if (content.length > 500) {
+                        alert('回复内容不能超过500字');
                         return;
                     }
                     const formData = new FormData();

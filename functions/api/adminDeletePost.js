@@ -1,4 +1,4 @@
-// functions/api/reply.js
+// functions/api/adminDeletePost.js
 import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
@@ -33,46 +33,41 @@ export async function onRequest(context) {
     }
 
     const cookieHeader = request.headers.get('Cookie') || '';
-    const sessionMatch = cookieHeader.match(/session=([^;]+)/);
-    if (!sessionMatch) {
-        return new Response(JSON.stringify({ error: '请先登录' }), {
+    const adminMatch = cookieHeader.match(/adminSession=([^;]+)/);
+    if (!adminMatch) {
+        return new Response(JSON.stringify({ error: '未登录' }), {
             status: 401,
             headers: CORS_HEADERS
         });
     }
 
     try {
-        const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
-        const { uid, name } = sessionData;
+        const adminData = JSON.parse(base64ToUtf8(adminMatch[1]));
+        if (!adminData.isAdmin) {
+            return new Response(JSON.stringify({ error: '无权限' }), {
+                status: 403,
+                headers: CORS_HEADERS
+            });
+        }
 
         const formData = await request.formData();
         const postId = parseInt(formData.get('postId'));
-        const content = formData.get('content');
-
-        if (!postId || !content) {
-            return new Response(JSON.stringify({ error: '参数不完整' }), {
+        if (!postId) {
+            return new Response(JSON.stringify({ error: '缺少帖子ID' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        // 字数限制 500
-        if (content.length > 500) {
-            return new Response(JSON.stringify({ error: '回复内容不能超过500字' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
-        }
-
-        const updatedPost = await db.addReply(postId, content, uid, name);
-        if (!updatedPost) {
+        const success = await db.deletePost(postId);
+        if (!success) {
             return new Response(JSON.stringify({ error: '帖子不存在' }), {
                 status: 404,
                 headers: CORS_HEADERS
             });
         }
 
-        return new Response(JSON.stringify({ success: true, post: updatedPost }), {
+        return new Response(JSON.stringify({ success: true, message: '已删除' }), {
             status: 200,
             headers: CORS_HEADERS
         });

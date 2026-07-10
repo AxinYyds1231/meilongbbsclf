@@ -1,4 +1,4 @@
-// functions/api/reply.js
+// functions/api/deleteAccount.js
 import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
@@ -43,38 +43,38 @@ export async function onRequest(context) {
 
     try {
         const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
-        const { uid, name } = sessionData;
+        const { uid } = sessionData;
 
+        // 确认密码
         const formData = await request.formData();
-        const postId = parseInt(formData.get('postId'));
-        const content = formData.get('content');
-
-        if (!postId || !content) {
-            return new Response(JSON.stringify({ error: '参数不完整' }), {
+        const password = formData.get('password');
+        if (!password) {
+            return new Response(JSON.stringify({ error: '请输入密码确认' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        // 字数限制 500
-        if (content.length > 500) {
-            return new Response(JSON.stringify({ error: '回复内容不能超过500字' }), {
-                status: 400,
+        const user = await db.findUserByUid(uid);
+        if (!user || user.password !== password) {
+            return new Response(JSON.stringify({ error: '密码错误' }), {
+                status: 401,
                 headers: CORS_HEADERS
             });
         }
 
-        const updatedPost = await db.addReply(postId, content, uid, name);
-        if (!updatedPost) {
-            return new Response(JSON.stringify({ error: '帖子不存在' }), {
-                status: 404,
-                headers: CORS_HEADERS
-            });
-        }
+        // 删除用户
+        await db.deleteUser(uid);
 
-        return new Response(JSON.stringify({ success: true, post: updatedPost }), {
+        // 清除 session cookie
+        const clearCookie = 'session=; Path=/; Max-Age=0';
+
+        return new Response(JSON.stringify({ success: true, message: '账号已注销' }), {
             status: 200,
-            headers: CORS_HEADERS
+            headers: {
+                ...CORS_HEADERS,
+                'Set-Cookie': clearCookie
+            }
         });
     } catch (error) {
         return new Response(JSON.stringify({

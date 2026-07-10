@@ -40,6 +40,7 @@ export async function onRequest(context) {
         });
     }
 
+    // 返回完整帖子数据（包含附件、状态）
     return new Response(JSON.stringify({ post }), {
         status: 200,
         headers: CORS_HEADERS

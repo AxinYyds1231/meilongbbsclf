@@ -1,4 +1,4 @@
-// functions/api/reply.js
+// functions/api/adminGetPendingPosts.js
 import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
@@ -12,7 +12,7 @@ function base64ToUtf8(base64) {
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json'
 };
@@ -25,7 +25,7 @@ export async function onRequest(context) {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
-    if (request.method !== 'POST') {
+    if (request.method !== 'GET') {
         return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
             status: 405,
             headers: CORS_HEADERS
@@ -33,46 +33,34 @@ export async function onRequest(context) {
     }
 
     const cookieHeader = request.headers.get('Cookie') || '';
-    const sessionMatch = cookieHeader.match(/session=([^;]+)/);
-    if (!sessionMatch) {
-        return new Response(JSON.stringify({ error: '请先登录' }), {
+    const adminMatch = cookieHeader.match(/adminSession=([^;]+)/);
+    if (!adminMatch) {
+        return new Response(JSON.stringify({ error: '未登录' }), {
             status: 401,
             headers: CORS_HEADERS
         });
     }
 
     try {
-        const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
-        const { uid, name } = sessionData;
-
-        const formData = await request.formData();
-        const postId = parseInt(formData.get('postId'));
-        const content = formData.get('content');
-
-        if (!postId || !content) {
-            return new Response(JSON.stringify({ error: '参数不完整' }), {
-                status: 400,
+        const adminData = JSON.parse(base64ToUtf8(adminMatch[1]));
+        if (!adminData.isAdmin) {
+            return new Response(JSON.stringify({ error: '无权限' }), {
+                status: 403,
                 headers: CORS_HEADERS
             });
         }
 
-        // 字数限制 500
-        if (content.length > 500) {
-            return new Response(JSON.stringify({ error: '回复内容不能超过500字' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
-        }
+        const pendingPosts = await db.getPendingPosts();
+        const list = pendingPosts.map(p => ({
+            id: p.id,
+            title: p.title,
+            authorName: p.authorName,
+            content: p.content.substring(0, 100) + (p.content.length > 100 ? '...' : ''),
+            createdAt: p.createdAt,
+            attachments: p.attachments || []
+        }));
 
-        const updatedPost = await db.addReply(postId, content, uid, name);
-        if (!updatedPost) {
-            return new Response(JSON.stringify({ error: '帖子不存在' }), {
-                status: 404,
-                headers: CORS_HEADERS
-            });
-        }
-
-        return new Response(JSON.stringify({ success: true, post: updatedPost }), {
+        return new Response(JSON.stringify({ posts: list }), {
             status: 200,
             headers: CORS_HEADERS
         });

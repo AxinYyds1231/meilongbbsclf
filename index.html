@@ -18,11 +18,11 @@
         .post-title { font-size: 1.1em; font-weight: bold; color: #1a3c6e; }
         .post-meta { font-size: 0.85em; color: #666; margin-top: 4px; }
         .post-meta span { margin-right: 15px; }
-        .header { display: flex; justify-content: space-between; align-items: center; }
+        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
         .btn-primary { background: #1a3c6e; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; }
         .btn-primary:hover { background: #2a5a8e; }
         .empty { text-align: center; color: #999; padding: 40px 0; }
-        .nav-links { margin-top: 10px; display: flex; gap: 15px; }
+        .nav-links { margin-top: 10px; display: flex; gap: 15px; flex-wrap: wrap; }
         .nav-links a { color: #1a3c6e; text-decoration: none; }
         .nav-links a:hover { text-decoration: underline; }
     </style>
@@ -59,7 +59,7 @@
             } catch (e) {}
         }
 
-        // 加载帖子列表
+        // 加载帖子列表（只显示审核通过的）
         async function loadPosts() {
             try {
                 const res = await fetch('/api/posts');

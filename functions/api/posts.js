@@ -23,8 +23,10 @@ export async function onRequest(context) {
         });
     }
 
-    const posts = await db.getPosts();
-    const list = posts.map(p => ({
+    const allPosts = await db.getPosts();
+    // 只返回审核通过的
+    const approved = allPosts.filter(p => p.status === 'approved');
+    const list = approved.map(p => ({
         id: p.id,
         title: p.title,
         authorName: p.authorName,

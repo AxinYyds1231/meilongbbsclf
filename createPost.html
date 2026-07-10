@@ -9,6 +9,10 @@
         .form-group label { display: block; font-weight: bold; margin-bottom: 4px; }
         .form-group input, .form-group textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
         .form-group textarea { resize: vertical; }
+        .file-list { margin-top: 8px; }
+        .file-item { background: #f4f4f4; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-right: 6px; margin-bottom: 4px; }
+        .file-item button { background: #d9534f; color: white; border: none; border-radius: 50%; cursor: pointer; width: 18px; height: 18px; line-height: 18px; text-align: center; padding: 0; }
+        .char-counter { font-size: 0.85em; color: #888; text-align: right; }
         .nav-links { margin-bottom: 16px; display: flex; gap: 15px; }
         .nav-links a { color: #1a3c6e; text-decoration: none; }
         .nav-links a:hover { text-decoration: underline; }
@@ -19,24 +23,77 @@
         <div class="nav-links">
             <a href="/index.html">🏠 首页</a>
             <a href="/dashboard.html">👤 个人中心</a>
-            <a href="/adminLogin.html">🔑 管理</a>
         </div>
         <h1>📝 发布新帖子</h1>
+        <div id="error" class="error" style="display:none;"></div>
         <form id="createForm">
             <div class="form-group">
                 <label>标题</label>
                 <input type="text" id="title" placeholder="输入标题..." required>
             </div>
             <div class="form-group">
-                <label>内容</label>
-                <textarea id="content" rows="8" placeholder="写正文..." required></textarea>
+                <label>内容 (最多1000字)</label>
+                <textarea id="content" rows="8" placeholder="写正文..." maxlength="1000" required></textarea>
+                <div class="char-counter"><span id="charCount">0</span>/1000</div>
             </div>
-            <button type="submit" class="btn-primary">发布</button>
+            <div class="form-group">
+                <label>附件 (可选, 每个文件不超过2MB)</label>
+                <input type="file" id="fileInput" multiple accept=".txt,.zip,.rar,.pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.bmp">
+                <div id="fileList" class="file-list"></div>
+            </div>
+            <button type="submit" class="btn-primary">提交审核</button>
             <button type="button" onclick="history.back()" style="margin-left:10px;">取消</button>
+            <p style="font-size:0.85em;color:#888;margin-top:10px;">帖子发布后需要管理员审核才能显示。</p>
         </form>
     </div>
 
     <script>
+        let selectedFiles = [];
+
+        document.getElementById('content').addEventListener('input', function() {
+            document.getElementById('charCount').textContent = this.value.length;
+        });
+
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            // 限制总文件数2个
+            if (selectedFiles.length + files.length > 2) {
+                alert('最多只能上传2个附件');
+                this.value = '';
+                return;
+            }
+            // 检查每个文件大小
+            const MAX_SIZE = 2 * 1024 * 1024;
+            for (let f of files) {
+                if (f.size > MAX_SIZE) {
+                    alert(`文件 ${f.name} 超过2MB限制`);
+                    this.value = '';
+                    return;
+                }
+            }
+            selectedFiles = selectedFiles.concat(files);
+            renderFileList();
+            this.value = '';
+        });
+
+        function renderFileList() {
+            const container = document.getElementById('fileList');
+            if (selectedFiles.length === 0) {
+                container.innerHTML = '';
+                return;
+            }
+            let html = '';
+            selectedFiles.forEach((f, index) => {
+                html += `<span class="file-item">${f.name} (${(f.size/1024).toFixed(1)}KB) <button onclick="removeFile(${index})">×</button></span>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function removeFile(index) {
+            selectedFiles.splice(index, 1);
+            renderFileList();
+        }
+
         document.getElementById('createForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const title = document.getElementById('title').value.trim();
@@ -45,21 +102,53 @@
                 alert('标题和内容都不能为空');
                 return;
             }
-            const formData = new FormData();
-            formData.append('title', title);
-            formData.append('content', content);
+            if (content.length > 1000) {
+                alert('内容超过1000字限制');
+                return;
+            }
+
+            // 上传附件（如果有）
+            let attachments = [];
+            for (let f of selectedFiles) {
+                const formData = new FormData();
+                formData.append('file', f);
+                try {
+                    const res = await fetch('/api/uploadFile', {
+                        method: 'POST',
+                        credentials: 'include',
+                        body: formData
+                    });
+                    const result = await res.json();
+                    if (result.success) {
+                        attachments.push(result.attachment);
+                    } else {
+                        alert(`文件 ${f.name} 上传失败: ${result.error}`);
+                        return;
+                    }
+                } catch (err) {
+                    alert('网络错误，上传附件失败');
+                    return;
+                }
+            }
+
+            // 发布帖子
+            const postFormData = new FormData();
+            postFormData.append('title', title);
+            postFormData.append('content', content);
+            postFormData.append('attachments', JSON.stringify(attachments));
+
             try {
                 const res = await fetch('/api/createPost', {
                     method: 'POST',
                     credentials: 'include',
-                    body: formData
+                    body: postFormData
                 });
                 const result = await res.json();
                 if (result.success) {
-                    alert('发布成功！');
+                    alert('发布成功！等待管理员审核');
                     window.location.href = '/index.html';
                 } else {
-                    alert(result.error || '发布失败，请重新登录');
+                    alert(result.error || '发布失败');
                 }
             } catch (err) {
                 alert('网络错误，请重试');

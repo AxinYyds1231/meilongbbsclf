@@ -1,4 +1,4 @@
-// functions/api/reply.js
+// functions/api/updateUser.js
 import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
@@ -43,38 +43,59 @@ export async function onRequest(context) {
 
     try {
         const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
-        const { uid, name } = sessionData;
+        const { uid } = sessionData;
 
         const formData = await request.formData();
-        const postId = parseInt(formData.get('postId'));
-        const content = formData.get('content');
+        const name = formData.get('name');
+        const gender = formData.get('gender');
+        const grade = formData.get('grade');
+        const cls = formData.get('class');
 
-        if (!postId || !content) {
-            return new Response(JSON.stringify({ error: '参数不完整' }), {
+        if (!name || !gender || !grade || !cls) {
+            return new Response(JSON.stringify({ error: '请填写完整信息' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        // 字数限制 500
-        if (content.length > 500) {
-            return new Response(JSON.stringify({ error: '回复内容不能超过500字' }), {
+        if (!db.isValidGrade(grade)) {
+            return new Response(JSON.stringify({ error: '年级必须是6~9' }), {
+                status: 400,
+                headers: CORS_HEADERS
+            });
+        }
+        if (!db.isValidClass(cls)) {
+            return new Response(JSON.stringify({ error: '班级必须是1~13' }), {
                 status: 400,
                 headers: CORS_HEADERS
             });
         }
 
-        const updatedPost = await db.addReply(postId, content, uid, name);
-        if (!updatedPost) {
-            return new Response(JSON.stringify({ error: '帖子不存在' }), {
+        const updatedUser = await db.updateUser(uid, {
+            name,
+            gender,
+            grade: parseInt(grade),
+            class: parseInt(cls)
+        });
+
+        if (!updatedUser) {
+            return new Response(JSON.stringify({ error: '用户不存在' }), {
                 status: 404,
                 headers: CORS_HEADERS
             });
         }
 
-        return new Response(JSON.stringify({ success: true, post: updatedPost }), {
+        // 更新 session 中的 name
+        const newSessionData = JSON.stringify({ uid: updatedUser.uid, name: updatedUser.name });
+        const encoded = btoa(newSessionData);
+        const cookie = `session=${encoded}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
+
+        return new Response(JSON.stringify({ success: true, user: updatedUser }), {
             status: 200,
-            headers: CORS_HEADERS
+            headers: {
+                ...CORS_HEADERS,
+                'Set-Cookie': cookie
+            }
         });
     } catch (error) {
         return new Response(JSON.stringify({
