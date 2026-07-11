@@ -81,6 +81,34 @@
             color: #4a5a6a;
             font-size: 0.95rem;
         }
+        .checkin-area {
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .checkin-btn {
+            padding: 4px 18px;
+            font-size: 0.9rem;
+            background: #1a3c6e;
+            color: #fff;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .checkin-btn:hover {
+            background: #2a5a8e;
+        }
+        .checkin-btn:disabled {
+            background: #8b9aab;
+            cursor: not-allowed;
+        }
+        .checkin-status {
+            font-size: 0.9rem;
+            color: #4a5a6a;
+        }
         .bio-section {
             margin: 20px 0 16px 0;
             background: rgba(255,255,255,0.25);
@@ -238,6 +266,11 @@
                         <span id="userClass">班级: -</span>
                         <span id="userPoints">积分: 0</span>
                     </div>
+                    <!-- 签到区域 -->
+                    <div class="checkin-area">
+                        <button id="checkinBtn" class="checkin-btn">✅ 签到</button>
+                        <span id="checkinStatus" class="checkin-status">今日未签到</span>
+                    </div>
                 </div>
             </div>
 
@@ -288,6 +321,48 @@
                 }
             } catch (e) {}
         }
+
+        // ---------- 签到功能 ----------
+        async function loadCheckinStatus() {
+            try {
+                const res = await fetch('/api/checkin?action=status', { credentials: 'include' });
+                if (res.status !== 200) return;
+                const data = await res.json();
+                const btn = document.getElementById('checkinBtn');
+                const statusEl = document.getElementById('checkinStatus');
+                if (data.checked) {
+                    btn.disabled = true;
+                    btn.textContent = '✅ 已签到';
+                    statusEl.textContent = `连续签到 ${data.streak} 天`;
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = '✅ 签到';
+                    statusEl.textContent = '今日未签到';
+                }
+            } catch (e) {
+                console.error('加载签到状态失败', e);
+            }
+        }
+
+        document.getElementById('checkinBtn')?.addEventListener('click', async function() {
+            try {
+                const res = await fetch('/api/checkin', { method: 'POST', credentials: 'include' });
+                const result = await res.json();
+                if (result.success) {
+                    alert(result.message);
+                    // 刷新积分显示
+                    const pointsSpan = document.getElementById('userPoints');
+                    const currentPoints = parseInt(pointsSpan.textContent.replace('积分: ', '')) || 0;
+                    pointsSpan.textContent = `积分: ${currentPoints + result.pointsEarned}`;
+                    // 重新加载签到状态
+                    loadCheckinStatus();
+                } else {
+                    alert(result.message || '签到失败');
+                }
+            } catch (err) {
+                alert('网络错误，请重试');
+            }
+        });
 
         // ---------- 加载个人中心数据 ----------
         async function loadDashboard() {
@@ -349,6 +424,9 @@
                 // 显示内容
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('mainContent').style.display = 'block';
+
+                // 加载签到状态
+                loadCheckinStatus();
 
             } catch (err) {
                 document.getElementById('loading').innerHTML = '<div style="color:red;">加载失败，请刷新</div>';
