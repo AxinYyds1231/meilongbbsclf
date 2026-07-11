@@ -5,126 +5,374 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>个人中心</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        /* 个人中心专用样式 */
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 28px;
+            flex-wrap: wrap;
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(4px);
+            padding: 20px 24px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .avatar-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .avatar-img {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,0.8);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+        .avatar-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .avatar-upload input[type="file"] {
+            font-size: 0.8rem;
+            max-width: 120px;
+        }
+        .avatar-upload .btn-upload {
+            background: rgba(26,60,110,0.1);
+            border: 1px solid rgba(26,60,110,0.15);
+            padding: 4px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #1a3c6e;
+            transition: 0.2s;
+        }
+        .avatar-upload .btn-upload:hover {
+            background: #1a3c6e;
+            color: #fff;
+        }
+        .user-details {
+            flex: 1;
+        }
+        .user-details h2 {
+            margin: 0 0 4px 0;
+            font-size: 1.5rem;
+            color: #1a2332;
+        }
+        .user-details .level-badge {
+            display: inline-block;
+            background: rgba(255,215,0,0.15);
+            padding: 2px 14px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            color: #b8860b;
+        }
+        .user-details .info-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 6px;
+            color: #4a5a6a;
+            font-size: 0.95rem;
+        }
+        .bio-section {
+            margin: 20px 0 16px 0;
+            background: rgba(255,255,255,0.25);
+            backdrop-filter: blur(4px);
+            padding: 16px 20px;
+            border-radius: 16px;
+        }
+        .bio-section textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.5);
+            font-family: inherit;
+            resize: vertical;
+            margin-top: 4px;
+        }
+        .section-title {
+            font-weight: 600;
+            color: #1a2332;
+            margin-bottom: 8px;
+        }
+        .notif-item {
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(4px);
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin-bottom: 6px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .notif-item.unread {
+            border-left: 4px solid #1a3c6e;
+            background: rgba(26,60,110,0.06);
+        }
+        .my-post-item {
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(4px);
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .my-post-item:hover {
+            background: rgba(255,255,255,0.6);
+        }
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .btn-group .btn-secondary {
+            background: rgba(0,0,0,0.04);
+        }
+        .btn-group .btn-danger {
+            background: rgba(217,83,79,0.12);
+            color: #d9534f;
+            border: 1px solid rgba(217,83,79,0.15);
+        }
+        .btn-group .btn-danger:hover {
+            background: #d9534f;
+            color: #fff;
+        }
+        .btn-group .btn-secondary:hover {
+            background: rgba(0,0,0,0.08);
+        }
+        @media (max-width: 600px) {
+            .profile-header {
+                flex-direction: column;
+                text-align: center;
+            }
+            .user-details .info-row {
+                justify-content: center;
+            }
+        }
+    </style>
 </head>
 <body>
     <div class="container" style="max-width: 720px;">
+        <!-- 导航 -->
         <div class="nav-links">
             <a href="/index.html">🏠 首页</a>
             <a href="/dashboard.html">👤 个人中心</a>
             <a href="/inbox.html">📩 私信</a>
             <a href="/adminLogin.html">🔑 管理</a>
         </div>
-        <h1>👤 个人中心</h1>
 
-        <div id="userInfo">加载中...</div>
+        <h1 style="margin-bottom: 16px;">👤 个人中心</h1>
 
-        <div class="bio-edit">
-            <h3>📝 个人简介</h3>
-            <textarea id="bioText" rows="3" placeholder="写点自我介绍..."></textarea>
-            <button id="saveBioBtn" class="btn-primary" style="margin-top:6px;">保存简介</button>
-        </div>
+        <!-- 加载状态 -->
+        <div id="loading" style="text-align:center; padding:40px; color:#8b9aab;">加载中...</div>
 
-        <h3>📬 我的通知</h3>
-        <div id="notifications">加载中...</div>
+        <!-- 主要内容（初始隐藏） -->
+        <div id="mainContent" style="display:none;">
+            <!-- 头像 + 基本信息 -->
+            <div class="profile-header" id="userInfo">
+                <div class="avatar-section">
+                    <img id="avatarImg" class="avatar-img" src="" alt="头像">
+                    <div class="avatar-upload">
+                        <input type="file" id="avatarInput" accept="image/*">
+                        <button id="uploadAvatarBtn" class="btn-upload">📷 上传头像</button>
+                    </div>
+                </div>
+                <div class="user-details">
+                    <h2 id="userName">用户</h2>
+                    <span class="level-badge" id="levelBadge">🌱 新手</span>
+                    <div class="info-row">
+                        <span id="userUid">UID: -</span>
+                        <span id="userGrade">年级: -</span>
+                        <span id="userClass">班级: -</span>
+                        <span id="userPoints">积分: 0</span>
+                    </div>
+                </div>
+            </div>
 
-        <h3>📝 我的帖子</h3>
-        <div id="myPosts">加载中...</div>
+            <!-- 个人简介 -->
+            <div class="bio-section">
+                <div class="section-title">📝 个人简介</div>
+                <textarea id="bioText" rows="3" placeholder="写点自我介绍..."></textarea>
+                <button id="saveBioBtn" class="btn-primary" style="margin-top:6px;">💾 保存简介</button>
+            </div>
 
-        <div class="btn-group">
-            <button class="btn-primary" onclick="location.href='/updateUser.html'">✏️ 修改信息</button>
-            <button id="logoutBtn" class="btn-secondary">🚪 退出登录</button>
-            <button id="deleteAccountBtn" class="btn-danger">🗑️ 注销账号</button>
+            <!-- 通知 -->
+            <div style="margin-top: 20px;">
+                <div class="section-title">📬 我的通知</div>
+                <div id="notifications">加载中...</div>
+            </div>
+
+            <!-- 我的帖子 -->
+            <div style="margin-top: 20px;">
+                <div class="section-title">📝 我的帖子</div>
+                <div id="myPosts">加载中...</div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="btn-group">
+                <button class="btn-primary" onclick="location.href='/updateUser.html'">✏️ 修改信息</button>
+                <button id="logoutBtn" class="btn-secondary">🚪 退出登录</button>
+                <button id="deleteAccountBtn" class="btn-danger">🗑️ 注销账号</button>
+            </div>
         </div>
     </div>
 
     <script>
+        // ---------- 加载数据 ----------
         async function loadDashboard() {
             try {
                 const res = await fetch('/api/user', { credentials: 'include' });
-                if (res.status === 401) { window.location.href = '/login.html'; return; }
-                const data = await res.json();
-                const user = data.user;
+                if (res.status === 401) {
+                    window.location.href = '/login.html';
+                    return;
+                }
+                const userData = await res.json();
+                const uid = userData.user.uid;
 
-                // 获取完整资料（含等级积分）
-                const profileRes = await fetch(`/api/getUserProfile?uid=${user.uid}`);
+                // 获取完整资料（含等级、积分、年级、班级）
+                const profileRes = await fetch(`/api/getUserProfile?uid=${uid}`);
                 const profileData = await profileRes.json();
                 const u = profileData.user;
 
-                document.getElementById('userInfo').innerHTML = `
-                    <div class="avatar-container">
-                        <img src="${u.avatar || ''}" class="avatar-img">
-                        <div>
-                            <p><strong>${u.name}</strong> ${u.levelIcon} ${u.level}</p>
-                            <p>UID: ${u.uid}</p>
-                            <p>年级: ${u.grade} 班级: ${u.class}</p>
-                            <p>积分: ${u.points}</p>
-                        </div>
-                    </div>
-                `;
+                // 填充基本信息
+                document.getElementById('avatarImg').src = u.avatar || '';
+                document.getElementById('userName').textContent = u.name;
+                document.getElementById('levelBadge').textContent = `${u.levelIcon} ${u.level}`;
+                document.getElementById('userUid').textContent = `UID: ${u.uid}`;
+                document.getElementById('userGrade').textContent = `年级: ${u.grade}`;
+                document.getElementById('userClass').textContent = `班级: ${u.class}`;
+                document.getElementById('userPoints').textContent = `积分: ${u.points}`;
                 document.getElementById('bioText').value = u.bio || '';
 
-                // 通知
+                // 加载通知
                 const notifRes = await fetch('/api/notifications', { credentials: 'include' });
                 const notifData = await notifRes.json();
                 const notifContainer = document.getElementById('notifications');
-                if (notifData.notifications.length === 0) {
+                if (!notifData.notifications || notifData.notifications.length === 0) {
                     notifContainer.innerHTML = '<div style="color:#999;">暂无通知</div>';
                 } else {
                     let html = '';
                     notifData.notifications.forEach(n => {
                         const cls = n.read ? '' : 'unread';
-                        html += `<div class="notif-item ${cls}">${n.content} <span style="font-size:0.8em;color:#888;">${new Date(n.createdAt).toLocaleString()}</span></div>`;
+                        const time = new Date(n.createdAt).toLocaleString('zh-CN');
+                        html += `<div class="notif-item ${cls}">${n.content} <span style="font-size:0.75rem;color:#8b9aab;">${time}</span></div>`;
                     });
                     notifContainer.innerHTML = html;
                 }
 
-                // 我的帖子
+                // 加载我的帖子
                 const postsRes = await fetch('/api/posts');
                 const postsData = await postsRes.json();
                 const myPosts = postsData.posts.filter(p => p.authorName === u.name);
                 const container = document.getElementById('myPosts');
                 if (myPosts.length === 0) {
-                    container.innerHTML = '<div style="color:#999;">还没有帖子</div>';
+                    container.innerHTML = '<div style="color:#999;">还没有发布过帖子</div>';
                 } else {
                     let html = '';
                     myPosts.forEach(p => {
-                        html += `<div class="post-item" onclick="location.href='/post.html?id=${p.id}'">${p.title}</div>`;
+                        html += `<div class="my-post-item" onclick="location.href='/post.html?id=${p.id}'">${p.title}</div>`;
                     });
                     container.innerHTML = html;
                 }
+
+                // 显示内容
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+
             } catch (err) {
-                document.getElementById('userInfo').innerHTML = '<div style="color:red;">加载失败</div>';
+                document.getElementById('loading').innerHTML = '<div style="color:red;">加载失败，请刷新</div>';
             }
         }
 
-        document.getElementById('saveBioBtn').addEventListener('click', async function() {
+        // ---------- 头像上传 ----------
+        document.getElementById('uploadAvatarBtn')?.addEventListener('click', async function() {
+            const fileInput = document.getElementById('avatarInput');
+            if (!fileInput.files.length) {
+                alert('请先选择图片');
+                return;
+            }
+            const fd = new FormData();
+            fd.append('avatar', fileInput.files[0]);
+            try {
+                const res = await fetch('/api/uploadAvatar', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: fd
+                });
+                const result = await res.json();
+                if (result.success) {
+                    document.getElementById('avatarImg').src = result.avatar;
+                    alert('✅ 头像更新成功！');
+                } else {
+                    alert(result.error || '上传失败');
+                }
+            } catch (err) {
+                alert('网络错误，请重试');
+            }
+        });
+
+        // ---------- 保存简介 ----------
+        document.getElementById('saveBioBtn')?.addEventListener('click', async function() {
             const bio = document.getElementById('bioText').value.trim();
             const fd = new FormData();
             fd.append('bio', bio);
             try {
-                const res = await fetch('/api/updateProfile', { method: 'POST', credentials: 'include', body: fd });
+                const res = await fetch('/api/updateProfile', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: fd
+                });
                 const result = await res.json();
-                if (result.success) alert('保存成功');
-                else alert(result.error);
-            } catch (err) { alert('网络错误'); }
+                if (result.success) {
+                    alert('✅ 简介已保存');
+                } else {
+                    alert(result.error || '保存失败');
+                }
+            } catch (err) {
+                alert('网络错误');
+            }
         });
 
-        document.getElementById('logoutBtn').addEventListener('click', async function() {
+        // ---------- 退出登录 ----------
+        document.getElementById('logoutBtn')?.addEventListener('click', async function() {
             await fetch('/api/logout', { credentials: 'include' });
             window.location.href = '/login.html';
         });
 
-        document.getElementById('deleteAccountBtn').addEventListener('click', async function() {
+        // ---------- 注销账号 ----------
+        document.getElementById('deleteAccountBtn')?.addEventListener('click', async function() {
             const pwd = prompt('请输入密码确认注销：');
             if (!pwd) return;
             const fd = new FormData();
             fd.append('password', pwd);
-            const res = await fetch('/api/deleteAccount', { method: 'POST', credentials: 'include', body: fd });
-            const result = await res.json();
-            if (result.success) { alert('已注销'); window.location.href = '/login.html'; }
-            else alert(result.error);
+            try {
+                const res = await fetch('/api/deleteAccount', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: fd
+                });
+                const result = await res.json();
+                if (result.success) {
+                    alert('账号已注销');
+                    window.location.href = '/login.html';
+                } else {
+                    alert(result.error || '注销失败');
+                }
+            } catch (err) {
+                alert('网络错误');
+            }
         });
 
+        // ---------- 启动 ----------
         loadDashboard();
     </script>
 </body>
