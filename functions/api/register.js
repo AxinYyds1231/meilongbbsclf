@@ -1,6 +1,5 @@
 // functions/api/register.js
 import { createDb } from '../utils/db.js';
-import bcrypt from 'bcryptjs';
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
@@ -8,6 +7,15 @@ const CORS_HEADERS = {
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json'
 };
+
+// SHA-256 哈希函数（浏览器/Cloudflare 原生支持）
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
 
 export async function onRequest(context) {
     const { request, env } = context;
@@ -54,9 +62,8 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ error: '该UID已被注册' }), { status: 400, headers: CORS_HEADERS });
         }
 
-        // 哈希密码
-        const saltRounds = 10;
-        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        // 哈希密码（SHA-256）
+        const hashedPassword = await hashPassword(password);
 
         const users = await db.getUsers();
         users.push({

@@ -1,6 +1,5 @@
 // functions/api/login.js
 import { createDb } from '../utils/db.js';
-import bcrypt from 'bcryptjs';
 
 function utf8ToBase64(str) {
     const bytes = new TextEncoder().encode(str);
@@ -9,6 +8,15 @@ function utf8ToBase64(str) {
         binary += String.fromCharCode(bytes[i]);
     }
     return btoa(binary);
+}
+
+// SHA-256 哈希函数（和 register 保持一致）
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 const CORS_HEADERS = {
@@ -43,9 +51,9 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ error: '账号或密码错误' }), { status: 401, headers: CORS_HEADERS });
         }
 
-        // 比对哈希密码
-        const match = await bcrypt.compare(password, user.password);
-        if (!match) {
+        // 哈希用户输入的密码，然后比对
+        const hashedInput = await hashPassword(password);
+        if (user.password !== hashedInput) {
             return new Response(JSON.stringify({ error: '账号或密码错误' }), { status: 401, headers: CORS_HEADERS });
         }
 
