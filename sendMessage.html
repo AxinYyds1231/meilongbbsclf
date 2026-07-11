@@ -2,19 +2,32 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>发送私信</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>📩 发送私信</h1>
+    <div class="container" style="max-width: 480px;">
+        <div class="nav-links">
+            <a href="/index.html">🏠 首页</a>
+            <a href="/dashboard.html">👤 个人中心</a>
+            <a href="/inbox.html">📩 收件箱</a>
+        </div>
+        <h1 style="text-align:center;">📩 发送私信</h1>
         <form id="msgForm">
-            <input type="text" id="toUid" placeholder="收件人UID" required>
-            <textarea id="content" rows="6" placeholder="消息内容" required></textarea>
-            <button type="submit" class="btn-primary">发送</button>
+            <div class="form-group">
+                <label>收件人 UID</label>
+                <input type="text" id="toUid" placeholder="输入对方UID" required>
+            </div>
+            <div class="form-group">
+                <label>消息内容</label>
+                <textarea id="content" rows="6" placeholder="写消息..." required style="resize:vertical;"></textarea>
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%;">📤 发送</button>
         </form>
-        <a href="/index.html">返回首页</a>
+        <p style="text-align:center; margin-top:16px;"><a href="/index.html" style="color:#1a3c6e;">← 返回首页</a></p>
     </div>
+
     <script>
         const params = new URLSearchParams(window.location.search);
         const to = params.get('to');
@@ -23,13 +36,14 @@
         document.getElementById('msgForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const fd = new FormData();
-            fd.append('toUid', document.getElementById('toUid').value);
-            fd.append('content', document.getElementById('content').value);
+            fd.append('toUid', document.getElementById('toUid').value.trim());
+            fd.append('content', document.getElementById('content').value.trim());
+            if (!fd.get('toUid') || !fd.get('content')) { alert('请填写完整'); return; }
             try {
                 const res = await fetch('/api/sendMessage', { method: 'POST', credentials: 'include', body: fd });
                 const result = await res.json();
-                if (result.success) alert('发送成功');
-                else alert(result.error);
+                if (result.success) { alert('✅ 发送成功'); window.location.href = '/inbox.html'; }
+                else alert(result.error || '发送失败');
             } catch (err) { alert('网络错误'); }
         });
     </script>

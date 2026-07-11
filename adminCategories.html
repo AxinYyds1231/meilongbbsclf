@@ -2,19 +2,99 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>分类管理</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .category-item { background: #f9f9f9; padding: 10px; border-radius: 4px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .category-name { font-weight: bold; }
-        .category-desc { color: #666; font-size: 0.9em; }
-        .btn-group button { margin-left: 6px; }
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
-        .modal-content { background: #fff; padding: 20px; border-radius: 8px; max-width: 400px; width: 90%; }
-        .modal-content input, .modal-content textarea { width: 100%; margin: 6px 0; padding: 6px; }
-        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
-        .nav-links a { color: #1a3c6e; text-decoration: none; }
-        .nav-links a:hover { text-decoration: underline; }
+        .category-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(4px);
+            padding: 12px 18px;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: all 0.2s;
+        }
+        .category-item:hover {
+            background: rgba(255,255,255,0.7);
+        }
+        .category-name {
+            font-weight: 600;
+            color: #1a2332;
+        }
+        .category-desc {
+            font-size: 0.85rem;
+            color: #6b7a8a;
+            margin-left: 12px;
+        }
+        .edit-btn-cat {
+            background: rgba(26,60,110,0.1);
+            color: #1a3c6e;
+            border: 1px solid rgba(26,60,110,0.15);
+            padding: 4px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-right: 4px;
+        }
+        .edit-btn-cat:hover {
+            background: #1a3c6e;
+            color: #fff;
+        }
+        .delete-btn-cat {
+            background: rgba(217,83,79,0.12);
+            color: #d9534f;
+            border: 1px solid rgba(217,83,79,0.2);
+            padding: 4px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .delete-btn-cat:hover {
+            background: #d9534f;
+            color: #fff;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .modal-content {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(20px);
+            padding: 28px 32px;
+            border-radius: 28px;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid rgba(255,255,255,0.6);
+        }
+        .modal-content input, .modal-content textarea {
+            width: 100%;
+            padding: 10px 14px;
+            margin: 6px 0;
+            border-radius: 14px;
+            border: 1px solid rgba(0,0,0,0.06);
+            background: rgba(255,255,255,0.6);
+            font-family: inherit;
+        }
+        .modal-content input:focus, .modal-content textarea:focus {
+            outline: none;
+            border-color: #1a3c6e;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .modal-actions button { flex: 1; }
     </style>
 </head>
 <body>
@@ -23,19 +103,25 @@
             <a href="/index.html">🏠 首页</a>
             <a href="/adminDashboard.html">🔙 管理后台</a>
         </div>
-        <h1>📂 分类管理</h1>
-        <button id="addCategoryBtn" class="btn-primary">➕ 新建分类</button>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap;">
+            <h1>📂 分类管理</h1>
+            <button id="addCategoryBtn" class="btn-primary">➕ 新建</button>
+        </div>
         <div id="categoryList">加载中...</div>
+        <a href="/adminDashboard.html" style="display:inline-block; margin-top:16px; color:#1a3c6e;">← 返回管理后台</a>
     </div>
 
+    <!-- 新建/编辑模态框 -->
     <div id="editModal" class="modal">
         <div class="modal-content">
             <h3 id="modalTitle">新建分类</h3>
             <input type="hidden" id="editId">
             <input type="text" id="editName" placeholder="分类名称" required>
-            <textarea id="editDesc" placeholder="分类描述（可选）" rows="3"></textarea>
-            <button id="saveBtn" class="btn-primary">保存</button>
-            <button onclick="closeModal()">取消</button>
+            <textarea id="editDesc" rows="2" placeholder="分类描述（可选）"></textarea>
+            <div class="modal-actions">
+                <button id="saveBtn" class="btn-primary">保存</button>
+                <button onclick="closeModal()" class="btn-secondary">取消</button>
+            </div>
         </div>
     </div>
 
@@ -46,7 +132,7 @@
                 const data = await res.json();
                 const container = document.getElementById('categoryList');
                 if (data.categories.length === 0) {
-                    container.innerHTML = '<div style="color:#999;">暂无分类</div>';
+                    container.innerHTML = '<div style="text-align:center; padding:30px; color:#8b9aab;">暂无分类</div>';
                     return;
                 }
                 let html = '';
@@ -54,49 +140,34 @@
                     html += `
                         <div class="category-item">
                             <div>
-                                <div class="category-name">${c.name}</div>
-                                <div class="category-desc">${c.description || '无描述'}</div>
+                                <span class="category-name">${c.name}</span>
+                                <span class="category-desc">${c.description || '无描述'}</span>
                             </div>
-                            <div class="btn-group">
-                                <button class="edit-btn" data-id="${c.id}" data-name="${c.name}" data-desc="${c.description || ''}">编辑</button>
-                                <button class="delete-btn" data-id="${c.id}">删除</button>
+                            <div>
+                                <button class="edit-btn-cat" data-id="${c.id}" data-name="${c.name}" data-desc="${c.description || ''}">编辑</button>
+                                <button class="delete-btn-cat" data-id="${c.id}">删除</button>
                             </div>
                         </div>
                     `;
                 });
                 container.innerHTML = html;
 
-                document.querySelectorAll('.edit-btn').forEach(btn => {
+                document.querySelectorAll('.edit-btn-cat').forEach(btn => {
                     btn.addEventListener('click', function() {
-                        const id = this.dataset.id;
-                        const name = this.dataset.name;
-                        const desc = this.dataset.desc;
-                        openEditModal(id, name, desc);
+                        openEditModal(this.dataset.id, this.dataset.name, this.dataset.desc);
                     });
                 });
 
-                document.querySelectorAll('.delete-btn').forEach(btn => {
+                document.querySelectorAll('.delete-btn-cat').forEach(btn => {
                     btn.addEventListener('click', async function() {
                         const id = this.dataset.id;
-                        if (!confirm('确定要删除此分类吗？')) return;
-                        try {
-                            const formData = new FormData();
-                            formData.append('id', id);
-                            const res = await fetch('/api/adminDeleteCategory', {
-                                method: 'POST',
-                                credentials: 'include',
-                                body: formData
-                            });
-                            const result = await res.json();
-                            if (result.success) {
-                                alert('删除成功');
-                                loadCategories();
-                            } else {
-                                alert(result.error || '删除失败');
-                            }
-                        } catch (err) {
-                            alert('网络错误');
-                        }
+                        if (!confirm('确定删除此分类？')) return;
+                        const fd = new FormData();
+                        fd.append('id', id);
+                        const res = await fetch('/api/adminDeleteCategory', { method: 'POST', credentials: 'include', body: fd });
+                        const result = await res.json();
+                        if (result.success) { alert('已删除'); loadCategories(); }
+                        else alert(result.error);
                     });
                 });
             } catch (err) {
@@ -111,52 +182,29 @@
             document.getElementById('modalTitle').textContent = id ? '编辑分类' : '新建分类';
             document.getElementById('editModal').style.display = 'flex';
         }
-
-        function closeModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        document.getElementById('addCategoryBtn').addEventListener('click', function() {
-            openEditModal();
+        function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
         });
+
+        document.getElementById('addCategoryBtn').addEventListener('click', () => openEditModal());
 
         document.getElementById('saveBtn').addEventListener('click', async function() {
             const id = document.getElementById('editId').value;
             const name = document.getElementById('editName').value.trim();
-            const description = document.getElementById('editDesc').value.trim();
-
-            if (!name) {
-                alert('请输入分类名称');
-                return;
-            }
-
+            const desc = document.getElementById('editDesc').value.trim();
+            if (!name) { alert('请输入分类名称'); return; }
             const endpoint = id ? '/api/adminUpdateCategory' : '/api/adminCreateCategory';
-            const formData = new FormData();
-            if (id) formData.append('id', id);
-            formData.append('name', name);
-            formData.append('description', description);
-
+            const fd = new FormData();
+            if (id) fd.append('id', id);
+            fd.append('name', name);
+            fd.append('description', desc);
             try {
-                const res = await fetch(endpoint, {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: formData
-                });
+                const res = await fetch(endpoint, { method: 'POST', credentials: 'include', body: fd });
                 const result = await res.json();
-                if (result.success) {
-                    alert(id ? '更新成功' : '创建成功');
-                    closeModal();
-                    loadCategories();
-                } else {
-                    alert(result.error || '操作失败');
-                }
-            } catch (err) {
-                alert('网络错误');
-            }
-        });
-
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
+                if (result.success) { alert(id ? '更新成功' : '创建成功'); closeModal(); loadCategories(); }
+                else alert(result.error);
+            } catch (err) { alert('网络错误'); }
         });
 
         loadCategories();

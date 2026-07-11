@@ -2,19 +2,68 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>收件箱</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .msg-item { background: #f9f9f9; padding: 8px; border-radius: 4px; margin-bottom: 6px; }
-        .msg-item.unread { background: #e8f0fe; border-left: 4px solid #1a3c6e; }
+        .msg-item {
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(4px);
+            padding: 14px 18px;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: all 0.2s;
+        }
+        .msg-item:hover {
+            background: rgba(255,255,255,0.7);
+        }
+        .msg-item.unread {
+            border-left: 4px solid #1a3c6e;
+            background: rgba(26,60,110,0.06);
+        }
+        .msg-from {
+            font-weight: 600;
+            color: #1a2332;
+        }
+        .msg-time {
+            font-size: 0.8rem;
+            color: #8b9aab;
+            margin-left: 12px;
+        }
+        .msg-content {
+            margin-top: 6px;
+            color: #2d3a4a;
+        }
+        .read-btn {
+            background: rgba(26,60,110,0.08);
+            border: none;
+            padding: 2px 14px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #1a3c6e;
+            margin-top: 6px;
+            transition: 0.2s;
+        }
+        .read-btn:hover {
+            background: #1a3c6e;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>📩 收件箱</h1>
+    <div class="container" style="max-width: 600px;">
+        <div class="nav-links">
+            <a href="/index.html">🏠 首页</a>
+            <a href="/dashboard.html">👤 个人中心</a>
+            <a href="/sendMessage.html">📤 发私信</a>
+        </div>
+        <h1 style="margin-bottom: 16px;">📩 收件箱</h1>
         <div id="inboxList">加载中...</div>
-        <a href="/index.html">返回首页</a>
+        <p style="text-align:center; margin-top:16px;"><a href="/index.html" style="color:#1a3c6e;">← 返回首页</a></p>
     </div>
+
     <script>
         async function loadInbox() {
             try {
@@ -22,31 +71,38 @@
                 if (res.status === 401) { window.location.href = '/login.html'; return; }
                 const data = await res.json();
                 const container = document.getElementById('inboxList');
-                if (data.messages.length === 0) {
-                    container.innerHTML = '<p>暂无消息</p>';
+                if (!data.messages || data.messages.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; padding:40px; color:#8b9aab;">📭 暂无消息</div>';
                     return;
                 }
                 let html = '';
                 data.messages.forEach(m => {
                     const cls = m.read ? '' : 'unread';
+                    const time = new Date(m.sentAt).toLocaleString('zh-CN');
                     html += `
                         <div class="msg-item ${cls}">
-                            <strong>来自 ${m.fromUid}</strong> 
-                            <span style="font-size:0.8em;color:#888;">${new Date(m.sentAt).toLocaleString()}</span>
-                            <div>${m.content}</div>
-                            ${!m.read ? `<button onclick="markRead(${m.id})">标记已读</button>` : ''}
+                            <div>
+                                <span class="msg-from">📨 ${m.fromUid}</span>
+                                <span class="msg-time">${time}</span>
+                            </div>
+                            <div class="msg-content">${m.content}</div>
+                            ${!m.read ? `<button class="read-btn" onclick="markRead(${m.id})">标记已读</button>` : ''}
                         </div>
                     `;
                 });
                 container.innerHTML = html;
-            } catch (err) { document.getElementById('inboxList').innerHTML = '<p>加载失败</p>'; }
+            } catch (err) {
+                document.getElementById('inboxList').innerHTML = '<div style="color:red;">加载失败，请刷新</div>';
+            }
         }
 
         async function markRead(id) {
             const fd = new FormData();
             fd.append('msgId', id);
-            await fetch('/api/readMessage', { method: 'POST', credentials: 'include', body: fd });
-            loadInbox();
+            try {
+                await fetch('/api/readMessage', { method: 'POST', credentials: 'include', body: fd });
+                loadInbox();
+            } catch (err) { alert('网络错误'); }
         }
 
         loadInbox();

@@ -2,42 +2,124 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>管理员 - 用户管理</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户管理</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .table-wrapper { max-height: 400px; overflow-y: auto; }
-        .edit-btn { background: #337ab7; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
-        .edit-btn:hover { background: #286090; }
+        .table-wrapper {
+            max-height: 450px;
+            overflow-y: auto;
+            border-radius: 16px;
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(4px);
+            padding: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        th {
+            background: rgba(26, 60, 110, 0.1);
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #1a2332;
+            position: sticky;
+            top: 0;
+            backdrop-filter: blur(4px);
+        }
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+        }
+        .delete-btn {
+            background: rgba(217, 83, 79, 0.15);
+            color: #d9534f;
+            border: 1px solid rgba(217,83,79,0.2);
+            padding: 4px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+        .delete-btn:hover {
+            background: #d9534f;
+            color: #fff;
+        }
+        .edit-btn {
+            background: rgba(26, 60, 110, 0.1);
+            color: #1a3c6e;
+            border: 1px solid rgba(26,60,110,0.15);
+            padding: 4px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+            margin-right: 4px;
+        }
+        .edit-btn:hover {
+            background: #1a3c6e;
+            color: #fff;
+        }
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
             justify-content: center;
             align-items: center;
+            z-index: 999;
         }
         .modal-content {
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(20px);
+            padding: 28px 32px;
+            border-radius: 28px;
             max-width: 400px;
             width: 90%;
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow: 0 8px 40px rgba(0,0,0,0.1);
         }
-        .modal-content input, .modal-content select { width: 100%; margin: 6px 0; padding: 6px; }
-        .modal-content button { margin-top: 10px; }
-        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
-        .nav-links a { color: #1a3c6e; text-decoration: none; }
-        .nav-links a:hover { text-decoration: underline; }
+        .modal-content h3 {
+            margin-bottom: 16px;
+            color: #1a2332;
+        }
+        .modal-content input,
+        .modal-content select {
+            width: 100%;
+            padding: 10px 14px;
+            margin: 6px 0;
+            border-radius: 14px;
+            border: 1px solid rgba(0,0,0,0.06);
+            background: rgba(255,255,255,0.6);
+            font-size: 1rem;
+            transition: border 0.2s;
+        }
+        .modal-content input:focus,
+        .modal-content select:focus {
+            outline: none;
+            border-color: #1a3c6e;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .modal-actions button {
+            flex: 1;
+        }
     </style>
 </head>
 <body>
-    <div class="container" style="max-width: 800px;">
+    <div class="container" style="max-width: 850px;">
         <div class="nav-links">
             <a href="/index.html">🏠 首页</a>
             <a href="/adminDashboard.html">🔙 管理后台</a>
         </div>
-        <h1>👥 所有用户</h1>
-        <div id="error" class="error" style="display:none;"></div>
+        <h1 style="margin-bottom: 16px;">👥 用户管理</h1>
+        <div id="error" class="error" style="display:none; background:rgba(217,83,79,0.12); padding:12px; border-radius:14px; margin-bottom:14px;"></div>
         <div class="table-wrapper">
             <table>
                 <thead>
@@ -47,19 +129,19 @@
                         <th>性别</th>
                         <th>年级</th>
                         <th>班级</th>
-                        <th>操作</th>
+                        <th style="text-align:center;">操作</th>
                     </tr>
                 </thead>
                 <tbody id="userList">
-                    <tr><td colspan="6">加载中...</td></tr>
+                    <tr><td colspan="6" style="text-align:center; padding:30px; color:#8b9aab;">加载中...</td></tr>
                 </tbody>
             </table>
         </div>
 
-        <!-- 编辑弹窗 -->
+        <!-- 编辑模态框 -->
         <div id="editModal" class="modal">
             <div class="modal-content">
-                <h3>编辑用户信息</h3>
+                <h3>✏️ 编辑用户</h3>
                 <input type="hidden" id="editUid">
                 <input type="text" id="editName" placeholder="姓名">
                 <select id="editGender">
@@ -81,12 +163,14 @@
                     <option value="11">11班</option><option value="12">12班</option>
                     <option value="13">13班</option>
                 </select>
-                <button id="saveEditBtn" class="btn-primary">保存</button>
-                <button onclick="closeModal()">取消</button>
+                <div class="modal-actions">
+                    <button id="saveEditBtn" class="btn-primary">保存</button>
+                    <button onclick="closeModal()" class="btn-secondary">取消</button>
+                </div>
             </div>
         </div>
 
-        <p><a href="/adminDashboard.html">返回管理后台</a></p>
+        <a href="/adminDashboard.html" style="display:inline-block; margin-top:16px; color:#1a3c6e;">← 返回管理后台</a>
     </div>
 
     <script>
@@ -111,19 +195,22 @@
         function renderTable(users) {
             const tbody = document.getElementById('userList');
             if (users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6">暂无用户</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:30px; color:#8b9aab;">暂无用户</td></tr>';
                 return;
             }
             let html = '';
             users.forEach(u => {
                 html += `
                     <tr>
-                        <td>${u.uid}</td>
+                        <td><code style="background:rgba(0,0,0,0.04); padding:2px 8px; border-radius:6px;">${u.uid}</code></td>
                         <td>${u.name}</td>
                         <td>${u.gender}</td>
                         <td>${u.grade}</td>
                         <td>${u.class}</td>
-                        <td><button class="edit-btn" data-uid="${u.uid}">编辑</button></td>
+                        <td style="text-align:center;">
+                            <button class="edit-btn" data-uid="${u.uid}" data-name="${u.name}" data-gender="${u.gender}" data-grade="${u.grade}" data-class="${u.class}">编辑</button>
+                            <button class="delete-btn" data-uid="${u.uid}">删除</button>
+                        </td>
                     </tr>
                 `;
             });
@@ -131,25 +218,38 @@
 
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
+                    openEditModal(this.dataset.uid, this.dataset.name, this.dataset.gender, this.dataset.grade, this.dataset.class);
+                });
+            });
+
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
                     const uid = this.dataset.uid;
-                    const user = currentUserList.find(u => u.uid === uid);
-                    if (user) openEditModal(user);
+                    if (!confirm(`确定删除 ${uid} 吗？此操作不可恢复！`)) return;
+                    try {
+                        const fd = new FormData();
+                        fd.append('uid', uid);
+                        const res = await fetch('/api/adminDeleteUser', { method: 'POST', credentials: 'include', body: fd });
+                        const result = await res.json();
+                        if (result.success) { alert('已删除'); loadUsers(); }
+                        else alert(result.error || '删除失败');
+                    } catch (err) { alert('网络错误'); }
                 });
             });
         }
 
-        function openEditModal(user) {
-            document.getElementById('editUid').value = user.uid;
-            document.getElementById('editName').value = user.name;
-            document.getElementById('editGender').value = user.gender;
-            document.getElementById('editGrade').value = user.grade || 6;
-            document.getElementById('editClass').value = user.class || 1;
+        function openEditModal(uid, name, gender, grade, cls) {
+            document.getElementById('editUid').value = uid;
+            document.getElementById('editName').value = name;
+            document.getElementById('editGender').value = gender;
+            document.getElementById('editGrade').value = grade;
+            document.getElementById('editClass').value = cls;
             document.getElementById('editModal').style.display = 'flex';
         }
-
-        function closeModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
+        function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
 
         document.getElementById('saveEditBtn').addEventListener('click', async function() {
             const uid = document.getElementById('editUid').value;
@@ -157,40 +257,19 @@
             const gender = document.getElementById('editGender').value;
             const grade = document.getElementById('editGrade').value;
             const cls = document.getElementById('editClass').value;
-
-            if (!name || !gender || !grade || !cls) {
-                alert('请填写完整信息');
-                return;
-            }
-
-            const formData = new FormData();
-            formData.append('uid', uid);
-            formData.append('name', name);
-            formData.append('gender', gender);
-            formData.append('grade', grade);
-            formData.append('class', cls);
-
+            if (!name || !gender || !grade || !cls) { alert('请填写完整'); return; }
+            const fd = new FormData();
+            fd.append('uid', uid);
+            fd.append('name', name);
+            fd.append('gender', gender);
+            fd.append('grade', grade);
+            fd.append('class', cls);
             try {
-                const res = await fetch('/api/adminUpdateUser', {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: formData
-                });
+                const res = await fetch('/api/adminUpdateUser', { method: 'POST', credentials: 'include', body: fd });
                 const result = await res.json();
-                if (result.success) {
-                    alert('修改成功！');
-                    closeModal();
-                    loadUsers();
-                } else {
-                    alert(result.error || '修改失败');
-                }
-            } catch (err) {
-                alert('网络错误，请重试');
-            }
-        });
-
-        document.getElementById('editModal').addEventListener('click', function(e) {
-            if (e.target === this) closeModal();
+                if (result.success) { alert('修改成功！'); closeModal(); loadUsers(); }
+                else alert(result.error || '修改失败');
+            } catch (err) { alert('网络错误'); }
         });
 
         loadUsers();

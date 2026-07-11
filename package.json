@@ -1,7 +1,7 @@
 {
   "name": "meilongbbs",
   "version": "2.0.0",
-  "description": "梅陇中学论坛 - 完整版",
+  "description": "梅陇中学论坛 - 亚克力风格 + Web Crypto加密",
   "type": "module",
   "dependencies": {}
 }

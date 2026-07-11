@@ -2,31 +2,81 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>帖子管理</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .post-item { background: #f9f9f9; padding: 8px; border-radius: 4px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
-        .delete-btn { background: #d9534f; color: white; border: none; padding: 4px 10px; border-radius: 4px; cursor: pointer; }
-        .delete-btn:hover { background: #c9302c; }
+        .post-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(4px);
+            padding: 12px 18px;
+            border-radius: 16px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.5);
+            transition: all 0.2s;
+        }
+        .post-item:hover {
+            background: rgba(255,255,255,0.7);
+        }
+        .post-item a {
+            color: #1a2332;
+            font-weight: 500;
+            text-decoration: none;
+        }
+        .post-item a:hover {
+            text-decoration: underline;
+        }
+        .post-meta-small {
+            font-size: 0.85rem;
+            color: #6b7a8a;
+        }
+        .delete-btn {
+            background: rgba(217,83,79,0.12);
+            color: #d9534f;
+            border: 1px solid rgba(217,83,79,0.2);
+            padding: 4px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .delete-btn:hover {
+            background: #d9534f;
+            color: #fff;
+        }
     </style>
 </head>
 <body>
-    <div class="container" style="max-width: 700px;">
-        <h1>📝 帖子管理</h1>
+    <div class="container" style="max-width: 750px;">
+        <div class="nav-links">
+            <a href="/index.html">🏠 首页</a>
+            <a href="/adminDashboard.html">🔙 管理后台</a>
+        </div>
+        <h1 style="margin-bottom: 16px;">📝 帖子管理</h1>
         <div id="postList">加载中...</div>
-        <a href="/adminDashboard.html">返回管理后台</a>
+        <a href="/adminDashboard.html" style="display:inline-block; margin-top:16px; color:#1a3c6e;">← 返回管理后台</a>
     </div>
+
     <script>
         async function loadPosts() {
             try {
                 const res = await fetch('/api/posts');
                 const data = await res.json();
                 const container = document.getElementById('postList');
+                if (!data.posts || data.posts.length === 0) {
+                    container.innerHTML = '<div style="text-align:center; padding:40px; color:#8b9aab;">📭 暂无帖子</div>';
+                    return;
+                }
                 let html = '';
                 data.posts.forEach(p => {
                     html += `
                         <div class="post-item">
-                            <div><a href="/post.html?id=${p.id}">${p.title}</a> - ${p.authorName}</div>
+                            <div>
+                                <a href="/post.html?id=${p.id}">${p.title}</a>
+                                <div class="post-meta-small">✍️ ${p.authorName} · 💬 ${p.replyCount} 回复</div>
+                            </div>
                             <button class="delete-btn" data-id="${p.id}">删除</button>
                         </div>
                     `;
@@ -51,7 +101,7 @@
                     });
                 });
             } catch (err) {
-                document.getElementById('postList').innerHTML = '加载失败';
+                document.getElementById('postList').innerHTML = '<div style="color:red;">加载失败，请刷新</div>';
             }
         }
         loadPosts();

@@ -2,65 +2,70 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>修改个人信息</title>
     <link rel="stylesheet" href="/style.css">
-    <style>
-        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
-        .nav-links a { color: #1a3c6e; text-decoration: none; }
-        .nav-links a:hover { text-decoration: underline; }
-    </style>
 </head>
 <body>
-    <div class="container" style="max-width: 400px;">
+    <div class="container" style="max-width: 440px;">
         <div class="nav-links">
             <a href="/index.html">🏠 首页</a>
             <a href="/dashboard.html">👤 个人中心</a>
         </div>
-        <h1>✏️ 修改个人信息</h1>
-        <div id="error" class="error" style="display:none;"></div>
-        <div id="success" class="success" style="display:none;"></div>
+        <h1 style="text-align:center;">✏️ 修改信息</h1>
+        <div id="error" class="error" style="display:none; background:rgba(217,83,79,0.12); padding:12px; border-radius:14px; margin-bottom:12px;"></div>
+        <div id="success" class="success" style="display:none; background:rgba(92,184,92,0.12); padding:12px; border-radius:14px; margin-bottom:12px;"></div>
         <form id="updateForm">
-            <input type="text" id="name" placeholder="姓名" required>
-            <select id="gender" required>
-                <option value="">选择性别</option>
-                <option value="男">男</option>
-                <option value="女">女</option>
-            </select>
-            <select id="grade" required>
-                <option value="">选择年级</option>
-                <option value="6">六年级</option>
-                <option value="7">七年级</option>
-                <option value="8">八年级</option>
-                <option value="9">九年级</option>
-            </select>
-            <select id="class" required>
-                <option value="">选择班级</option>
-                <option value="1">1班</option><option value="2">2班</option>
-                <option value="3">3班</option><option value="4">4班</option>
-                <option value="5">5班</option><option value="6">6班</option>
-                <option value="7">7班</option><option value="8">8班</option>
-                <option value="9">9班</option><option value="10">10班</option>
-                <option value="11">11班</option><option value="12">12班</option>
-                <option value="13">13班</option>
-            </select>
-            <button type="submit">保存修改</button>
+            <div class="form-group">
+                <label>姓名</label>
+                <input type="text" id="name" placeholder="姓名" required>
+            </div>
+            <div class="form-group">
+                <label>性别</label>
+                <select id="gender" required>
+                    <option value="">选择</option>
+                    <option value="男">男</option>
+                    <option value="女">女</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>年级</label>
+                <select id="grade" required>
+                    <option value="">选择</option>
+                    <option value="6">六年级</option>
+                    <option value="7">七年级</option>
+                    <option value="8">八年级</option>
+                    <option value="9">九年级</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>班级</label>
+                <select id="class" required>
+                    <option value="">选择</option>
+                    <option value="1">1班</option><option value="2">2班</option>
+                    <option value="3">3班</option><option value="4">4班</option>
+                    <option value="5">5班</option><option value="6">6班</option>
+                    <option value="7">7班</option><option value="8">8班</option>
+                    <option value="9">9班</option><option value="10">10班</option>
+                    <option value="11">11班</option><option value="12">12班</option>
+                    <option value="13">13班</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%;">💾 保存修改</button>
         </form>
-        <p><a href="/dashboard.html">返回个人中心</a></p>
+        <p style="text-align:center; margin-top:16px;"><a href="/dashboard.html" style="color:#1a3c6e;">← 返回个人中心</a></p>
     </div>
 
     <script>
         async function loadUser() {
             try {
                 const res = await fetch('/api/user', { credentials: 'include' });
-                if (res.status === 401) {
-                    window.location.href = '/login.html';
-                    return;
-                }
+                if (res.status === 401) { window.location.href = '/login.html'; return; }
                 const data = await res.json();
                 const user = data.user;
                 document.getElementById('name').value = user.name || '';
                 document.getElementById('gender').value = user.gender || '';
-                // 年级和班级需要用户自行选择，因为 session 不包含这些
+                // 年级班级需要从完整资料获取，简化：用户重新选择
             } catch (err) { console.error(err); }
         }
 
@@ -81,23 +86,19 @@
                 return;
             }
 
-            const formData = new FormData();
-            formData.append('name', name);
-            formData.append('gender', gender);
-            formData.append('grade', grade);
-            formData.append('class', cls);
+            const fd = new FormData();
+            fd.append('name', name);
+            fd.append('gender', gender);
+            fd.append('grade', grade);
+            fd.append('class', cls);
 
             try {
-                const res = await fetch('/api/updateUser', {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: formData
-                });
+                const res = await fetch('/api/updateUser', { method: 'POST', credentials: 'include', body: fd });
                 const result = await res.json();
                 if (result.success) {
-                    successEl.textContent = '修改成功！';
+                    successEl.textContent = '✅ 修改成功！';
                     successEl.style.display = 'block';
-                    setTimeout(() => { window.location.href = '/dashboard.html'; }, 1500);
+                    setTimeout(() => { window.location.href = '/dashboard.html'; }, 1200);
                 } else {
                     errorEl.textContent = result.error || '修改失败';
                     errorEl.style.display = 'block';

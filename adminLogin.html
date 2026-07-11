@@ -2,19 +2,24 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理员登录</title>
     <link rel="stylesheet" href="/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>👑 管理员登录</h1>
-        <div id="error" class="error" style="display:none;"></div>
+    <div class="container" style="max-width: 420px; text-align: center;">
+        <h1 style="margin-bottom: 20px;">👑 管理员登录</h1>
+        <div id="error" class="error" style="display:none; background: rgba(217,83,79,0.12); padding:10px; border-radius:12px; margin-bottom:16px;"></div>
         <form id="adminLoginForm">
-            <input type="password" id="password" placeholder="管理员密码" required>
-            <button type="submit">登录</button>
+            <div class="form-group">
+                <label>管理员密码</label>
+                <input type="password" id="password" placeholder="请输入管理员密码" required>
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%;">登录</button>
         </form>
-        <p><a href="/login.html">返回用户登录</a></p>
+        <p style="margin-top:20px;"><a href="/login.html" style="color:#1a3c6e;">返回用户登录</a></p>
     </div>
+
     <script>
         document.getElementById('adminLoginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -22,16 +27,16 @@
             const errorEl = document.getElementById('error');
             errorEl.style.display = 'none';
 
-            const formData = new FormData();
-            formData.append('password', password);
+            const fd = new FormData();
+            fd.append('password', password);
 
             try {
-                const response = await fetch('/api/adminLogin', {
+                const res = await fetch('/api/adminLogin', {
                     method: 'POST',
                     credentials: 'include',
-                    body: formData
+                    body: fd
                 });
-                const result = await response.json();
+                const result = await res.json();
                 if (result.success) {
                     window.location.href = '/adminDashboard.html';
                 } else {

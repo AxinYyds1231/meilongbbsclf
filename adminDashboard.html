@@ -2,24 +2,101 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理后台</title>
     <link rel="stylesheet" href="/style.css">
-    <style>
-        .admin-links a { display: inline-block; background: #1a3c6e; color: white; padding: 8px 16px; border-radius: 4px; margin: 4px; text-decoration: none; }
-        .admin-links a:hover { background: #2a5a8e; }
-    </style>
 </head>
 <body>
     <div class="container" style="max-width: 700px;">
         <h1>🔧 管理后台</h1>
-        <div class="admin-links">
-            <a href="/adminUsers.html">👥 用户管理</a>
-            <a href="/adminPosts.html">📝 帖子管理</a>
-            <a href="/adminCategories.html">📂 分类管理</a>
+        <div class="nav-links" style="border-bottom: none; margin-bottom: 10px;">
+            <a href="/index.html">🏠 首页</a>
+            <a href="/adminDashboard.html">📊 后台</a>
         </div>
-        <button onclick="logoutAdmin()">退出管理</button>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin: 16px 0;">
+            <a href="/adminUsers.html" class="btn-primary" style="text-decoration: none; display: inline-block;">👥 用户管理</a>
+            <a href="/adminPosts.html" class="btn-primary" style="text-decoration: none; display: inline-block;">📝 帖子管理</a>
+            <a href="/adminCategories.html" class="btn-primary" style="text-decoration: none; display: inline-block;">📂 分类管理</a>
+        </div>
+
+        <hr style="margin: 24px 0; border: none; border-top: 1px solid rgba(0,0,0,0.06);">
+
+        <h2>🔑 修改管理员密码</h2>
+        <div id="pwdError" class="error" style="display:none; background: rgba(217,83,79,0.12); padding:10px; border-radius:12px; margin-bottom:12px;"></div>
+        <div id="pwdSuccess" class="success" style="display:none; background: rgba(92,184,92,0.12); padding:10px; border-radius:12px; margin-bottom:12px;"></div>
+        <form id="changePwdForm">
+            <div class="form-group">
+                <label>旧密码</label>
+                <input type="password" id="oldPassword" required>
+            </div>
+            <div class="form-group">
+                <label>新密码</label>
+                <input type="password" id="newPassword" required minlength="8">
+            </div>
+            <div class="form-group">
+                <label>确认新密码</label>
+                <input type="password" id="confirmPassword" required>
+            </div>
+            <button type="submit" class="btn-primary">更新密码</button>
+        </form>
+
+        <hr style="margin: 24px 0; border: none; border-top: 1px solid rgba(0,0,0,0.06);">
+
+        <button onclick="logoutAdmin()" class="btn-secondary">退出管理</button>
     </div>
+
     <script>
+        // 修改密码
+        document.getElementById('changePwdForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const oldPassword = document.getElementById('oldPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            const errorEl = document.getElementById('pwdError');
+            const successEl = document.getElementById('pwdSuccess');
+            errorEl.style.display = 'none';
+            successEl.style.display = 'none';
+
+            if (newPassword !== confirmPassword) {
+                errorEl.textContent = '两次新密码不一致';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (newPassword.length < 8) {
+                errorEl.textContent = '新密码至少8位';
+                errorEl.style.display = 'block';
+                return;
+            }
+
+            const fd = new FormData();
+            fd.append('oldPassword', oldPassword);
+            fd.append('newPassword', newPassword);
+            fd.append('confirmPassword', confirmPassword);
+
+            try {
+                const res = await fetch('/api/adminChangePassword', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: fd
+                });
+                const result = await res.json();
+                if (result.success) {
+                    successEl.textContent = '密码更新成功！';
+                    successEl.style.display = 'block';
+                    document.getElementById('oldPassword').value = '';
+                    document.getElementById('newPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+                } else {
+                    errorEl.textContent = result.error || '修改失败';
+                    errorEl.style.display = 'block';
+                }
+            } catch (err) {
+                errorEl.textContent = '网络错误，请重试';
+                errorEl.style.display = 'block';
+            }
+        });
+
         async function logoutAdmin() {
             document.cookie = 'adminSession=; Path=/; Max-Age=0';
             window.location.href = '/adminLogin.html';

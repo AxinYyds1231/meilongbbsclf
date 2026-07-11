@@ -6,7 +6,9 @@ export function createDb(kv) {
     const CATEGORIES_KEY = 'categories';
     const MESSAGES_KEY = 'messages';
     const NOTIFICATIONS_KEY = 'notifications';
+    const ADMIN_PASSWORD_KEY = 'admin_password_hash';
 
+    // ---- 通用 ----
     async function getData(key) {
         if (!kv) return null;
         const value = await kv.get(key, 'json');
@@ -18,8 +20,12 @@ export function createDb(kv) {
     }
 
     // ---- 用户 ----
-    async function getUsers() { return (await getData(USERS_KEY)) || []; }
-    async function saveUsers(users) { await setData(USERS_KEY, users); }
+    async function getUsers() {
+        return (await getData(USERS_KEY)) || [];
+    }
+    async function saveUsers(users) {
+        await setData(USERS_KEY, users);
+    }
     async function findUserByUid(uid) {
         const users = await getUsers();
         return users.find(u => u.uid === uid);
@@ -46,7 +52,7 @@ export function createDb(kv) {
         return newPoints;
     }
 
-    // ---- 验证 ----
+    // ---- 验证（同步） ----
     function isValidUID(uid) {
         const regex = /^(ml|ms)\d{4}\d{2}\d{2}$/;
         if (!regex.test(uid)) return false;
@@ -59,7 +65,10 @@ export function createDb(kv) {
         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pwd);
     }
     function isValidGrade(grade) {
-        const map = { '六年级':6, '七年级':7, '八年级':8, '九年级':9, '6':6, '7':7, '8':8, '9':9 };
+        const map = {
+            '六年级': 6, '七年级': 7, '八年级': 8, '九年级': 9,
+            '6': 6, '7': 7, '8': 8, '9': 9
+        };
         const key = String(grade);
         if (map[key] !== undefined) return true;
         const num = parseInt(grade);
@@ -71,16 +80,25 @@ export function createDb(kv) {
     }
 
     // ---- 分类 ----
-    async function getCategories() { return (await getData(CATEGORIES_KEY)) || []; }
-    async function saveCategories(cats) { await setData(CATEGORIES_KEY, cats); }
+    async function getCategories() {
+        return (await getData(CATEGORIES_KEY)) || [];
+    }
+    async function saveCategories(cats) {
+        await setData(CATEGORIES_KEY, cats);
+    }
     async function getCategoryById(id) {
         const cats = await getCategories();
         return cats.find(c => c.id === id);
     }
     async function createCategory(name, desc) {
         const cats = await getCategories();
-        const id = cats.length ? Math.max(...cats.map(c=>c.id)) + 1 : 1;
-        const newCat = { id, name: name.trim(), description: desc ? desc.trim() : '', created_at: Date.now() };
+        const id = cats.length ? Math.max(...cats.map(c => c.id)) + 1 : 1;
+        const newCat = {
+            id,
+            name: name.trim(),
+            description: desc ? desc.trim() : '',
+            created_at: Date.now()
+        };
         cats.push(newCat);
         await saveCategories(cats);
         return newCat;
@@ -102,8 +120,12 @@ export function createDb(kv) {
     }
 
     // ---- 帖子 ----
-    async function getPosts() { return (await getData(POSTS_KEY)) || []; }
-    async function savePosts(posts) { await setData(POSTS_KEY, posts); }
+    async function getPosts() {
+        return (await getData(POSTS_KEY)) || [];
+    }
+    async function savePosts(posts) {
+        await setData(POSTS_KEY, posts);
+    }
     async function getPostById(id) {
         const posts = await getPosts();
         return posts.find(p => p.id === id);
@@ -166,12 +188,12 @@ export function createDb(kv) {
         if (!post) return null;
         const list = type === 'like' ? post.likes : post.dislikes;
         const oppositeList = type === 'like' ? post.dislikes : post.likes;
-        const index = list.indexOf(uid);
-        if (index !== -1) {
-            list.splice(index, 1);
+        const idx = list.indexOf(uid);
+        if (idx !== -1) {
+            list.splice(idx, 1);
         } else {
-            const oppIndex = oppositeList.indexOf(uid);
-            if (oppIndex !== -1) oppositeList.splice(oppIndex, 1);
+            const oppIdx = oppositeList.indexOf(uid);
+            if (oppIdx !== -1) oppositeList.splice(oppIdx, 1);
             list.push(uid);
         }
         await setData(POSTS_KEY, posts);
@@ -184,12 +206,12 @@ export function createDb(kv) {
         const reply = post.replies[replyIndex];
         const list = type === 'like' ? reply.likes : reply.dislikes;
         const oppositeList = type === 'like' ? reply.dislikes : reply.likes;
-        const index = list.indexOf(uid);
-        if (index !== -1) {
-            list.splice(index, 1);
+        const idx = list.indexOf(uid);
+        if (idx !== -1) {
+            list.splice(idx, 1);
         } else {
-            const oppIndex = oppositeList.indexOf(uid);
-            if (oppIndex !== -1) oppositeList.splice(oppIndex, 1);
+            const oppIdx = oppositeList.indexOf(uid);
+            if (oppIdx !== -1) oppositeList.splice(oppIdx, 1);
             list.push(uid);
         }
         await setData(POSTS_KEY, posts);
@@ -197,12 +219,16 @@ export function createDb(kv) {
     }
 
     // ---- 私信 ----
-    async function getMessages() { return (await getData(MESSAGES_KEY)) || []; }
-    async function saveMessages(msgs) { await setData(MESSAGES_KEY, msgs); }
+    async function getMessages() {
+        return (await getData(MESSAGES_KEY)) || [];
+    }
+    async function saveMessages(msgs) {
+        await setData(MESSAGES_KEY, msgs);
+    }
     async function sendMessage(fromUid, toUid, content) {
         const msgs = await getMessages();
         const msg = {
-            id: msgs.length ? Math.max(...msgs.map(m=>m.id)) + 1 : 1,
+            id: msgs.length ? Math.max(...msgs.map(m => m.id)) + 1 : 1,
             fromUid,
             toUid,
             content,
@@ -215,22 +241,30 @@ export function createDb(kv) {
     }
     async function getInbox(uid) {
         const msgs = await getMessages();
-        return msgs.filter(m => m.toUid === uid).sort((a,b) => b.sentAt - a.sentAt);
+        return msgs.filter(m => m.toUid === uid).sort((a, b) => b.sentAt - a.sentAt);
     }
     async function markMessageRead(msgId) {
         const msgs = await getMessages();
         const msg = msgs.find(m => m.id === msgId);
-        if (msg) { msg.read = true; await saveMessages(msgs); return true; }
+        if (msg) {
+            msg.read = true;
+            await saveMessages(msgs);
+            return true;
+        }
         return false;
     }
 
     // ---- 通知 ----
-    async function getNotifications() { return (await getData(NOTIFICATIONS_KEY)) || []; }
-    async function saveNotifications(notifs) { await setData(NOTIFICATIONS_KEY, notifs); }
+    async function getNotifications() {
+        return (await getData(NOTIFICATIONS_KEY)) || [];
+    }
+    async function saveNotifications(notifs) {
+        await setData(NOTIFICATIONS_KEY, notifs);
+    }
     async function addNotification(uid, type, content, link = '') {
         const notifs = await getNotifications();
         const notif = {
-            id: notifs.length ? Math.max(...notifs.map(n=>n.id)) + 1 : 1,
+            id: notifs.length ? Math.max(...notifs.map(n => n.id)) + 1 : 1,
             uid,
             type,
             content,
@@ -244,22 +278,64 @@ export function createDb(kv) {
     }
     async function getNotificationsForUser(uid) {
         const notifs = await getNotifications();
-        return notifs.filter(n => n.uid === uid).sort((a,b) => b.createdAt - a.createdAt);
+        return notifs.filter(n => n.uid === uid).sort((a, b) => b.createdAt - a.createdAt);
     }
     async function markNotificationRead(notifId) {
         const notifs = await getNotifications();
         const n = notifs.find(n => n.id === notifId);
-        if (n) { n.read = true; await saveNotifications(notifs); return true; }
+        if (n) {
+            n.read = true;
+            await saveNotifications(notifs);
+            return true;
+        }
         return false;
     }
 
+    // ---- 管理员密码 ----
+    async function getAdminPasswordHash() {
+        return await getData(ADMIN_PASSWORD_KEY) || null;
+    }
+    async function setAdminPasswordHash(hash) {
+        await setData(ADMIN_PASSWORD_KEY, hash);
+    }
+
+    // ---- 导出 ----
     return {
-        getUsers, saveUsers, findUserByUid, updateUser, deleteUser, addPoints,
-        isValidUID, isValidPassword, isValidGrade, isValidClass,
-        getCategories, saveCategories, getCategoryById, createCategory, updateCategory, deleteCategory,
-        getPosts, savePosts, getPostById, createPost, addReply, deletePostById,
-        toggleLike, toggleReplyLike,
-        getMessages, saveMessages, sendMessage, getInbox, markMessageRead,
-        getNotifications, saveNotifications, addNotification, getNotificationsForUser, markNotificationRead
+        getUsers,
+        saveUsers,
+        findUserByUid,
+        updateUser,
+        deleteUser,
+        addPoints,
+        isValidUID,
+        isValidPassword,
+        isValidGrade,
+        isValidClass,
+        getCategories,
+        saveCategories,
+        getCategoryById,
+        createCategory,
+        updateCategory,
+        deleteCategory,
+        getPosts,
+        savePosts,
+        getPostById,
+        createPost,
+        addReply,
+        deletePostById,
+        toggleLike,
+        toggleReplyLike,
+        getMessages,
+        saveMessages,
+        sendMessage,
+        getInbox,
+        markMessageRead,
+        getNotifications,
+        saveNotifications,
+        addNotification,
+        getNotificationsForUser,
+        markNotificationRead,
+        getAdminPasswordHash,
+        setAdminPasswordHash
     };
 }
