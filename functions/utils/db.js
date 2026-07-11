@@ -253,6 +253,15 @@ export function createDb(kv) {
         }
         return false;
     }
+    async function deleteMessage(msgId, uid) {
+        const msgs = await getMessages();
+        const idx = msgs.findIndex(m => m.id === msgId);
+        if (idx === -1) return false;
+        if (msgs[idx].toUid !== uid) return false;
+        msgs.splice(idx, 1);
+        await saveMessages(msgs);
+        return true;
+    }
 
     // ---- 通知 ----
     async function getNotifications() {
@@ -330,6 +339,7 @@ export function createDb(kv) {
         sendMessage,
         getInbox,
         markMessageRead,
+        deleteMessage,
         getNotifications,
         saveNotifications,
         addNotification,

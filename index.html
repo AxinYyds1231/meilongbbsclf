@@ -5,10 +5,167 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>梅陇中学论坛</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .post-item {
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.7);
+            padding: 14px 18px;
+            border-radius: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .post-item:hover {
+            background: rgba(255,255,255,0.8);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+        }
+        .post-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #1a2332;
+        }
+        .post-meta {
+            font-size: 0.85rem;
+            color: #5a6a7a;
+            margin-top: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .post-meta a {
+            color: #1a3c6e;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        .header h1 {
+            font-size: 1.7rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #1a3c6e, #2a5a8e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .btn-primary {
+            background: #1a3c6e;
+            color: #fff;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(26,60,110,0.2);
+        }
+        .btn-primary:hover {
+            background: #2a5a8e;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(26,60,110,0.3);
+        }
+        .btn-secondary {
+            background: rgba(0,0,0,0.06);
+            color: #1a2332;
+            border: 1px solid rgba(0,0,0,0.08);
+            padding: 8px 22px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .btn-secondary:hover {
+            background: rgba(0,0,0,0.1);
+        }
+        .nav-links {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            padding: 12px 0 16px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+        }
+        .nav-links a {
+            color: #1a3c6e;
+            font-weight: 500;
+            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 12px;
+            transition: background 0.2s;
+        }
+        .nav-links a:hover {
+            background: rgba(26, 60, 110, 0.08);
+        }
+        .nav-link-with-badge {
+            position: relative;
+            display: inline-block;
+        }
+        .nav-badge {
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            background: #d9534f;
+            color: #fff;
+            border-radius: 50%;
+            padding: 0px 5px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+        }
+        .nav-badge.hidden {
+            display: none;
+        }
+        .category-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .category-btn {
+            background: rgba(255,255,255,0.5);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.8);
+            padding: 6px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            color: #1a2332;
+        }
+        .category-btn:hover {
+            background: rgba(255,255,255,0.8);
+        }
+        .category-btn.active {
+            background: #1a3c6e;
+            color: #fff;
+            border-color: #1a3c6e;
+        }
+        .empty {
+            text-align: center;
+            color: #8b9aab;
+            padding: 40px 0;
+        }
+        @media (max-width: 600px) {
+            .container { padding: 16px; }
+            .header h1 { font-size: 1.3rem; }
+            .post-meta { font-size: 0.75rem; gap: 6px; }
+        }
+    </style>
 </head>
 <body>
     <div class="container" style="max-width: 720px;">
-        <!-- 顶部导航 -->
+        <!-- 顶部 -->
         <div class="header">
             <h1>📚 梅陇中学论坛</h1>
             <div class="header-actions">
@@ -17,10 +174,15 @@
                 <button id="logoutBtn" class="btn-secondary" style="display:none;">退出</button>
             </div>
         </div>
+
+        <!-- 导航 -->
         <div class="nav-links">
             <a href="/index.html">🏠 首页</a>
             <a href="/dashboard.html">👤 个人中心</a>
-            <a href="/inbox.html">📩 私信</a>
+            <a href="/inbox.html" class="nav-link-with-badge">
+                📩 私信
+                <span id="navUnreadBadge" class="nav-badge hidden">0</span>
+            </a>
             <a href="/adminLogin.html">🔑 管理</a>
         </div>
 
@@ -32,7 +194,7 @@
     </div>
 
     <script>
-        // 检查登录
+        // ---------- 检查登录 ----------
         async function checkLogin() {
             try {
                 const res = await fetch('/api/user', { credentials: 'include' });
@@ -45,7 +207,26 @@
             } catch (e) {}
         }
 
-        // 加载分类导航
+        // ---------- 更新未读小红点 ----------
+        async function updateNavBadge() {
+            try {
+                const res = await fetch('/api/inbox', { credentials: 'include' });
+                if (res.status !== 200) return;
+                const data = await res.json();
+                const unreadCount = data.messages ? data.messages.filter(m => !m.read).length : 0;
+                const badge = document.getElementById('navUnreadBadge');
+                if (badge) {
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // ---------- 加载分类导航 ----------
         async function loadCategoriesNav() {
             try {
                 const res = await fetch('/api/categories');
@@ -66,7 +247,7 @@
             } catch (err) { console.error(err); }
         }
 
-        // 加载帖子
+        // ---------- 加载帖子 ----------
         async function loadPosts(categoryId = 0) {
             try {
                 const url = categoryId ? `/api/posts?category=${categoryId}` : '/api/posts';
@@ -100,6 +281,7 @@
             }
         }
 
+        // ---------- 退出 ----------
         document.getElementById('logoutBtn')?.addEventListener('click', async function() {
             await fetch('/api/logout', { credentials: 'include' });
             window.location.href = '/login.html';
@@ -108,7 +290,9 @@
             window.location.href = '/createPost.html';
         });
 
+        // ---------- 启动 ----------
         checkLogin();
+        updateNavBadge();
         loadCategoriesNav();
         loadPosts();
     </script>

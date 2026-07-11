@@ -34,41 +34,134 @@
         .msg-content {
             margin-top: 6px;
             color: #2d3a4a;
+            word-wrap: break-word;
+        }
+        .msg-actions {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
         }
         .read-btn {
             background: rgba(26,60,110,0.08);
+            color: #1a3c6e;
             border: none;
             padding: 2px 14px;
             border-radius: 16px;
             cursor: pointer;
             font-size: 0.8rem;
-            color: #1a3c6e;
-            margin-top: 6px;
             transition: 0.2s;
         }
         .read-btn:hover {
             background: #1a3c6e;
             color: #fff;
         }
+        .delete-btn {
+            background: rgba(217,83,79,0.12);
+            color: #d9534f;
+            border: none;
+            padding: 2px 14px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+        .delete-btn:hover {
+            background: #d9534f;
+            color: #fff;
+        }
+        .badge {
+            background: #d9534f;
+            color: #fff;
+            border-radius: 50%;
+            padding: 2px 8px;
+            font-size: 0.75rem;
+            margin-left: 6px;
+            vertical-align: top;
+            display: inline-block;
+        }
+        .nav-link-with-badge {
+            position: relative;
+            display: inline-block;
+        }
+        .nav-badge {
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            background: #d9534f;
+            color: #fff;
+            border-radius: 50%;
+            padding: 0px 5px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+        }
+        .nav-badge.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
     <div class="container" style="max-width: 600px;">
+        <!-- 导航 -->
         <div class="nav-links">
             <a href="/index.html">🏠 首页</a>
             <a href="/dashboard.html">👤 个人中心</a>
             <a href="/sendMessage.html">📤 发私信</a>
         </div>
-        <h1 style="margin-bottom: 16px;">📩 收件箱</h1>
+
+        <h1 style="margin-bottom: 16px;">
+            📩 收件箱
+            <span id="unreadBadge" class="badge" style="display:none;">0</span>
+        </h1>
+
         <div id="inboxList">加载中...</div>
-        <p style="text-align:center; margin-top:16px;"><a href="/index.html" style="color:#1a3c6e;">← 返回首页</a></p>
+
+        <p style="text-align:center; margin-top:16px;">
+            <a href="/index.html" style="color:#1a3c6e;">← 返回首页</a>
+        </p>
     </div>
 
     <script>
+        // 更新导航栏小红点（全局函数）
+        async function updateNavBadge() {
+            try {
+                const res = await fetch('/api/inbox', { credentials: 'include' });
+                if (res.status !== 200) return;
+                const data = await res.json();
+                const unreadCount = data.messages ? data.messages.filter(m => !m.read).length : 0;
+                // 更新收件箱标题旁的红点
+                const badge = document.getElementById('unreadBadge');
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+                // 也更新导航栏中的小红点（如果存在）
+                const navBadge = document.getElementById('navUnreadBadge');
+                if (navBadge) {
+                    if (unreadCount > 0) {
+                        navBadge.textContent = unreadCount;
+                        navBadge.classList.remove('hidden');
+                    } else {
+                        navBadge.classList.add('hidden');
+                    }
+                }
+            } catch (e) {
+                // 静默失败
+            }
+        }
+
+        // 加载收件箱
         async function loadInbox() {
             try {
                 const res = await fetch('/api/inbox', { credentials: 'include' });
-                if (res.status === 401) { window.location.href = '/login.html'; return; }
+                if (res.status === 401) {
+                    window.location.href = '/login.html';
+                    return;
+                }
                 const data = await res.json();
                 const container = document.getElementById('inboxList');
                 if (!data.messages || data.messages.length === 0) {
@@ -76,8 +169,10 @@
                     return;
                 }
                 let html = '';
+                let unreadCount = 0;
                 data.messages.forEach(m => {
                     const cls = m.read ? '' : 'unread';
+                    if (!m.read) unreadCount++;
                     const time = new Date(m.sentAt).toLocaleString('zh-CN');
                     html += `
                         <div class="msg-item ${cls}">
@@ -86,25 +181,69 @@
                                 <span class="msg-time">${time}</span>
                             </div>
                             <div class="msg-content">${m.content}</div>
-                            ${!m.read ? `<button class="read-btn" onclick="markRead(${m.id})">标记已读</button>` : ''}
+                            <div class="msg-actions">
+                                ${!m.read ? `<button class="read-btn" onclick="markRead(${m.id})">标记已读</button>` : ''}
+                                <button class="delete-btn" onclick="deleteMsg(${m.id})">删除</button>
+                            </div>
                         </div>
                     `;
                 });
                 container.innerHTML = html;
+
+                // 更新小红点
+                const badge = document.getElementById('unreadBadge');
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+                // 更新导航栏小红点
+                const navBadge = document.getElementById('navUnreadBadge');
+                if (navBadge) {
+                    if (unreadCount > 0) {
+                        navBadge.textContent = unreadCount;
+                        navBadge.classList.remove('hidden');
+                    } else {
+                        navBadge.classList.add('hidden');
+                    }
+                }
             } catch (err) {
                 document.getElementById('inboxList').innerHTML = '<div style="color:red;">加载失败，请刷新</div>';
             }
         }
 
+        // 标记已读
         async function markRead(id) {
-            const fd = new FormData();
-            fd.append('msgId', id);
             try {
+                const fd = new FormData();
+                fd.append('msgId', id);
                 await fetch('/api/readMessage', { method: 'POST', credentials: 'include', body: fd });
                 loadInbox();
-            } catch (err) { alert('网络错误'); }
+            } catch (err) {
+                alert('网络错误');
+            }
         }
 
+        // 删除消息
+        async function deleteMsg(id) {
+            if (!confirm('确定要删除这条消息吗？')) return;
+            try {
+                const fd = new FormData();
+                fd.append('msgId', id);
+                const res = await fetch('/api/deleteMessage', { method: 'POST', credentials: 'include', body: fd });
+                const result = await res.json();
+                if (result.success) {
+                    loadInbox();
+                } else {
+                    alert(result.error || '删除失败');
+                }
+            } catch (err) {
+                alert('网络错误');
+            }
+        }
+
+        // 启动
         loadInbox();
     </script>
 </body>

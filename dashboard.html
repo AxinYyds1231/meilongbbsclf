@@ -65,7 +65,7 @@
             font-size: 1.5rem;
             color: #1a2332;
         }
-        .user-details .level-badge {
+        .level-badge {
             display: inline-block;
             background: rgba(255,215,0,0.15);
             padding: 2px 14px;
@@ -73,7 +73,7 @@
             font-size: 0.85rem;
             color: #b8860b;
         }
-        .user-details .info-row {
+        .info-row {
             display: flex;
             flex-wrap: wrap;
             gap: 16px;
@@ -149,12 +149,52 @@
         .btn-group .btn-secondary:hover {
             background: rgba(0,0,0,0.08);
         }
+        .nav-links {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            padding: 12px 0 16px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+        }
+        .nav-links a {
+            color: #1a3c6e;
+            font-weight: 500;
+            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 12px;
+            transition: background 0.2s;
+        }
+        .nav-links a:hover {
+            background: rgba(26, 60, 110, 0.08);
+        }
+        .nav-link-with-badge {
+            position: relative;
+            display: inline-block;
+        }
+        .nav-badge {
+            position: absolute;
+            top: -6px;
+            right: -10px;
+            background: #d9534f;
+            color: #fff;
+            border-radius: 50%;
+            padding: 0px 5px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+        }
+        .nav-badge.hidden {
+            display: none;
+        }
         @media (max-width: 600px) {
             .profile-header {
                 flex-direction: column;
                 text-align: center;
             }
-            .user-details .info-row {
+            .info-row {
                 justify-content: center;
             }
         }
@@ -166,7 +206,10 @@
         <div class="nav-links">
             <a href="/index.html">🏠 首页</a>
             <a href="/dashboard.html">👤 个人中心</a>
-            <a href="/inbox.html">📩 私信</a>
+            <a href="/inbox.html" class="nav-link-with-badge">
+                📩 私信
+                <span id="navUnreadBadge" class="nav-badge hidden">0</span>
+            </a>
             <a href="/adminLogin.html">🔑 管理</a>
         </div>
 
@@ -175,7 +218,7 @@
         <!-- 加载状态 -->
         <div id="loading" style="text-align:center; padding:40px; color:#8b9aab;">加载中...</div>
 
-        <!-- 主要内容（初始隐藏） -->
+        <!-- 主要内容 -->
         <div id="mainContent" style="display:none;">
             <!-- 头像 + 基本信息 -->
             <div class="profile-header" id="userInfo">
@@ -227,7 +270,26 @@
     </div>
 
     <script>
-        // ---------- 加载数据 ----------
+        // ---------- 更新导航小红点 ----------
+        async function updateNavBadge() {
+            try {
+                const res = await fetch('/api/inbox', { credentials: 'include' });
+                if (res.status !== 200) return;
+                const data = await res.json();
+                const unreadCount = data.messages ? data.messages.filter(m => !m.read).length : 0;
+                const badge = document.getElementById('navUnreadBadge');
+                if (badge) {
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // ---------- 加载个人中心数据 ----------
         async function loadDashboard() {
             try {
                 const res = await fetch('/api/user', { credentials: 'include' });
@@ -238,12 +300,12 @@
                 const userData = await res.json();
                 const uid = userData.user.uid;
 
-                // 获取完整资料（含等级、积分、年级、班级）
+                // 获取完整资料
                 const profileRes = await fetch(`/api/getUserProfile?uid=${uid}`);
                 const profileData = await profileRes.json();
                 const u = profileData.user;
 
-                // 填充基本信息
+                // 填充信息
                 document.getElementById('avatarImg').src = u.avatar || '';
                 document.getElementById('userName').textContent = u.name;
                 document.getElementById('levelBadge').textContent = `${u.levelIcon} ${u.level}`;
@@ -253,7 +315,7 @@
                 document.getElementById('userPoints').textContent = `积分: ${u.points}`;
                 document.getElementById('bioText').value = u.bio || '';
 
-                // 加载通知
+                // 通知
                 const notifRes = await fetch('/api/notifications', { credentials: 'include' });
                 const notifData = await notifRes.json();
                 const notifContainer = document.getElementById('notifications');
@@ -269,7 +331,7 @@
                     notifContainer.innerHTML = html;
                 }
 
-                // 加载我的帖子
+                // 我的帖子
                 const postsRes = await fetch('/api/posts');
                 const postsData = await postsRes.json();
                 const myPosts = postsData.posts.filter(p => p.authorName === u.name);
@@ -374,6 +436,7 @@
 
         // ---------- 启动 ----------
         loadDashboard();
+        updateNavBadge();
     </script>
 </body>
 </html>
