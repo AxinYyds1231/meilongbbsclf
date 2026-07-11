@@ -9,7 +9,6 @@ export function createDb(kv) {
     const ADMIN_PASSWORD_KEY = 'admin_password_hash';
     const CHECKIN_PREFIX = 'checkin_';
 
-    // ---- 通用 ----
     async function getData(key) {
         if (!kv) return null;
         const value = await kv.get(key, 'json');
@@ -21,12 +20,8 @@ export function createDb(kv) {
     }
 
     // ---- 用户 ----
-    async function getUsers() {
-        return (await getData(USERS_KEY)) || [];
-    }
-    async function saveUsers(users) {
-        await setData(USERS_KEY, users);
-    }
+    async function getUsers() { return (await getData(USERS_KEY)) || []; }
+    async function saveUsers(users) { await setData(USERS_KEY, users); }
     async function findUserByUid(uid) {
         const users = await getUsers();
         return users.find(u => u.uid === uid);
@@ -53,7 +48,7 @@ export function createDb(kv) {
         return newPoints;
     }
 
-    // ---- 验证（同步） ----
+    // ---- 验证 ----
     function isValidUID(uid) {
         const regex = /^(ml|ms)\d{4}\d{2}\d{2}$/;
         if (!regex.test(uid)) return false;
@@ -66,10 +61,7 @@ export function createDb(kv) {
         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pwd);
     }
     function isValidGrade(grade) {
-        const map = {
-            '六年级': 6, '七年级': 7, '八年级': 8, '九年级': 9,
-            '6': 6, '7': 7, '8': 8, '9': 9
-        };
+        const map = { '六年级':6, '七年级':7, '八年级':8, '九年级':9, '6':6, '7':7, '8':8, '9':9 };
         const key = String(grade);
         if (map[key] !== undefined) return true;
         const num = parseInt(grade);
@@ -81,12 +73,8 @@ export function createDb(kv) {
     }
 
     // ---- 分类 ----
-    async function getCategories() {
-        return (await getData(CATEGORIES_KEY)) || [];
-    }
-    async function saveCategories(cats) {
-        await setData(CATEGORIES_KEY, cats);
-    }
+    async function getCategories() { return (await getData(CATEGORIES_KEY)) || []; }
+    async function saveCategories(cats) { await setData(CATEGORIES_KEY, cats); }
     async function getCategoryById(id) {
         const cats = await getCategories();
         return cats.find(c => c.id === id);
@@ -94,12 +82,7 @@ export function createDb(kv) {
     async function createCategory(name, desc) {
         const cats = await getCategories();
         const id = cats.length ? Math.max(...cats.map(c => c.id)) + 1 : 1;
-        const newCat = {
-            id,
-            name: name.trim(),
-            description: desc ? desc.trim() : '',
-            created_at: Date.now()
-        };
+        const newCat = { id, name: name.trim(), description: desc ? desc.trim() : '', created_at: Date.now() };
         cats.push(newCat);
         await saveCategories(cats);
         return newCat;
@@ -121,12 +104,8 @@ export function createDb(kv) {
     }
 
     // ---- 帖子 ----
-    async function getPosts() {
-        return (await getData(POSTS_KEY)) || [];
-    }
-    async function savePosts(posts) {
-        await setData(POSTS_KEY, posts);
-    }
+    async function getPosts() { return (await getData(POSTS_KEY)) || []; }
+    async function savePosts(posts) { await setData(POSTS_KEY, posts); }
     async function getPostById(id) {
         const posts = await getPosts();
         return posts.find(p => p.id === id);
@@ -220,12 +199,8 @@ export function createDb(kv) {
     }
 
     // ---- 私信 ----
-    async function getMessages() {
-        return (await getData(MESSAGES_KEY)) || [];
-    }
-    async function saveMessages(msgs) {
-        await setData(MESSAGES_KEY, msgs);
-    }
+    async function getMessages() { return (await getData(MESSAGES_KEY)) || []; }
+    async function saveMessages(msgs) { await setData(MESSAGES_KEY, msgs); }
     async function sendMessage(fromUid, toUid, content) {
         const msgs = await getMessages();
         const msg = {
@@ -247,11 +222,7 @@ export function createDb(kv) {
     async function markMessageRead(msgId) {
         const msgs = await getMessages();
         const msg = msgs.find(m => m.id === msgId);
-        if (msg) {
-            msg.read = true;
-            await saveMessages(msgs);
-            return true;
-        }
+        if (msg) { msg.read = true; await saveMessages(msgs); return true; }
         return false;
     }
     async function deleteMessage(msgId, uid) {
@@ -265,12 +236,8 @@ export function createDb(kv) {
     }
 
     // ---- 通知 ----
-    async function getNotifications() {
-        return (await getData(NOTIFICATIONS_KEY)) || [];
-    }
-    async function saveNotifications(notifs) {
-        await setData(NOTIFICATIONS_KEY, notifs);
-    }
+    async function getNotifications() { return (await getData(NOTIFICATIONS_KEY)) || []; }
+    async function saveNotifications(notifs) { await setData(NOTIFICATIONS_KEY, notifs); }
     async function addNotification(uid, type, content, link = '') {
         const notifs = await getNotifications();
         const notif = {
@@ -293,27 +260,18 @@ export function createDb(kv) {
     async function markNotificationRead(notifId) {
         const notifs = await getNotifications();
         const n = notifs.find(n => n.id === notifId);
-        if (n) {
-            n.read = true;
-            await saveNotifications(notifs);
-            return true;
-        }
+        if (n) { n.read = true; await saveNotifications(notifs); return true; }
         return false;
     }
 
     // ---- 管理员密码 ----
-    async function getAdminPasswordHash() {
-        return await getData(ADMIN_PASSWORD_KEY) || null;
-    }
-    async function setAdminPasswordHash(hash) {
-        await setData(ADMIN_PASSWORD_KEY, hash);
-    }
+    async function getAdminPasswordHash() { return await getData(ADMIN_PASSWORD_KEY) || null; }
+    async function setAdminPasswordHash(hash) { await setData(ADMIN_PASSWORD_KEY, hash); }
 
     // ---- 签到 ----
     async function getCheckinData(uid) {
         const key = CHECKIN_PREFIX + uid;
-        const data = await getData(key);
-        return data || null;
+        return await getData(key) || null;
     }
     async function setCheckinData(uid, data) {
         const key = CHECKIN_PREFIX + uid;
@@ -332,7 +290,6 @@ export function createDb(kv) {
         if (status.checked) {
             return { success: false, message: '今日已签到', streak: status.streak };
         }
-
         let streak = status.streak || 0;
         const yesterday = new Date();
         yesterday.setDate(yesterday.getDate() - 1);
@@ -342,63 +299,23 @@ export function createDb(kv) {
         } else {
             streak = 1;
         }
-
         await setCheckinData(uid, { lastDate: today, streak });
-
         let pointsEarned = 5;
-        if (streak % 7 === 0) {
-            pointsEarned += 10; // 连续7天额外奖励
-        }
+        if (streak % 7 === 0) pointsEarned += 10;
         await addPoints(uid, pointsEarned);
-
-        return {
-            success: true,
-            message: `签到成功！获得 ${pointsEarned} 积分`,
-            streak,
-            pointsEarned
-        };
+        return { success: true, message: `签到成功！获得 ${pointsEarned} 积分`, streak, pointsEarned };
     }
 
     // ---- 导出 ----
     return {
-        getUsers,
-        saveUsers,
-        findUserByUid,
-        updateUser,
-        deleteUser,
-        addPoints,
-        isValidUID,
-        isValidPassword,
-        isValidGrade,
-        isValidClass,
-        getCategories,
-        saveCategories,
-        getCategoryById,
-        createCategory,
-        updateCategory,
-        deleteCategory,
-        getPosts,
-        savePosts,
-        getPostById,
-        createPost,
-        addReply,
-        deletePostById,
-        toggleLike,
-        toggleReplyLike,
-        getMessages,
-        saveMessages,
-        sendMessage,
-        getInbox,
-        markMessageRead,
-        deleteMessage,
-        getNotifications,
-        saveNotifications,
-        addNotification,
-        getNotificationsForUser,
-        markNotificationRead,
-        getAdminPasswordHash,
-        setAdminPasswordHash,
-        getTodayCheckinStatus,
-        doCheckin,
+        getUsers, saveUsers, findUserByUid, updateUser, deleteUser, addPoints,
+        isValidUID, isValidPassword, isValidGrade, isValidClass,
+        getCategories, saveCategories, getCategoryById, createCategory, updateCategory, deleteCategory,
+        getPosts, savePosts, getPostById, createPost, addReply, deletePostById,
+        toggleLike, toggleReplyLike,
+        getMessages, saveMessages, sendMessage, getInbox, markMessageRead, deleteMessage,
+        getNotifications, saveNotifications, addNotification, getNotificationsForUser, markNotificationRead,
+        getAdminPasswordHash, setAdminPasswordHash,
+        getTodayCheckinStatus, doCheckin
     };
 }
