@@ -29,14 +29,24 @@ export async function onRequest(context) {
     if (!post) {
         return new Response(JSON.stringify({ error: '帖子不存在' }), { status: 404, headers: CORS_HEADERS });
     }
+    if (post.deleted) {
+        return new Response(JSON.stringify({ error: '帖子已删除', deleteReason: post.deleteReason }), { status: 410, headers: CORS_HEADERS });
+    }
 
-    // 补充分类名和作者头像
     const author = await db.findUserByUid(post.authorUid);
     const cat = post.categoryId ? await db.getCategoryById(post.categoryId) : null;
+
     const result = {
         ...post,
         authorAvatar: author?.avatar || '',
-        categoryName: cat?.name || '未分类'
+        categoryName: cat?.name || '未分类',
+        likesCount: post.likes.length,
+        dislikesCount: post.dislikes.length,
+        replies: post.replies.map(r => ({
+            ...r,
+            likesCount: r.likes.length,
+            dislikesCount: r.dislikes.length
+        }))
     };
 
     return new Response(JSON.stringify({ post: result }), { status: 200, headers: CORS_HEADERS });

@@ -1,9 +1,10 @@
 // functions/api/register.js
 import { createDb } from '../utils/db.js';
+import bcrypt from 'bcryptjs';
 
 const CORS_HEADERS = {
     'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json'
 };
@@ -15,12 +16,8 @@ export async function onRequest(context) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
-
     if (request.method !== 'POST') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: CORS_HEADERS });
     }
 
     try {
@@ -34,77 +31,49 @@ export async function onRequest(context) {
         const cls = formData.get('class');
 
         if (!uid || !name || !gender || !password || !confirmPassword || !grade || !cls) {
-            return new Response(JSON.stringify({ error: '请填写所有字段' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '请填写所有字段' }), { status: 400, headers: CORS_HEADERS });
         }
-
         if (password !== confirmPassword) {
-            return new Response(JSON.stringify({ error: '两次密码输入不一致' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '两次密码输入不一致' }), { status: 400, headers: CORS_HEADERS });
         }
-
         if (!db.isValidUID(uid)) {
-            return new Response(JSON.stringify({ error: 'UID格式错误，请参照：ml(或ms)+毕业年份+班级+学号，例如ml20300323' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: 'UID格式错误' }), { status: 400, headers: CORS_HEADERS });
         }
-
         if (!db.isValidPassword(password)) {
-            return new Response(JSON.stringify({ error: '密码必须包含大小写字母和数字，且长度至少8位' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '密码必须包含大小写字母和数字，且长度至少8位' }), { status: 400, headers: CORS_HEADERS });
         }
-
         if (!db.isValidGrade(grade)) {
-            return new Response(JSON.stringify({ error: '年级必须是6~9之间的数字' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '年级必须是6~9' }), { status: 400, headers: CORS_HEADERS });
         }
-
         if (!db.isValidClass(cls)) {
-            return new Response(JSON.stringify({ error: '班级必须是1~13之间的数字' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '班级必须是1~13' }), { status: 400, headers: CORS_HEADERS });
         }
 
-        if (await db.findUserByUid(uid)) {
-            return new Response(JSON.stringify({ error: '该UID已被注册' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+        const existing = await db.findUserByUid(uid);
+        if (existing) {
+            return new Response(JSON.stringify({ error: '该UID已被注册' }), { status: 400, headers: CORS_HEADERS });
         }
+
+        // 哈希密码
+        const saltRounds = 10;
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
 
         const users = await db.getUsers();
         users.push({
             uid,
             name,
             gender,
-            password,
+            password: hashedPassword,
             grade: parseInt(grade),
-            class: parseInt(cls)
+            class: parseInt(cls),
+            points: 0,
+            avatar: '',
+            bio: ''
         });
         await db.saveUsers(users);
 
-        return new Response(JSON.stringify({ success: true, message: '注册成功' }), {
-            status: 200,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ success: true, message: '注册成功' }), { status: 200, headers: CORS_HEADERS });
     } catch (error) {
-        return new Response(JSON.stringify({
-            error: '服务器内部错误',
-            detail: error.message,
-            stack: error.stack
-        }), {
-            status: 500,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), { status: 500, headers: CORS_HEADERS });
     }
 }

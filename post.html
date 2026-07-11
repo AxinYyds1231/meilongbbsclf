@@ -2,30 +2,13 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>帖子详情</title>
     <link rel="stylesheet" href="/style.css">
-    <style>
-        .post-detail { background: #f9f9f9; padding: 16px; border-radius: 6px; margin-bottom: 20px; }
-        .post-title { font-size: 1.5em; font-weight: bold; color: #1a3c6e; }
-        .post-meta { color: #666; font-size: 0.9em; margin: 8px 0; }
-        .post-content { margin: 16px 0; line-height: 1.6; white-space: pre-wrap; }
-        .reply-item { background: #fff; padding: 10px 14px; border-radius: 4px; margin-bottom: 8px; border-left: 3px solid #1a3c6e; }
-        .reply-meta { font-size: 0.85em; color: #888; }
-        .reply-content { margin-top: 4px; white-space: pre-wrap; }
-        .reply-form { margin-top: 20px; }
-        .reply-form textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; resize: vertical; }
-        .reply-form button { margin-top: 6px; }
-        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
-        .nav-links a { color: #1a3c6e; text-decoration: none; }
-        .nav-links a:hover { text-decoration: underline; }
-        .attachment-item { background: #f0f0f0; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-right: 6px; margin-top: 6px; }
-        .avatar-small { width: 30px; height: 30px; border-radius: 50%; vertical-align: middle; margin-right: 6px; }
-        .btn-delete-post { background: #d9534f; color: white; border: none; padding: 4px 12px; border-radius: 4px; cursor: pointer; margin-top: 8px; }
-        .deleted-banner { background: #f8d7da; padding: 10px; border-radius: 4px; margin-bottom: 10px; }
-    </style>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 <body>
-    <div class="container" style="max-width: 700px;">
+    <div class="container" style="max-width: 720px;">
         <div class="nav-links">
             <a href="/index.html">🏠 首页</a>
             <a href="/dashboard.html">👤 个人中心</a>
@@ -50,53 +33,67 @@
                     document.getElementById('postContainer').innerHTML = '<div style="color:red;">帖子不存在</div>';
                     return;
                 }
-                const data = await res.json();
-                const post = data.post;
-                const time = new Date(post.createdAt).toLocaleString('zh-CN');
-
-                if (post.deleted) {
+                if (res.status === 410) {
+                    const data = await res.json();
                     document.getElementById('postContainer').innerHTML = `
-                        <div class="deleted-banner">❌ 该帖子已被管理员删除</div>
-                        <p>删除原因：${post.deleteReason || '未提供原因'}</p>
+                        <div class="deleted-banner">❌ 该帖子已被删除</div>
+                        <p>原因：${data.deleteReason || '未提供'}</p>
                         <a href="/index.html">返回首页</a>
                     `;
                     return;
                 }
+                const data = await res.json();
+                const post = data.post;
+                const time = new Date(post.createdAt).toLocaleString('zh-CN');
 
-                // 获取当前用户信息
+                // 获取当前用户
                 const userRes = await fetch('/api/user', { credentials: 'include' });
                 let currentUser = null;
-                if (userRes.status === 200) {
-                    currentUser = (await userRes.json()).user;
-                }
-                const isAdmin = false; // 简单判断，通过adminSession cookie，但这里简化
+                if (userRes.status === 200) currentUser = (await userRes.json()).user;
+
+                // 判断是否有删除权限（作者或管理员，这里简化，通过adminSession判断）
+                let isAdmin = false;
+                try {
+                    const adminRes = await fetch('/api/adminDashboard', { credentials: 'include' });
+                    if (adminRes.status === 200) isAdmin = true;
+                } catch (e) {}
 
                 let deleteBtnHtml = '';
                 if (currentUser && (currentUser.uid === post.authorUid || isAdmin)) {
-                    deleteBtnHtml = `<button id="deletePostBtn" class="btn-delete-post">🗑️ 删除帖子</button>`;
+                    deleteBtnHtml = `<button id="deletePostBtn" class="btn-danger" style="margin-top:10px;">🗑️ 删除帖子</button>`;
                 }
 
+                // 渲染Markdown
+                const contentHtml = marked.parse(post.content);
+
+                // 附件
                 let attachmentsHtml = '';
                 if (post.attachments && post.attachments.length > 0) {
-                    attachmentsHtml = '<div><strong>📎 附件：</strong>';
+                    attachmentsHtml = '<div class="attachments"><strong>📎 附件：</strong>';
                     post.attachments.forEach(att => {
                         const dataUri = `data:${att.type};base64,${att.data}`;
-                        attachmentsHtml += `<span class="attachment-item"><a href="${dataUri}" download="${att.name}">${att.name}</a> (${(att.size/1024).toFixed(1)}KB)</span>`;
+                        attachmentsHtml += `<a href="${dataUri}" download="${att.name}" class="attachment-link">${att.name}</a> (${(att.size/1024).toFixed(1)}KB)`;
                     });
                     attachmentsHtml += '</div>';
                 }
 
+                // 主内容
                 let html = `
                     <div class="post-detail">
                         <div class="post-title">${post.title}</div>
                         <div class="post-meta">
-                            📂 ${post.categoryName || '未分类'} &nbsp; 
-                            ✍️ <a href="/profile.html?uid=${post.authorUid}" style="color:#1a3c6e;text-decoration:none;"><img src="${post.authorAvatar || ''}" class="avatar-small"> ${post.authorName}</a>
+                            📂 ${post.categoryName || '未分类'} &nbsp;
+                            ✍️ <a href="/profile.html?uid=${post.authorUid}">${post.authorName}</a>
                             &nbsp; 🕒 ${time}
+                            &nbsp; 👍 ${post.likesCount} &nbsp; 👎 ${post.dislikesCount}
                         </div>
-                        <div class="post-content">${post.content.replace(/\n/g, '<br>')}</div>
+                        <div class="post-content">${contentHtml}</div>
                         ${attachmentsHtml}
-                        <div>${deleteBtnHtml}</div>
+                        <div>
+                            <button class="vote-btn" data-target="post" data-type="like">👍 ${post.likesCount}</button>
+                            <button class="vote-btn" data-target="post" data-type="dislike">👎 ${post.dislikesCount}</button>
+                            ${deleteBtnHtml}
+                        </div>
                     </div>
                     <h3>💬 全部回复 (${post.replies.length})</h3>
                     <div id="replies">
@@ -104,12 +101,17 @@
                 if (post.replies.length === 0) {
                     html += '<div style="color:#999;">还没有回复</div>';
                 } else {
-                    post.replies.forEach(r => {
+                    post.replies.forEach((r, idx) => {
                         const rt = new Date(r.createdAt).toLocaleString('zh-CN');
+                        const replyContent = marked.parse(r.content);
                         html += `
                             <div class="reply-item">
                                 <div class="reply-meta">${r.name} · ${rt}</div>
-                                <div class="reply-content">${r.content.replace(/\n/g, '<br>')}</div>
+                                <div class="reply-content">${replyContent}</div>
+                                <div>
+                                    <button class="vote-btn" data-target="reply" data-postid="${postId}" data-replyindex="${idx}" data-type="like">👍 ${r.likesCount}</button>
+                                    <button class="vote-btn" data-target="reply" data-postid="${postId}" data-replyindex="${idx}" data-type="dislike">👎 ${r.dislikesCount}</button>
+                                </div>
                             </div>
                         `;
                     });
@@ -117,32 +119,60 @@
                 html += `
                     </div>
                     <div class="reply-form">
-                        <textarea id="replyContent" rows="3" placeholder="写下你的回复..."></textarea>
+                        <textarea id="replyContent" rows="3" placeholder="回复内容... (支持Markdown)"></textarea>
                         <button id="replyBtn" class="btn-primary">提交回复</button>
                     </div>
                 `;
                 document.getElementById('postContainer').innerHTML = html;
 
+                // 绑定投票事件
+                document.querySelectorAll('.vote-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const target = this.dataset.target;
+                        const type = this.dataset.type;
+                        const postId = this.dataset.postid || urlParams.get('id');
+                        const replyIndex = this.dataset.replyindex || null;
+
+                        const fd = new FormData();
+                        fd.append('target', target);
+                        fd.append('postId', postId);
+                        fd.append('type', type);
+                        if (replyIndex !== null) fd.append('replyIndex', replyIndex);
+
+                        try {
+                            const res = await fetch('/api/like', { method: 'POST', credentials: 'include', body: fd });
+                            const result = await res.json();
+                            if (result.success) {
+                                loadPost(); // 刷新页面
+                            } else {
+                                alert(result.error || '操作失败');
+                            }
+                        } catch (err) { alert('网络错误'); }
+                    });
+                });
+
+                // 回复
                 document.getElementById('replyBtn').addEventListener('click', async function() {
                     const content = document.getElementById('replyContent').value.trim();
                     if (!content) { alert('请输入内容'); return; }
-                    const formData = new FormData();
-                    formData.append('postId', postId);
-                    formData.append('content', content);
+                    const fd = new FormData();
+                    fd.append('postId', postId);
+                    fd.append('content', content);
                     try {
-                        const res = await fetch('/api/reply', { method: 'POST', credentials: 'include', body: formData });
+                        const res = await fetch('/api/reply', { method: 'POST', credentials: 'include', body: fd });
                         const result = await res.json();
                         if (result.success) { alert('回复成功'); loadPost(); }
                         else alert(result.error);
                     } catch (err) { alert('网络错误'); }
                 });
 
+                // 删除
                 const deleteBtn = document.getElementById('deletePostBtn');
                 if (deleteBtn) {
                     deleteBtn.addEventListener('click', function() {
                         if (!confirm('确定删除？')) return;
                         const reason = prompt('请输入删除原因：');
-                        if (reason !== null && reason.trim()) {
+                        if (reason && reason.trim()) {
                             const fd = new FormData();
                             fd.append('postId', postId);
                             fd.append('reason', reason);

@@ -60,8 +60,10 @@ export async function onRequest(context) {
             try { attachments = JSON.parse(attachmentsJson); } catch (e) {}
         }
 
-        // 直接创建，不需要审核
         const post = await db.createPost(title, content, uid, name, attachments, categoryId);
+        // 发帖加10分
+        await db.addPoints(uid, 10);
+
         return new Response(JSON.stringify({ success: true, post }), { status: 200, headers: CORS_HEADERS });
     } catch (error) {
         return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), { status: 500, headers: CORS_HEADERS });

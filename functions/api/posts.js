@@ -23,14 +23,11 @@ export async function onRequest(context) {
     const categoryId = parseInt(url.searchParams.get('category')) || 0;
 
     const allPosts = await db.getPosts();
-    // 过滤掉已删除的帖子
     let posts = allPosts.filter(p => !p.deleted);
-
     if (categoryId) {
         posts = posts.filter(p => p.categoryId === categoryId);
     }
 
-    // 补充分类名和作者头像
     const result = await Promise.all(posts.map(async p => {
         const author = await db.findUserByUid(p.authorUid);
         const cat = p.categoryId ? await db.getCategoryById(p.categoryId) : null;
@@ -42,7 +39,9 @@ export async function onRequest(context) {
             authorAvatar: author?.avatar || '',
             categoryName: cat?.name || '未分类',
             createdAt: p.createdAt,
-            replyCount: p.replies.length
+            replyCount: p.replies.length,
+            likesCount: p.likes.length,
+            dislikesCount: p.dislikes.length
         };
     }));
 

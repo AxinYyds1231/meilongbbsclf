@@ -2,34 +2,19 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>梅陇中学论坛</title>
     <link rel="stylesheet" href="/style.css">
-    <style>
-        .post-item { background: #f9f9f9; padding: 12px 16px; border-radius: 6px; margin-bottom: 10px; cursor: pointer; transition: background 0.2s; }
-        .post-item:hover { background: #f0f0f0; }
-        .post-title { font-size: 1.1em; font-weight: bold; color: #1a3c6e; }
-        .post-meta { font-size: 0.85em; color: #666; margin-top: 4px; }
-        .post-meta span { margin-right: 15px; }
-        .header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
-        .btn-primary { background: #1a3c6e; color: white; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; }
-        .btn-primary:hover { background: #2a5a8e; }
-        .empty { text-align: center; color: #999; padding: 40px 0; }
-        .nav-links { margin-top: 10px; display: flex; gap: 15px; flex-wrap: wrap; }
-        .nav-links a { color: #1a3c6e; text-decoration: none; }
-        .nav-links a:hover { text-decoration: underline; }
-        .category-btn { background: #e8e8e8; border: none; padding: 4px 12px; border-radius: 12px; cursor: pointer; margin: 2px; }
-        .category-btn.active { background: #1a3c6e; color: white; }
-        .avatar-small { width: 24px; height: 24px; border-radius: 50%; vertical-align: middle; margin-right: 4px; }
-    </style>
 </head>
 <body>
-    <div class="container" style="max-width: 700px;">
+    <div class="container" style="max-width: 720px;">
+        <!-- 顶部导航 -->
         <div class="header">
             <h1>📚 梅陇中学论坛</h1>
-            <div>
+            <div class="header-actions">
                 <button id="createBtn" class="btn-primary" style="display:none;">➕ 发帖</button>
-                <span id="userInfo" style="margin-left:10px;"></span>
-                <button id="logoutBtn" class="btn-primary" style="display:none; background:#888;">退出</button>
+                <span id="userInfo"></span>
+                <button id="logoutBtn" class="btn-secondary" style="display:none;">退出</button>
             </div>
         </div>
         <div class="nav-links">
@@ -38,23 +23,29 @@
             <a href="/inbox.html">📩 私信</a>
             <a href="/adminLogin.html">🔑 管理</a>
         </div>
-        <div id="categoryNav"></div>
+
+        <!-- 分类导航 -->
+        <div id="categoryNav" class="category-nav"></div>
+
+        <!-- 帖子列表 -->
         <div id="postList" class="post-list">加载中...</div>
     </div>
 
     <script>
+        // 检查登录
         async function checkLogin() {
             try {
                 const res = await fetch('/api/user', { credentials: 'include' });
                 if (res.status === 200) {
                     const data = await res.json();
-                    document.getElementById('userInfo').innerText = '👋 ' + data.user.name;
+                    document.getElementById('userInfo').innerHTML = '👋 ' + data.user.name;
                     document.getElementById('createBtn').style.display = 'inline-block';
                     document.getElementById('logoutBtn').style.display = 'inline-block';
                 }
             } catch (e) {}
         }
 
+        // 加载分类导航
         async function loadCategoriesNav() {
             try {
                 const res = await fetch('/api/categories');
@@ -69,22 +60,20 @@
                     btn.addEventListener('click', function() {
                         nav.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
                         this.classList.add('active');
-                        const catId = parseInt(this.dataset.category);
-                        loadPosts(catId);
+                        loadPosts(parseInt(this.dataset.category));
                     });
                 });
-            } catch (err) {
-                console.error('加载分类失败', err);
-            }
+            } catch (err) { console.error(err); }
         }
 
+        // 加载帖子
         async function loadPosts(categoryId = 0) {
             try {
                 const url = categoryId ? `/api/posts?category=${categoryId}` : '/api/posts';
                 const res = await fetch(url);
                 const data = await res.json();
                 const container = document.getElementById('postList');
-                if (data.posts.length === 0) {
+                if (!data.posts || data.posts.length === 0) {
                     container.innerHTML = '<div class="empty">📭 暂无帖子</div>';
                     return;
                 }
@@ -96,9 +85,11 @@
                             <div class="post-title">${p.title}</div>
                             <div class="post-meta">
                                 <span>📂 ${p.categoryName || '未分类'}</span>
-                                <span>✍️ <a href="/profile.html?uid=${p.authorUid}" style="color:#1a3c6e;text-decoration:none;" onclick="event.stopPropagation();"><img src="${p.authorAvatar || ''}" class="avatar-small"> ${p.authorName}</a></span>
+                                <span>✍️ <a href="/profile.html?uid=${p.authorUid}" onclick="event.stopPropagation();">${p.authorName}</a></span>
                                 <span>🕒 ${time}</span>
-                                <span>💬 ${p.replyCount} 回复</span>
+                                <span>💬 ${p.replyCount}</span>
+                                <span>👍 ${p.likesCount}</span>
+                                <span>👎 ${p.dislikesCount}</span>
                             </div>
                         </div>
                     `;

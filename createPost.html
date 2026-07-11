@@ -2,19 +2,12 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>发布新帖子</title>
     <link rel="stylesheet" href="/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        .form-group { margin-bottom: 16px; }
-        .form-group label { display: block; font-weight: bold; margin-bottom: 4px; }
-        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        .form-group textarea { resize: vertical; }
-        .file-list { margin-top: 8px; }
-        .file-item { background: #f4f4f4; padding: 4px 8px; border-radius: 4px; display: inline-block; margin-right: 6px; margin-bottom: 4px; }
-        .char-counter { font-size: 0.85em; color: #888; text-align: right; }
-        .nav-links { margin-bottom: 16px; display: flex; gap: 15px; flex-wrap: wrap; }
-        .nav-links a { color: #1a3c6e; text-decoration: none; }
-        .nav-links a:hover { text-decoration: underline; }
+        .preview-box { border: 1px solid #ddd; padding: 12px; border-radius: 6px; background: #fafafa; margin-top: 8px; min-height: 60px; }
     </style>
 </head>
 <body>
@@ -28,21 +21,20 @@
         <form id="createForm">
             <div class="form-group">
                 <label>分类</label>
-                <select id="categoryId" required>
-                    <option value="">选择分类</option>
-                </select>
+                <select id="categoryId" required><option value="">选择分类</option></select>
             </div>
             <div class="form-group">
                 <label>标题</label>
                 <input type="text" id="title" placeholder="输入标题..." required>
             </div>
             <div class="form-group">
-                <label>内容 (最多1000字)</label>
-                <textarea id="content" rows="8" placeholder="写正文..." maxlength="1000" required></textarea>
+                <label>内容 (支持Markdown, 最多1000字)</label>
+                <textarea id="content" rows="6" placeholder="写正文..." maxlength="1000" required></textarea>
                 <div class="char-counter"><span id="charCount">0</span>/1000</div>
+                <div class="preview-box" id="preview">预览区域</div>
             </div>
             <div class="form-group">
-                <label>附件 (可选, 每个文件不超过2MB)</label>
+                <label>附件 (可选, ≤2MB/个, 最多2个)</label>
                 <input type="file" id="fileInput" multiple accept=".txt,.zip,.rar,.pdf,.doc,.docx,.png,.jpg,.jpeg,.gif,.bmp">
                 <div id="fileList" class="file-list"></div>
             </div>
@@ -54,24 +46,18 @@
     <script>
         let selectedFiles = [];
 
+        // 实时预览
         document.getElementById('content').addEventListener('input', function() {
             document.getElementById('charCount').textContent = this.value.length;
+            document.getElementById('preview').innerHTML = marked.parse(this.value || '预览区域');
         });
 
         document.getElementById('fileInput').addEventListener('change', function(e) {
             const files = Array.from(e.target.files);
-            if (selectedFiles.length + files.length > 2) {
-                alert('最多只能上传2个附件');
-                this.value = '';
-                return;
-            }
-            const MAX_SIZE = 2 * 1024 * 1024;
+            if (selectedFiles.length + files.length > 2) { alert('最多2个附件'); this.value=''; return; }
+            const MAX_SIZE = 2*1024*1024;
             for (let f of files) {
-                if (f.size > MAX_SIZE) {
-                    alert(`文件 ${f.name} 超过2MB限制`);
-                    this.value = '';
-                    return;
-                }
+                if (f.size > MAX_SIZE) { alert(`文件 ${f.name} 超过2MB`); this.value=''; return; }
             }
             selectedFiles = selectedFiles.concat(files);
             renderFileList();
@@ -80,21 +66,14 @@
 
         function renderFileList() {
             const container = document.getElementById('fileList');
-            if (selectedFiles.length === 0) {
-                container.innerHTML = '';
-                return;
-            }
+            if (selectedFiles.length === 0) { container.innerHTML=''; return; }
             let html = '';
-            selectedFiles.forEach((f, index) => {
-                html += `<span class="file-item">${f.name} (${(f.size/1024).toFixed(1)}KB) <button onclick="removeFile(${index})">×</button></span>`;
+            selectedFiles.forEach((f,i) => {
+                html += `<span class="file-item">${f.name} (${(f.size/1024).toFixed(1)}KB) <button onclick="removeFile(${i})">×</button></span>`;
             });
             container.innerHTML = html;
         }
-
-        function removeFile(index) {
-            selectedFiles.splice(index, 1);
-            renderFileList();
-        }
+        function removeFile(i) { selectedFiles.splice(i,1); renderFileList(); }
 
         // 加载分类
         async function loadCategories() {
@@ -108,9 +87,7 @@
                     opt.textContent = cat.name;
                     select.appendChild(opt);
                 });
-            } catch (err) {
-                console.error('加载分类失败', err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         document.getElementById('createForm').addEventListener('submit', async function(e) {
@@ -118,65 +95,35 @@
             const title = document.getElementById('title').value.trim();
             const content = document.getElementById('content').value.trim();
             const categoryId = document.getElementById('categoryId').value;
-            if (!title || !content) {
-                alert('标题和内容都不能为空');
-                return;
-            }
-            if (content.length > 1000) {
-                alert('内容超过1000字限制');
-                return;
-            }
-            if (!categoryId) {
-                alert('请选择分类');
-                return;
-            }
+            if (!title || !content) { alert('标题和内容都不能为空'); return; }
+            if (content.length > 1000) { alert('内容超过1000字限制'); return; }
+            if (!categoryId) { alert('请选择分类'); return; }
 
             // 上传附件
             let attachments = [];
             for (let f of selectedFiles) {
-                const formData = new FormData();
-                formData.append('file', f);
+                const fd = new FormData();
+                fd.append('file', f);
                 try {
-                    const res = await fetch('/api/uploadFile', {
-                        method: 'POST',
-                        credentials: 'include',
-                        body: formData
-                    });
+                    const res = await fetch('/api/uploadFile', { method: 'POST', credentials: 'include', body: fd });
                     const result = await res.json();
-                    if (result.success) {
-                        attachments.push(result.attachment);
-                    } else {
-                        alert(`文件 ${f.name} 上传失败: ${result.error}`);
-                        return;
-                    }
-                } catch (err) {
-                    alert('网络错误，上传附件失败');
-                    return;
-                }
+                    if (result.success) attachments.push(result.attachment);
+                    else { alert(`文件 ${f.name} 上传失败`); return; }
+                } catch (err) { alert('附件上传失败'); return; }
             }
 
-            const postFormData = new FormData();
-            postFormData.append('title', title);
-            postFormData.append('content', content);
-            postFormData.append('categoryId', categoryId);
-            postFormData.append('attachments', JSON.stringify(attachments));
+            const postFd = new FormData();
+            postFd.append('title', title);
+            postFd.append('content', content);
+            postFd.append('categoryId', categoryId);
+            postFd.append('attachments', JSON.stringify(attachments));
 
             try {
-                const res = await fetch('/api/createPost', {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: postFormData
-                });
+                const res = await fetch('/api/createPost', { method: 'POST', credentials: 'include', body: postFd });
                 const result = await res.json();
-                if (result.success) {
-                    alert('发布成功！');
-                    window.location.href = '/index.html';
-                } else {
-                    alert(result.error || '发布失败');
-                }
-            } catch (err) {
-                alert('网络错误，请重试');
-            }
+                if (result.success) { alert('发布成功！'); window.location.href = '/index.html'; }
+                else alert(result.error);
+            } catch (err) { alert('网络错误'); }
         });
 
         loadCategories();

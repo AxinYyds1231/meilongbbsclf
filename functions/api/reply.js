@@ -24,21 +24,14 @@ export async function onRequest(context) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
-
     if (request.method !== 'POST') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: CORS_HEADERS });
     }
 
     const cookieHeader = request.headers.get('Cookie') || '';
     const sessionMatch = cookieHeader.match(/session=([^;]+)/);
     if (!sessionMatch) {
-        return new Response(JSON.stringify({ error: '请先登录' }), {
-            status: 401,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: '请先登录' }), { status: 401, headers: CORS_HEADERS });
     }
 
     try {
@@ -50,39 +43,21 @@ export async function onRequest(context) {
         const content = formData.get('content');
 
         if (!postId || !content) {
-            return new Response(JSON.stringify({ error: '参数不完整' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '参数不完整' }), { status: 400, headers: CORS_HEADERS });
         }
-
-        // 字数限制 500
         if (content.length > 500) {
-            return new Response(JSON.stringify({ error: '回复内容不能超过500字' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '回复不能超过500字' }), { status: 400, headers: CORS_HEADERS });
         }
 
-        const updatedPost = await db.addReply(postId, content, uid, name);
-        if (!updatedPost) {
-            return new Response(JSON.stringify({ error: '帖子不存在' }), {
-                status: 404,
-                headers: CORS_HEADERS
-            });
+        const reply = await db.addReply(postId, content, uid, name);
+        if (!reply) {
+            return new Response(JSON.stringify({ error: '帖子不存在' }), { status: 404, headers: CORS_HEADERS });
         }
+        // 回复加3分
+        await db.addPoints(uid, 3);
 
-        return new Response(JSON.stringify({ success: true, post: updatedPost }), {
-            status: 200,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ success: true, reply }), { status: 200, headers: CORS_HEADERS });
     } catch (error) {
-        return new Response(JSON.stringify({
-            error: '服务器错误',
-            detail: error.message
-        }), {
-            status: 500,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), { status: 500, headers: CORS_HEADERS });
     }
 }

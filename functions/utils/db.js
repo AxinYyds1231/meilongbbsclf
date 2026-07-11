@@ -38,6 +38,13 @@ export function createDb(kv) {
         await saveUsers(users);
         return true;
     }
+    async function addPoints(uid, points) {
+        const user = await findUserByUid(uid);
+        if (!user) return null;
+        const newPoints = (user.points || 0) + points;
+        await updateUser(uid, { points: newPoints });
+        return newPoints;
+    }
 
     // ---- 验证 ----
     function isValidUID(uid) {
@@ -118,7 +125,9 @@ export function createDb(kv) {
             replies: [],
             deleted: false,
             deleteReason: null,
-            deletedBy: null
+            deletedBy: null,
+            likes: [],
+            dislikes: []
         };
         posts.unshift(post);
         await setData(POSTS_KEY, posts);
@@ -129,9 +138,17 @@ export function createDb(kv) {
         const posts = await getPosts();
         const post = posts.find(p => p.id === postId);
         if (!post) return null;
-        post.replies.push({ uid, name, content, createdAt: Date.now() });
+        const reply = {
+            uid,
+            name,
+            content,
+            createdAt: Date.now(),
+            likes: [],
+            dislikes: []
+        };
+        post.replies.push(reply);
         await setData(POSTS_KEY, posts);
-        return post;
+        return reply;
     }
     async function deletePostById(postId, reason, adminUid) {
         const posts = await getPosts();
@@ -142,6 +159,41 @@ export function createDb(kv) {
         post.deletedBy = adminUid;
         await setData(POSTS_KEY, posts);
         return true;
+    }
+    async function toggleLike(postId, uid, type) {
+        const posts = await getPosts();
+        const post = posts.find(p => p.id === postId);
+        if (!post) return null;
+        const list = type === 'like' ? post.likes : post.dislikes;
+        const oppositeList = type === 'like' ? post.dislikes : post.likes;
+        const index = list.indexOf(uid);
+        if (index !== -1) {
+            list.splice(index, 1);
+        } else {
+            const oppIndex = oppositeList.indexOf(uid);
+            if (oppIndex !== -1) oppositeList.splice(oppIndex, 1);
+            list.push(uid);
+        }
+        await setData(POSTS_KEY, posts);
+        return post;
+    }
+    async function toggleReplyLike(postId, replyIndex, uid, type) {
+        const posts = await getPosts();
+        const post = posts.find(p => p.id === postId);
+        if (!post || !post.replies[replyIndex]) return null;
+        const reply = post.replies[replyIndex];
+        const list = type === 'like' ? reply.likes : reply.dislikes;
+        const oppositeList = type === 'like' ? reply.dislikes : reply.likes;
+        const index = list.indexOf(uid);
+        if (index !== -1) {
+            list.splice(index, 1);
+        } else {
+            const oppIndex = oppositeList.indexOf(uid);
+            if (oppIndex !== -1) oppositeList.splice(oppIndex, 1);
+            list.push(uid);
+        }
+        await setData(POSTS_KEY, posts);
+        return reply;
     }
 
     // ---- 私信 ----
@@ -202,10 +254,11 @@ export function createDb(kv) {
     }
 
     return {
-        getUsers, saveUsers, findUserByUid, updateUser, deleteUser,
+        getUsers, saveUsers, findUserByUid, updateUser, deleteUser, addPoints,
         isValidUID, isValidPassword, isValidGrade, isValidClass,
         getCategories, saveCategories, getCategoryById, createCategory, updateCategory, deleteCategory,
         getPosts, savePosts, getPostById, createPost, addReply, deletePostById,
+        toggleLike, toggleReplyLike,
         getMessages, saveMessages, sendMessage, getInbox, markMessageRead,
         getNotifications, saveNotifications, addNotification, getNotificationsForUser, markNotificationRead
     };
