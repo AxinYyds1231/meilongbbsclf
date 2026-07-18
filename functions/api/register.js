@@ -76,7 +76,7 @@ export async function onRequest(context) {
             bio: ''
         });
         await db.saveUsers(users);
-        await db.incrementStats('user'); // 增加统计
+        await db.incrementStats('user'); // 👈 增加统计
 
         return new Response(JSON.stringify({ success: true, message: '注册成功' }), { status: 200, headers: CORS_HEADERS });
     } catch (error) {

@@ -66,9 +66,7 @@ export async function onRequest(context) {
         }
 
         const post = await db.createPost(filteredTitle, filteredContent, uid, name, attachments, categoryId);
-        // 增加统计
-        await db.incrementStats('post');
-        // 发帖积分
+        await db.incrementStats('post'); // 👈 增加统计
         await db.addPoints(uid, 10);
 
         return new Response(JSON.stringify({ success: true, post }), { status: 200, headers: CORS_HEADERS });

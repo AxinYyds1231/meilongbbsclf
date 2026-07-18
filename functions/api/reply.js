@@ -49,11 +49,15 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ error: '回复不能超过500字' }), { status: 400, headers: CORS_HEADERS });
         }
 
-        const reply = await db.addReply(postId, content, uid, name);
+        // 敏感词过滤
+        const words = await db.getSensitiveWords();
+        const filtered = db.filterSensitive(content, words);
+
+        const reply = await db.addReply(postId, filtered, uid, name);
         if (!reply) {
             return new Response(JSON.stringify({ error: '帖子不存在' }), { status: 404, headers: CORS_HEADERS });
         }
-        // 回复加3分
+        await db.incrementStats('reply'); // 👈 增加统计
         await db.addPoints(uid, 3);
 
         return new Response(JSON.stringify({ success: true, reply }), { status: 200, headers: CORS_HEADERS });
