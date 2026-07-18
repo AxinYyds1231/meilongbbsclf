@@ -55,13 +55,20 @@ export async function onRequest(context) {
             if (!cat) return new Response(JSON.stringify({ error: '分类不存在' }), { status: 400, headers: CORS_HEADERS });
         }
 
+        // 敏感词过滤
+        const words = await db.getSensitiveWords();
+        const filteredTitle = db.filterSensitive(title, words);
+        const filteredContent = db.filterSensitive(content, words);
+
         let attachments = [];
         if (attachmentsJson) {
             try { attachments = JSON.parse(attachmentsJson); } catch (e) {}
         }
 
-        const post = await db.createPost(title, content, uid, name, attachments, categoryId);
-        // 发帖加10分
+        const post = await db.createPost(filteredTitle, filteredContent, uid, name, attachments, categoryId);
+        // 增加统计
+        await db.incrementStats('post');
+        // 发帖积分
         await db.addPoints(uid, 10);
 
         return new Response(JSON.stringify({ success: true, post }), { status: 200, headers: CORS_HEADERS });

@@ -7,25 +7,184 @@
     <link rel="stylesheet" href="/style.css">
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <style>
-        .post-detail { background: rgba(255,255,255,0.4); backdrop-filter: blur(4px); border-radius: 20px; padding: 20px; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.5); }
-        .post-title { font-size: 1.6rem; font-weight: 700; color: #1a2332; }
-        .post-meta { color: #6b7a8a; font-size: 0.9rem; margin: 8px 0; }
-        .post-content { margin: 16px 0; line-height: 1.8; }
-        .post-content img { max-width: 100%; border-radius: 12px; }
-        .post-content pre { background: rgba(0,0,0,0.06); padding: 12px; border-radius: 12px; overflow-x: auto; }
-        .post-content code { background: rgba(0,0,0,0.04); padding: 2px 6px; border-radius: 6px; font-size: 0.9em; }
-        .post-content blockquote { border-left: 4px solid #1a3c6e; padding-left: 16px; color: #3a4a5a; }
-        .reply-item { background: rgba(255,255,255,0.3); backdrop-filter: blur(4px); padding: 14px 16px; border-radius: 16px; margin-bottom: 10px; border-left: 4px solid #1a3c6e; }
-        .reply-meta { font-size: 0.85rem; color: #6b7a8a; }
-        .reply-content { margin-top: 4px; }
-        .reply-actions { margin-top: 6px; }
-        .btn-danger { background: #d9534f; color: #fff; border: none; padding: 6px 16px; border-radius: 30px; cursor: pointer; transition: 0.2s; }
-        .btn-danger:hover { background: #c9302c; }
-        .btn-secondary { background: rgba(0,0,0,0.06); color: #1a2332; border: 1px solid rgba(0,0,0,0.08); padding: 6px 16px; border-radius: 30px; cursor: pointer; }
-        .btn-secondary:hover { background: rgba(0,0,0,0.1); }
-        .vote-btn { background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.8); padding: 4px 14px; border-radius: 30px; cursor: pointer; margin-right: 6px; transition: 0.2s; }
-        .vote-btn:hover { background: rgba(255,255,255,0.9); }
-        .deleted-banner { background: rgba(217,83,79,0.12); padding: 12px 16px; border-radius: 16px; margin-bottom: 16px; border-left: 4px solid #d9534f; }
+        .post-detail {
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(4px);
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .post-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1a2332;
+        }
+        .post-meta {
+            color: #6b7a8a;
+            font-size: 0.9rem;
+            margin: 8px 0;
+        }
+        .post-content {
+            margin: 16px 0;
+            line-height: 1.8;
+        }
+        .post-content img { max-width: 100%; border-radius: 6px; }
+        .post-content pre {
+            background: #1e2a3a;
+            color: #e6edf3;
+            padding: 12px;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
+        .post-content code { background: #e9ecf0; padding: 2px 6px; border-radius: 4px; }
+        .reply-item {
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(4px);
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            border-left: 2px solid #1a3c6e;
+        }
+        .reply-meta {
+            font-size: 0.85rem;
+            color: #6b7a8a;
+        }
+        .reply-content {
+            margin-top: 4px;
+        }
+        .reply-form {
+            margin-top: 20px;
+        }
+        .reply-form textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 12px;
+            background: rgba(255,255,255,0.5);
+            font-family: inherit;
+            resize: vertical;
+        }
+        .btn-primary {
+            background: #1a3c6e;
+            color: #fff;
+            border: none;
+            padding: 8px 22px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .btn-primary:hover {
+            background: #2a5a8e;
+        }
+        .btn-secondary {
+            background: rgba(0,0,0,0.06);
+            color: #1a2332;
+            border: 1px solid rgba(0,0,0,0.08);
+            padding: 4px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        .btn-secondary:hover {
+            background: rgba(0,0,0,0.1);
+        }
+        .btn-danger {
+            background: #d9534f;
+            color: #fff;
+            border: none;
+            padding: 4px 14px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        .btn-danger:hover {
+            background: #c9302c;
+        }
+        .vote-btn {
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.8);
+            padding: 2px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-right: 4px;
+            font-size: 0.8rem;
+        }
+        .vote-btn:hover {
+            background: rgba(255,255,255,0.9);
+        }
+        .nav-links {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            padding: 12px 0 16px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            margin-bottom: 20px;
+        }
+        .nav-links a {
+            color: #1a3c6e;
+            font-weight: 500;
+            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 12px;
+            transition: background 0.2s;
+        }
+        .nav-links a:hover {
+            background: rgba(26, 60, 110, 0.08);
+        }
+        .reply-btn {
+            background: none;
+            border: none;
+            color: #1a3c6e;
+            cursor: pointer;
+            font-size: 0.8rem;
+            padding: 2px 6px;
+        }
+        .reply-btn:hover {
+            text-decoration: underline;
+        }
+        .favorite-btn {
+            background: rgba(255,215,0,0.1);
+            border: 1px solid rgba(255,215,0,0.3);
+            padding: 4px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .favorite-btn:hover {
+            background: rgba(255,215,0,0.2);
+        }
+        .favorite-btn.active {
+            background: rgba(255,215,0,0.2);
+            border-color: #ffc107;
+        }
+        .deleted-banner {
+            background: rgba(217,83,79,0.12);
+            padding: 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #d9534f;
+        }
+        .attachment-link {
+            display: inline-block;
+            background: rgba(255,255,255,0.3);
+            padding: 2px 12px;
+            border-radius: 20px;
+            margin-right: 6px;
+            font-size: 0.85rem;
+        }
+        .tree-reply {
+            margin-left: 20px;
+            border-left: 2px solid #1a3c6e;
+            padding-left: 12px;
+        }
+        @media (max-width: 600px) {
+            .tree-reply { margin-left: 10px; padding-left: 6px; }
+        }
     </style>
 </head>
 <body>
@@ -42,6 +201,35 @@
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const postId = urlParams.get('id');
+
+        // 全局变量
+        let currentUser = null;
+        let isAdmin = false;
+
+        // ---------- 工具函数 ----------
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // ---------- 获取当前用户 ----------
+        async function getCurrentUser() {
+            try {
+                const res = await fetch('/api/user', { credentials: 'include' });
+                if (res.status === 200) {
+                    const data = await res.json();
+                    currentUser = data.user;
+                }
+            } catch (e) {}
+        }
+
+        async function checkAdmin() {
+            try {
+                const res = await fetch('/api/adminDashboard', { credentials: 'include' });
+                if (res.status === 200) isAdmin = true;
+            } catch (e) {}
+        }
 
         // ---------- 加载帖子 ----------
         async function loadPost() {
@@ -69,29 +257,32 @@
                 const time = new Date(post.createdAt).toLocaleString('zh-CN');
 
                 // 获取当前用户
-                const userRes = await fetch('/api/user', { credentials: 'include' });
-                let currentUser = null;
-                if (userRes.status === 200) {
-                    currentUser = (await userRes.json()).user;
+                await getCurrentUser();
+                await checkAdmin();
+
+                // 构建删除按钮
+                let deleteBtnHtml = '';
+                if (currentUser) {
+                    if (currentUser.uid === post.authorUid) {
+                        deleteBtnHtml += `<button id="deleteMyPostBtn" class="btn-danger" style="margin-top:10px;">🗑️ 删除我的帖子</button>`;
+                    }
+                    if (isAdmin) {
+                        deleteBtnHtml += `<button id="deletePostBtn" class="btn-danger" style="margin-top:10px; margin-left:8px;">🔧 管理删除</button>`;
+                    }
                 }
 
-                // 检查管理员
-                let isAdmin = false;
+                // 判断是否已收藏
+                let favorited = false;
                 try {
-                    const adminRes = await fetch('/api/adminDashboard', { credentials: 'include' });
-                    if (adminRes.status === 200) isAdmin = true;
+                    const favRes = await fetch('/api/favorites', { credentials: 'include' });
+                    if (favRes.status === 200) {
+                        const favData = await favRes.json();
+                        favorited = favData.favorites.some(p => p.id === post.id);
+                    }
                 } catch (e) {}
 
-                // 删除按钮
-                let deleteBtnHtml = '';
-                if (currentUser && currentUser.uid === post.authorUid) {
-                    deleteBtnHtml += `<button id="deleteMyPostBtn" class="btn-danger" style="margin-top:10px;">🗑️ 删除我的帖子</button>`;
-                }
-                if (isAdmin) {
-                    deleteBtnHtml += `<button id="deletePostBtn" class="btn-danger" style="margin-top:10px; margin-left:8px;">🔧 管理删除</button>`;
-                }
-
-                // 附件
+                // 渲染内容
+                const contentHtml = marked.parse(post.content);
                 let attachmentsHtml = '';
                 if (post.attachments && post.attachments.length > 0) {
                     attachmentsHtml = '<div><strong>📎 附件：</strong>';
@@ -102,9 +293,6 @@
                     attachmentsHtml += '</div>';
                 }
 
-                // 渲染主内容
-                const contentHtml = marked.parse(post.content);
-
                 let html = `
                     <div class="post-detail">
                         <div class="post-title">${post.title}</div>
@@ -114,125 +302,208 @@
                             &nbsp; 🕒 ${time}
                             &nbsp; 👍 ${post.likesCount} &nbsp; 👎 ${post.dislikesCount}
                         </div>
+                        <div style="margin:8px 0;">
+                            <button id="favoriteBtn" class="favorite-btn ${favorited ? 'active' : ''}">
+                                ${favorited ? '⭐ 已收藏' : '☆ 收藏'}
+                            </button>
+                        </div>
                         <div class="post-content">${contentHtml}</div>
                         ${attachmentsHtml}
-                        <div style="margin-top:8px;">
+                        <div>
                             <button class="vote-btn" data-target="post" data-type="like">👍 ${post.likesCount}</button>
                             <button class="vote-btn" data-target="post" data-type="dislike">👎 ${post.dislikesCount}</button>
                             ${deleteBtnHtml}
                         </div>
                     </div>
-                    <h3>💬 全部回复 (${post.replies.length})</h3>
-                    <div id="replies">
-                `;
-
-                if (post.replies.length === 0) {
-                    html += '<div style="color:#999;">还没有回复</div>';
-                } else {
-                    post.replies.forEach((r, idx) => {
-                        const rt = new Date(r.createdAt).toLocaleString('zh-CN');
-                        const replyContent = marked.parse(r.content);
-                        html += `
-                            <div class="reply-item">
-                                <div class="reply-meta">${r.name} · ${rt}</div>
-                                <div class="reply-content">${replyContent}</div>
-                                <div class="reply-actions">
-                                    <button class="vote-btn" data-target="reply" data-postid="${postId}" data-replyindex="${idx}" data-type="like">👍 ${r.likesCount}</button>
-                                    <button class="vote-btn" data-target="reply" data-postid="${postId}" data-replyindex="${idx}" data-type="dislike">👎 ${r.dislikesCount}</button>
-                                </div>
-                            </div>
-                        `;
-                    });
-                }
-
-                html += `
-                    </div>
-                    <div class="reply-form" style="margin-top:20px;">
+                    <h3>💬 全部回复</h3>
+                    <div id="replies">加载中...</div>
+                    <div class="reply-form">
                         <textarea id="replyContent" rows="3" placeholder="回复内容... (支持Markdown)"></textarea>
                         <button id="replyBtn" class="btn-primary" style="margin-top:6px;">提交回复</button>
                     </div>
                 `;
-
                 document.getElementById('postContainer').innerHTML = html;
 
-                // ---------- 绑定投票 ----------
+                // ---------- 加载树形回复 ----------
+                loadTreeReplies(postId);
+
+                // ---------- 绑定收藏事件 ----------
+                document.getElementById('favoriteBtn')?.addEventListener('click', async function() {
+                    const fd = new FormData();
+                    fd.append('postId', postId);
+                    try {
+                        const res = await fetch('/api/favorite', { method: 'POST', credentials: 'include', body: fd });
+                        const result = await res.json();
+                        if (result.favorited) {
+                            this.textContent = '⭐ 已收藏';
+                            this.classList.add('active');
+                        } else {
+                            this.textContent = '☆ 收藏';
+                            this.classList.remove('active');
+                        }
+                    } catch (err) { alert('网络错误'); }
+                });
+
+                // ---------- 绑定投票事件 ----------
                 document.querySelectorAll('.vote-btn').forEach(btn => {
                     btn.addEventListener('click', async function() {
                         const target = this.dataset.target;
                         const type = this.dataset.type;
-                        const pid = this.dataset.postid || postId;
-                        const replyIndex = this.dataset.replyindex || null;
                         const fd = new FormData();
                         fd.append('target', target);
-                        fd.append('postId', pid);
+                        fd.append('postId', postId);
                         fd.append('type', type);
-                        if (replyIndex !== null) fd.append('replyIndex', replyIndex);
                         try {
                             const res = await fetch('/api/like', { method: 'POST', credentials: 'include', body: fd });
                             const result = await res.json();
-                            if (result.success) {
-                                loadPost();
-                            } else {
-                                alert(result.error || '操作失败');
-                            }
+                            if (result.success) { loadPost(); }
+                            else { alert(result.error || '操作失败'); }
                         } catch (err) { alert('网络错误'); }
                     });
                 });
 
-                // ---------- 回复 ----------
-                document.getElementById('replyBtn').addEventListener('click', async function() {
+                // ---------- 绑定回复 ----------
+                document.getElementById('replyBtn')?.addEventListener('click', async function() {
                     const content = document.getElementById('replyContent').value.trim();
-                    if (!content) { alert('请输入回复内容'); return; }
+                    if (!content) { alert('请输入内容'); return; }
                     const fd = new FormData();
                     fd.append('postId', postId);
+                    fd.append('parentId', 0);
                     fd.append('content', content);
                     try {
-                        const res = await fetch('/api/reply', { method: 'POST', credentials: 'include', body: fd });
+                        const res = await fetch('/api/replyTree', { method: 'POST', credentials: 'include', body: fd });
                         const result = await res.json();
-                        if (result.success) { alert('回复成功'); loadPost(); }
-                        else alert(result.error);
+                        if (result.success) {
+                            alert('回复成功');
+                            document.getElementById('replyContent').value = '';
+                            loadTreeReplies(postId);
+                        } else {
+                            alert(result.error || '回复失败');
+                        }
                     } catch (err) { alert('网络错误'); }
                 });
 
-                // ---------- 用户自删 ----------
-                if (document.getElementById('deleteMyPostBtn')) {
-                    document.getElementById('deleteMyPostBtn').addEventListener('click', async function() {
-                        if (!confirm('确定要删除此帖子吗？删除后不可恢复！')) return;
-                        try {
-                            const fd = new FormData();
-                            fd.append('postId', postId);
-                            const res = await fetch('/api/deleteMyPost', { method: 'POST', credentials: 'include', body: fd });
-                            const result = await res.json();
-                            if (result.success) { alert('已删除'); window.location.href = '/index.html'; }
-                            else alert(result.error || '删除失败');
-                        } catch (err) { alert('网络错误'); }
-                    });
-                }
+                // ---------- 绑定删除事件（用户自删） ----------
+                document.getElementById('deleteMyPostBtn')?.addEventListener('click', async function() {
+                    if (!confirm('确定删除此帖子吗？删除后不可恢复！')) return;
+                    const fd = new FormData();
+                    fd.append('postId', postId);
+                    try {
+                        const res = await fetch('/api/deleteMyPost', { method: 'POST', credentials: 'include', body: fd });
+                        const result = await res.json();
+                        if (result.success) { alert('已删除'); window.location.href = '/index.html'; }
+                        else { alert(result.error || '删除失败'); }
+                    } catch (err) { alert('网络错误'); }
+                });
 
-                // ---------- 管理删除 ----------
-                if (document.getElementById('deletePostBtn')) {
-                    document.getElementById('deletePostBtn').addEventListener('click', function() {
-                        if (!confirm('确定删除？')) return;
-                        const reason = prompt('请输入删除原因：');
-                        if (reason && reason.trim()) {
-                            const fd = new FormData();
-                            fd.append('postId', postId);
-                            fd.append('reason', reason);
-                            fetch('/api/adminDeletePostWithReason', { method: 'POST', credentials: 'include', body: fd })
-                                .then(r => r.json())
-                                .then(res => {
-                                    if (res.success) { alert('已删除'); window.location.href = '/index.html'; }
-                                    else alert(res.error);
-                                });
-                        }
-                    });
-                }
+                // ---------- 绑定删除事件（管理删除） ----------
+                document.getElementById('deletePostBtn')?.addEventListener('click', function() {
+                    if (!confirm('确定要管理删除此帖子吗？')) return;
+                    const reason = prompt('请输入删除原因：');
+                    if (reason && reason.trim()) {
+                        const fd = new FormData();
+                        fd.append('postId', postId);
+                        fd.append('reason', reason);
+                        fetch('/api/adminDeletePostWithReason', { method: 'POST', credentials: 'include', body: fd })
+                            .then(r => r.json())
+                            .then(res => {
+                                if (res.success) { alert('已删除'); window.location.href = '/index.html'; }
+                                else { alert(res.error); }
+                            });
+                    }
+                });
 
             } catch (err) {
                 document.getElementById('postContainer').innerHTML = '<div style="color:red;">加载失败</div>';
             }
         }
 
+        // ---------- 加载树形回复 ----------
+        async function loadTreeReplies(postId) {
+            try {
+                const res = await fetch(`/api/replyTree?postId=${postId}`);
+                const data = await res.json();
+                const container = document.getElementById('replies');
+                if (!data.tree || data.tree.length === 0) {
+                    container.innerHTML = '<div style="color:#999;">还没有回复</div>';
+                    return;
+                }
+                // 渲染递归
+                function renderReplies(replies, level = 0) {
+                    let html = '';
+                    replies.forEach(r => {
+                        const time = new Date(r.createdAt).toLocaleString('zh-CN');
+                        const content = marked.parse(r.content);
+                        html += `
+                            <div class="reply-item" style="margin-left: ${level * 20}px;">
+                                <div class="reply-meta">
+                                    <strong>${r.name}</strong> · ${time}
+                                    <span style="margin-left:8px;">
+                                        <button class="vote-btn" data-target="reply" data-postid="${postId}" data-replyindex="${r.id}" data-type="like">👍 ${r.likes.length}</button>
+                                        <button class="vote-btn" data-target="reply" data-postid="${postId}" data-replyindex="${r.id}" data-type="dislike">👎 ${r.dislikes.length}</button>
+                                    </span>
+                                </div>
+                                <div class="reply-content">${content}</div>
+                                <button class="reply-btn" data-parent="${r.id}">回复</button>
+                                ${r.children && r.children.length > 0 ? renderReplies(r.children, level + 1) : ''}
+                            </div>
+                        `;
+                    });
+                    return html;
+                }
+                container.innerHTML = renderReplies(data.tree);
+
+                // 绑定子回复按钮
+                document.querySelectorAll('.reply-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const parentId = this.dataset.parent;
+                        const content = prompt('输入回复内容：');
+                        if (content && content.trim()) {
+                            const fd = new FormData();
+                            fd.append('postId', postId);
+                            fd.append('parentId', parentId);
+                            fd.append('content', content.trim());
+                            fetch('/api/replyTree', { method: 'POST', credentials: 'include', body: fd })
+                                .then(r => r.json())
+                                .then(result => {
+                                    if (result.success) {
+                                        alert('回复成功');
+                                        loadTreeReplies(postId);
+                                    } else {
+                                        alert(result.error || '回复失败');
+                                    }
+                                });
+                        }
+                    });
+                });
+
+                // 绑定子回复的投票事件
+                document.querySelectorAll('.vote-btn[data-target="reply"]').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const target = this.dataset.target;
+                        const postId = this.dataset.postid;
+                        const replyIndex = this.dataset.replyindex;
+                        const type = this.dataset.type;
+                        const fd = new FormData();
+                        fd.append('target', target);
+                        fd.append('postId', postId);
+                        fd.append('replyIndex', replyIndex);
+                        fd.append('type', type);
+                        try {
+                            const res = await fetch('/api/like', { method: 'POST', credentials: 'include', body: fd });
+                            const result = await res.json();
+                            if (result.success) { loadTreeReplies(postId); }
+                            else { alert(result.error || '操作失败'); }
+                        } catch (err) { alert('网络错误'); }
+                    });
+                });
+
+            } catch (err) {
+                document.getElementById('replies').innerHTML = '<div style="color:red;">加载回复失败</div>';
+            }
+        }
+
+        // ---------- 启动 ----------
         loadPost();
     </script>
 </body>

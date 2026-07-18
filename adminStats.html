@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据统计</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-top: 20px;
+        }
+        .stat-card {
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(4px);
+            padding: 20px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #1a3c6e;
+        }
+        .stat-label {
+            color: #6b7a8a;
+            margin-top: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 700px;">
+        <div class="nav-links">
+            <a href="/index.html">🏠 首页</a>
+            <a href="/adminDashboard.html">🔙 管理后台</a>
+        </div>
+        <h1>📊 数据统计</h1>
+        <div id="statsContainer">加载中...</div>
+        <a href="/adminDashboard.html" style="display:inline-block; margin-top:16px;">← 返回管理后台</a>
+    </div>
+
+    <script>
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/stats', { credentials: 'include' });
+                if (res.status === 401 || res.status === 403) {
+                    window.location.href = '/adminLogin.html';
+                    return;
+                }
+                const stats = await res.json();
+                const container = document.getElementById('statsContainer');
+                container.innerHTML = `
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.totalUsers || 0}</div>
+                            <div class="stat-label">👤 总用户</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.totalPosts || 0}</div>
+                            <div class="stat-label">📝 总帖子</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.totalReplies || 0}</div>
+                            <div class="stat-label">💬 总回复</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.todayPosts || 0}</div>
+                            <div class="stat-label">📈 今日发帖</div>
+                        </div>
+                    </div>
+                    <div style="margin-top:16px; font-size:0.9rem; color:#8b9aab;">
+                        更新日期：${stats.todayDate || '暂无数据'}
+                    </div>
+                `;
+            } catch (err) {
+                document.getElementById('statsContainer').innerHTML = '<div style="color:red;">加载失败</div>';
+            }
+        }
+        loadStats();
+    </script>
+</body>
+</html>

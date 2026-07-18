@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>敏感词管理</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .word-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        .word-tag {
+            background: rgba(255,255,255,0.3);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(255,255,255,0.5);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .word-tag .remove-btn {
+            background: rgba(217,83,79,0.2);
+            border: none;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            color: #d9534f;
+            font-weight: bold;
+        }
+        .word-tag .remove-btn:hover {
+            background: #d9534f;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 600px;">
+        <div class="nav-links">
+            <a href="/index.html">🏠 首页</a>
+            <a href="/adminDashboard.html">🔙 管理后台</a>
+        </div>
+        <h1>🛡️ 敏感词管理</h1>
+        <div class="form-group">
+            <label>添加敏感词</label>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="newWord" placeholder="输入敏感词" style="flex:1;">
+                <button id="addBtn" class="btn-primary">添加</button>
+            </div>
+        </div>
+        <div id="wordList">加载中...</div>
+        <a href="/adminDashboard.html" style="display:inline-block; margin-top:16px;">← 返回管理后台</a>
+    </div>
+
+    <script>
+        async function loadWords() {
+            try {
+                const res = await fetch('/api/sensitive', { credentials: 'include' });
+                if (res.status === 401 || res.status === 403) {
+                    window.location.href = '/adminLogin.html';
+                    return;
+                }
+                const data = await res.json();
+                const container = document.getElementById('wordList');
+                if (!data.words || data.words.length === 0) {
+                    container.innerHTML = '<div style="color:#999;">暂无敏感词</div>';
+                    return;
+                }
+                let html = '<div class="word-list">';
+                data.words.forEach(w => {
+                    html += `
+                        <span class="word-tag">
+                            ${w}
+                            <button class="remove-btn" data-word="${w}">×</button>
+                        </span>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+
+                document.querySelectorAll('.remove-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const word = this.dataset.word;
+                        if (!confirm(`确定删除敏感词 "${word}" 吗？`)) return;
+                        try {
+                            const res = await fetch(`/api/sensitive?word=${encodeURIComponent(word)}`, {
+                                method: 'DELETE',
+                                credentials: 'include'
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                loadWords();
+                            } else {
+                                alert('删除失败');
+                            }
+                        } catch (err) {
+                            alert('网络错误');
+                        }
+                    });
+                });
+            } catch (err) {
+                document.getElementById('wordList').innerHTML = '<div style="color:red;">加载失败</div>';
+            }
+        }
+
+        document.getElementById('addBtn').addEventListener('click', async function() {
+            const word = document.getElementById('newWord').value.trim();
+            if (!word) { alert('请输入敏感词'); return; }
+            try {
+                const fd = new FormData();
+                fd.append('word', word);
+                const res = await fetch('/api/sensitive', { method: 'POST', credentials: 'include', body: fd });
+                const result = await res.json();
+                if (result.success) {
+                    document.getElementById('newWord').value = '';
+                    loadWords();
+                } else {
+                    alert('添加失败');
+                }
+            } catch (err) {
+                alert('网络错误');
+            }
+        });
+
+        loadWords();
+    </script>
+</body>
+</html>

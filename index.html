@@ -156,6 +156,13 @@
             color: #8b9aab;
             padding: 40px 0;
         }
+        .announcement-bar {
+            background: rgba(255,215,0,0.1);
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #ffc107;
+        }
         @media (max-width: 600px) {
             .container { padding: 16px; }
             .header h1 { font-size: 1.3rem; }
@@ -186,6 +193,9 @@
             <a href="/adminLogin.html">🔑 管理</a>
         </div>
 
+        <!-- 公告栏 -->
+        <div id="announcementBar"></div>
+
         <!-- 分类导航 -->
         <div id="categoryNav" class="category-nav"></div>
 
@@ -194,6 +204,25 @@
     </div>
 
     <script>
+        // ---------- 加载公告 ----------
+        async function loadAnnouncements() {
+            try {
+                const res = await fetch('/api/announcement');
+                const data = await res.json();
+                const bar = document.getElementById('announcementBar');
+                if (data.announcements && data.announcements.length > 0) {
+                    let html = '<div class="announcement-bar">';
+                    data.announcements.forEach(a => {
+                        html += `<div><strong>📢 ${a.title}</strong>: ${a.content}</div>`;
+                    });
+                    html += '</div>';
+                    bar.innerHTML = html;
+                } else {
+                    bar.innerHTML = '';
+                }
+            } catch (e) {}
+        }
+
         // ---------- 检查登录 ----------
         async function checkLogin() {
             try {
@@ -293,6 +322,7 @@
         // ---------- 启动 ----------
         checkLogin();
         updateNavBadge();
+        loadAnnouncements();
         loadCategoriesNav();
         loadPosts();
     </script>

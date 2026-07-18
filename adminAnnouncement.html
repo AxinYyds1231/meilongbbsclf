@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>公告管理</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .ann-item {
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(4px);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+        .ann-title {
+            font-weight: 600;
+        }
+        .ann-meta {
+            font-size: 0.8rem;
+            color: #6b7a8a;
+        }
+        .ann-actions button {
+            margin-left: 6px;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .modal-content {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(20px);
+            padding: 24px;
+            border-radius: 24px;
+            max-width: 500px;
+            width: 90%;
+        }
+        .modal-content input, .modal-content textarea {
+            width: 100%;
+            margin: 6px 0;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.06);
+            background: rgba(255,255,255,0.5);
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .modal-actions button { flex: 1; }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 700px;">
+        <div class="nav-links">
+            <a href="/index.html">🏠 首页</a>
+            <a href="/adminDashboard.html">🔙 管理后台</a>
+        </div>
+        <h1>📢 公告管理</h1>
+        <button id="addBtn" class="btn-primary" style="margin-bottom:16px;">➕ 新建公告</button>
+        <div id="annList">加载中...</div>
+        <a href="/adminDashboard.html" style="display:inline-block; margin-top:16px;">← 返回管理后台</a>
+    </div>
+
+    <!-- 编辑/新建模态框 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle">新建公告</h3>
+            <input type="hidden" id="editId">
+            <input type="text" id="editTitle" placeholder="标题">
+            <textarea id="editContent" rows="4" placeholder="内容"></textarea>
+            <div style="display:flex; gap:12px; margin-top:6px;">
+                <label><input type="checkbox" id="editPinned"> 置顶</label>
+                <label style="flex:1;">过期时间（时间戳）：<input type="number" id="editExpires" placeholder="可选"></label>
+            </div>
+            <div class="modal-actions">
+                <button id="saveBtn" class="btn-primary">保存</button>
+                <button onclick="closeModal()" class="btn-secondary">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentAnnouncements = [];
+
+        async function loadAnnouncements() {
+            try {
+                const res = await fetch('/api/announcement', { credentials: 'include' });
+                if (res.status === 401 || res.status === 403) {
+                    window.location.href = '/adminLogin.html';
+                    return;
+                }
+                const data = await res.json();
+                currentAnnouncements = data.announcements || [];
+                renderList();
+            } catch (err) {
+                document.getElementById('annList').innerHTML = '<div style="color:red;">加载失败</div>';
+            }
+        }
+
+        function renderList() {
+            const container = document.getElementById('annList');
+            if (currentAnnouncements.length === 0) {
+                container.innerHTML = '<div style="color:#999;">暂无公告</div>';
+                return;
+            }
+            let html = '';
+            currentAnnouncements.forEach(a => {
+                const time = new Date(a.createdAt).toLocaleString('zh-CN');
+                html += `
+                    <div class="ann-item">
+                        <div class="ann-title">${a.isPinned ? '📌 ' : ''}${a.title}</div>
+                        <div class="ann-meta">${time} ${a.expiresAt ? `· 过期: ${new Date(a.expiresAt).toLocaleString()}` : ''}</div>
+                        <div style="margin:6px 0;">${a.content}</div>
+                        <div class="ann-actions">
+                            <button class="edit-btn" data-id="${a.id}">编辑</button>
+                            <button class="delete-btn" data-id="${a.id}">删除</button>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const id = parseInt(this.dataset.id);
+                    const ann = currentAnnouncements.find(a => a.id === id);
+                    if (ann) openEditModal(ann);
+                });
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const id = parseInt(this.dataset.id);
+                    if (!confirm('确定删除此公告？')) return;
+                    try {
+                        const res = await fetch(`/api/announcement?id=${id}`, {
+                            method: 'DELETE',
+                            credentials: 'include'
+                        });
+                        const result = await res.json();
+                        if (result.success) loadAnnouncements();
+                        else alert('删除失败');
+                    } catch (err) { alert('网络错误'); }
+                });
+            });
+        }
+
+        function openEditModal(ann = null) {
+            document.getElementById('editId').value = ann ? ann.id : '';
+            document.getElementById('editTitle').value = ann ? ann.title : '';
+            document.getElementById('editContent').value = ann ? ann.content : '';
+            document.getElementById('editPinned').checked = ann ? ann.isPinned : false;
+            document.getElementById('editExpires').value = ann && ann.expiresAt ? ann.expiresAt : '';
+            document.getElementById('modalTitle').textContent = ann ? '编辑公告' : '新建公告';
+            document.getElementById('editModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        document.getElementById('addBtn').addEventListener('click', () => openEditModal());
+
+        document.getElementById('saveBtn').addEventListener('click', async function() {
+            const id = document.getElementById('editId').value;
+            const title = document.getElementById('editTitle').value.trim();
+            const content = document.getElementById('editContent').value.trim();
+            const isPinned = document.getElementById('editPinned').checked;
+            const expiresAt = parseInt(document.getElementById('editExpires').value) || null;
+            if (!title || !content) { alert('标题和内容不能为空'); return; }
+
+            const fd = new FormData();
+            fd.append('title', title);
+            fd.append('content', content);
+            fd.append('isPinned', isPinned);
+            if (expiresAt) fd.append('expiresAt', expiresAt);
+            if (id) {
+                fd.append('id', id);
+                try {
+                    const res = await fetch('/api/announcement', { method: 'PUT', credentials: 'include', body: fd });
+                    const result = await res.json();
+                    if (result.success) { alert('更新成功'); closeModal(); loadAnnouncements(); }
+                    else alert(result.error);
+                } catch (err) { alert('网络错误'); }
+            } else {
+                try {
+                    const res = await fetch('/api/announcement', { method: 'POST', credentials: 'include', body: fd });
+                    const result = await res.json();
+                    if (result.success) { alert('创建成功'); closeModal(); loadAnnouncements(); }
+                    else alert(result.error);
+                } catch (err) { alert('网络错误'); }
+            }
+        });
+
+        loadAnnouncements();
+    </script>
+</body>
+</html>
