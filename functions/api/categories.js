@@ -15,17 +15,17 @@ export async function onRequest(context) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
-
     if (request.method !== 'GET') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: CORS_HEADERS });
     }
 
-    const categories = await db.getCategories();
-    return new Response(JSON.stringify({ categories }), {
-        status: 200,
-        headers: CORS_HEADERS
-    });
+    try {
+        const tree = await db.getCategoryTree();
+        return new Response(JSON.stringify({ categories: tree }), {
+            status: 200,
+            headers: CORS_HEADERS
+        });
+    } catch (error) {
+        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), { status: 500, headers: CORS_HEADERS });
+    }
 }

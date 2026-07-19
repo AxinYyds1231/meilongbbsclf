@@ -50,9 +50,13 @@ export async function onRequest(context) {
         if (content.length > 1000) {
             return new Response(JSON.stringify({ error: '内容不能超过1000字' }), { status: 400, headers: CORS_HEADERS });
         }
-        if (categoryId) {
+
+        // 验证分类是否存在（支持多级分类）
+        if (categoryId !== 0) {
             const cat = await db.getCategoryById(categoryId);
-            if (!cat) return new Response(JSON.stringify({ error: '分类不存在' }), { status: 400, headers: CORS_HEADERS });
+            if (!cat) {
+                return new Response(JSON.stringify({ error: '分类不存在' }), { status: 400, headers: CORS_HEADERS });
+            }
         }
 
         // 敏感词过滤
@@ -66,7 +70,8 @@ export async function onRequest(context) {
         }
 
         const post = await db.createPost(filteredTitle, filteredContent, uid, name, attachments, categoryId);
-        await db.incrementStats('post'); // 👈 增加统计
+        // 统计与积分
+        await db.incrementStats('post');
         await db.addPoints(uid, 10);
 
         return new Response(JSON.stringify({ success: true, post }), { status: 200, headers: CORS_HEADERS });

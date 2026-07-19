@@ -129,27 +129,42 @@
         .category-nav {
             display: flex;
             flex-wrap: wrap;
-            gap: 8px;
+            gap: 6px;
             margin-bottom: 20px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(4px);
+            padding: 8px 12px;
+            border-radius: 16px;
         }
         .category-btn {
-            background: rgba(255,255,255,0.5);
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,0.8);
-            padding: 6px 18px;
-            border-radius: 30px;
+            background: rgba(255,255,255,0.3);
+            border: 1px solid rgba(255,255,255,0.5);
+            padding: 4px 12px;
+            border-radius: 20px;
             cursor: pointer;
             font-size: 0.9rem;
             transition: all 0.2s;
             color: #1a2332;
+            white-space: nowrap;
         }
         .category-btn:hover {
-            background: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.7);
         }
         .category-btn.active {
             background: #1a3c6e;
             color: #fff;
             border-color: #1a3c6e;
+        }
+        .category-btn.has-children {
+            background: rgba(255,215,0,0.15);
+        }
+        .category-child-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-left: 8px;
+            padding-left: 8px;
+            border-left: 1px solid rgba(0,0,0,0.06);
         }
         .empty {
             text-align: center;
@@ -167,6 +182,8 @@
             .container { padding: 16px; }
             .header h1 { font-size: 1.3rem; }
             .post-meta { font-size: 0.75rem; gap: 6px; }
+            .category-nav { flex-direction: column; align-items: stretch; }
+            .category-child-wrap { border-left: none; padding-left: 0; margin-left: 0; }
         }
     </style>
 </head>
@@ -196,7 +213,7 @@
         <!-- 公告栏 -->
         <div id="announcementBar"></div>
 
-        <!-- 分类导航 -->
+        <!-- 分类导航（树形） -->
         <div id="categoryNav" class="category-nav"></div>
 
         <!-- 帖子列表 -->
@@ -255,25 +272,70 @@
             } catch (e) {}
         }
 
-        // ---------- 加载分类导航 ----------
-        async function loadCategoriesNav() {
+        // ---------- 加载分类导航（树形） ----------
+        let currentCategoryId = 0;
+
+        async function loadCategoryNav() {
             try {
                 const res = await fetch('/api/categories');
                 const data = await res.json();
+                const tree = data.categories || [];
                 const nav = document.getElementById('categoryNav');
-                let html = '<button class="category-btn active" data-category="0">全部</button>';
-                data.categories.forEach(cat => {
-                    html += `<button class="category-btn" data-category="${cat.id}">${cat.name}</button>`;
-                });
-                nav.innerHTML = html;
+                if (tree.length === 0) {
+                    nav.innerHTML = '<span style="color:#999;">暂无分类</span>';
+                    return;
+                }
+                // 递归生成分类按钮（平铺，但用缩进和子容器）
+                function renderNav(nodes, level = 0) {
+                    let html = '';
+                    nodes.forEach(node => {
+                        const hasChildren = node.children && node.children.length > 0;
+                        const cls = hasChildren ? 'category-btn has-children' : 'category-btn';
+                        html += `
+                            <button class="${cls}" data-category="${node.id}" style="margin-left: ${level * 12}px;">
+                                ${node.name}
+                            </button>
+                        `;
+                        if (hasChildren) {
+                            html += `<div class="category-child-wrap">`;
+                            html += renderNav(node.children, level + 1);
+                            html += `</div>`;
+                        }
+                    });
+                    return html;
+                }
+                nav.innerHTML = renderNav(tree);
+
+                // 绑定点击事件
                 nav.querySelectorAll('.category-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
+                        const catId = parseInt(this.dataset.category);
+                        // 移除其他active
                         nav.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
                         this.classList.add('active');
-                        loadPosts(parseInt(this.dataset.category));
+                        currentCategoryId = catId;
+                        loadPosts(catId);
                     });
                 });
-            } catch (err) { console.error(err); }
+
+                // 默认选中"全部"（但我们没有全部按钮，可添加）
+                // 在树形顶部添加一个"全部"按钮
+                const allBtn = document.createElement('button');
+                allBtn.className = 'category-btn active';
+                allBtn.dataset.category = '0';
+                allBtn.textContent = '全部';
+                allBtn.addEventListener('click', function() {
+                    nav.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentCategoryId = 0;
+                    loadPosts(0);
+                });
+                nav.prepend(allBtn);
+                // 将"全部"按钮放在最前面
+            } catch (err) {
+                console.error('加载分类失败', err);
+                document.getElementById('categoryNav').innerHTML = '<div style="color:red;">加载分类失败</div>';
+            }
         }
 
         // ---------- 加载帖子 ----------
@@ -323,7 +385,7 @@
         checkLogin();
         updateNavBadge();
         loadAnnouncements();
-        loadCategoriesNav();
+        loadCategoryNav();
         loadPosts();
     </script>
 </body>

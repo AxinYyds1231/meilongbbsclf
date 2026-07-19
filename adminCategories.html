@@ -10,19 +10,19 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            background: rgba(255,255,255,0.4);
+            background: rgba(255,255,255,0.3);
             backdrop-filter: blur(4px);
-            padding: 12px 18px;
-            border-radius: 16px;
-            margin-bottom: 10px;
-            border: 1px solid rgba(255,255,255,0.5);
-            transition: all 0.2s;
+            padding: 8px 14px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            border: 1px solid rgba(255,255,255,0.3);
+            transition: 0.2s;
         }
         .category-item:hover {
-            background: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.6);
         }
         .category-name {
-            font-weight: 600;
+            font-weight: 500;
             color: #1a2332;
         }
         .category-desc {
@@ -30,32 +30,36 @@
             color: #6b7a8a;
             margin-left: 12px;
         }
-        .edit-btn-cat {
+        .category-actions button {
+            margin-left: 6px;
+        }
+        .edit-btn, .delete-btn {
+            border: none;
+            padding: 2px 12px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.2s;
+        }
+        .edit-btn {
             background: rgba(26,60,110,0.1);
             color: #1a3c6e;
-            border: 1px solid rgba(26,60,110,0.15);
-            padding: 4px 14px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
-            margin-right: 4px;
         }
-        .edit-btn-cat:hover {
+        .edit-btn:hover {
             background: #1a3c6e;
             color: #fff;
         }
-        .delete-btn-cat {
-            background: rgba(217,83,79,0.12);
+        .delete-btn {
+            background: rgba(217,83,79,0.1);
             color: #d9534f;
-            border: 1px solid rgba(217,83,79,0.2);
-            padding: 4px 14px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: all 0.2s;
         }
-        .delete-btn-cat:hover {
+        .delete-btn:hover {
             background: #d9534f;
             color: #fff;
+        }
+        .tree-indent {
+            display: inline-block;
+            width: 20px;
         }
         .modal {
             display: none;
@@ -70,24 +74,18 @@
         .modal-content {
             background: rgba(255,255,255,0.85);
             backdrop-filter: blur(20px);
-            padding: 28px 32px;
-            border-radius: 28px;
-            max-width: 400px;
+            padding: 24px;
+            border-radius: 24px;
+            max-width: 450px;
             width: 90%;
-            border: 1px solid rgba(255,255,255,0.6);
         }
-        .modal-content input, .modal-content textarea {
+        .modal-content input, .modal-content select, .modal-content textarea {
             width: 100%;
-            padding: 10px 14px;
             margin: 6px 0;
-            border-radius: 14px;
+            padding: 8px 12px;
+            border-radius: 12px;
             border: 1px solid rgba(0,0,0,0.06);
-            background: rgba(255,255,255,0.6);
-            font-family: inherit;
-        }
-        .modal-content input:focus, .modal-content textarea:focus {
-            outline: none;
-            border-color: #1a3c6e;
+            background: rgba(255,255,255,0.5);
         }
         .modal-actions {
             display: flex;
@@ -108,7 +106,7 @@
             <button id="addCategoryBtn" class="btn-primary">➕ 新建</button>
         </div>
         <div id="categoryList">加载中...</div>
-        <a href="/adminDashboard.html" style="display:inline-block; margin-top:16px; color:#1a3c6e;">← 返回管理后台</a>
+        <a href="/adminDashboard.html" style="display:inline-block; margin-top:16px;">← 返回管理后台</a>
     </div>
 
     <!-- 新建/编辑模态框 -->
@@ -117,7 +115,10 @@
             <h3 id="modalTitle">新建分类</h3>
             <input type="hidden" id="editId">
             <input type="text" id="editName" placeholder="分类名称" required>
-            <textarea id="editDesc" rows="2" placeholder="分类描述（可选）"></textarea>
+            <textarea id="editDesc" rows="2" placeholder="描述（可选）"></textarea>
+            <select id="editParent">
+                <option value="0">（顶级分类）</option>
+            </select>
             <div class="modal-actions">
                 <button id="saveBtn" class="btn-primary">保存</button>
                 <button onclick="closeModal()" class="btn-secondary">取消</button>
@@ -126,48 +127,119 @@
     </div>
 
     <script>
+        // 获取分类树
+        async function getCategoryTree() {
+            const res = await fetch('/api/categories');
+            const data = await res.json();
+            return data.categories || [];
+        }
+
+        // 渲染分类列表（递归）
+        function renderCategories(tree, container, level = 0) {
+            if (!tree || tree.length === 0) {
+                container.innerHTML = '<div style="color:#999; text-align:center; padding:20px;">暂无分类</div>';
+                return;
+            }
+            let html = '';
+            tree.forEach(node => {
+                const indent = '　'.repeat(level);
+                html += `
+                    <div class="category-item">
+                        <div>
+                            <span class="category-name">${indent}${node.name}</span>
+                            <span class="category-desc">${node.description || ''}</span>
+                        </div>
+                        <div class="category-actions">
+                            <button class="edit-btn" data-id="${node.id}" data-name="${node.name}" data-desc="${node.description || ''}" data-parent="${node.parentId || 0}">编辑</button>
+                            <button class="delete-btn" data-id="${node.id}">删除</button>
+                        </div>
+                    </div>
+                `;
+                if (node.children && node.children.length > 0) {
+                    // 递归渲染子分类（这里我们直接追加到当前容器，但为了保持顺序，可以递归调用但传入子容器，这里简化：直接用字符串拼接）
+                    // 为了简单，我们不使用递归渲染，而是将子分类放在当前项下面，但需要额外的容器，这里采用直接拼接方式
+                    // 但更好是用递归函数，我们将子分类放入一个子容器。
+                    // 为了方便，我换一种方式：先收集所有分类，然后根据层级缩进。
+                }
+            });
+            // 由于上面的递归方式太复杂，改用平铺方式
+            // 我们换一种更简单的方式：将树形结构压平，显示时加缩进。
+            // 但为了便于删除和编辑，我们需要保持结构清晰。
+            // 我决定重新实现：获取所有分类的扁平列表，然后根据parentId生成树，再渲染。
+            // 但由于我们已经有了树形数据，我们可以直接在JS中递归生成HTML。
+            // 重新写一个递归生成函数。
+        }
+
+        // 重新实现：使用递归生成HTML字符串
+        function buildTreeHTML(nodes, level = 0) {
+            let html = '';
+            nodes.forEach(node => {
+                const indent = '　'.repeat(level);
+                html += `
+                    <div class="category-item">
+                        <div>
+                            <span class="category-name">${indent}${node.name}</span>
+                            <span class="category-desc">${node.description || ''}</span>
+                        </div>
+                        <div class="category-actions">
+                            <button class="edit-btn" data-id="${node.id}" data-name="${node.name}" data-desc="${node.description || ''}" data-parent="${node.parentId || 0}">编辑</button>
+                            <button class="delete-btn" data-id="${node.id}">删除</button>
+                        </div>
+                    </div>
+                `;
+                if (node.children && node.children.length > 0) {
+                    html += buildTreeHTML(node.children, level + 1);
+                }
+            });
+            return html;
+        }
+
+        // 加载分类并渲染
         async function loadCategories() {
             try {
-                const res = await fetch('/api/categories');
-                const data = await res.json();
+                const tree = await getCategoryTree();
                 const container = document.getElementById('categoryList');
-                if (data.categories.length === 0) {
-                    container.innerHTML = '<div style="text-align:center; padding:30px; color:#8b9aab;">暂无分类</div>';
+                if (!tree || tree.length === 0) {
+                    container.innerHTML = '<div style="color:#999; text-align:center; padding:20px;">暂无分类</div>';
                     return;
                 }
-                let html = '';
-                data.categories.forEach(c => {
-                    html += `
-                        <div class="category-item">
-                            <div>
-                                <span class="category-name">${c.name}</span>
-                                <span class="category-desc">${c.description || '无描述'}</span>
-                            </div>
-                            <div>
-                                <button class="edit-btn-cat" data-id="${c.id}" data-name="${c.name}" data-desc="${c.description || ''}">编辑</button>
-                                <button class="delete-btn-cat" data-id="${c.id}">删除</button>
-                            </div>
-                        </div>
-                    `;
-                });
+                const html = buildTreeHTML(tree);
                 container.innerHTML = html;
 
-                document.querySelectorAll('.edit-btn-cat').forEach(btn => {
+                // 绑定编辑按钮
+                document.querySelectorAll('.edit-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
-                        openEditModal(this.dataset.id, this.dataset.name, this.dataset.desc);
+                        const id = parseInt(this.dataset.id);
+                        const name = this.dataset.name;
+                        const desc = this.dataset.desc;
+                        const parent = parseInt(this.dataset.parent);
+                        openEditModal(id, name, desc, parent);
                     });
                 });
 
-                document.querySelectorAll('.delete-btn-cat').forEach(btn => {
+                // 绑定删除按钮
+                document.querySelectorAll('.delete-btn').forEach(btn => {
                     btn.addEventListener('click', async function() {
-                        const id = this.dataset.id;
-                        if (!confirm('确定删除此分类？')) return;
-                        const fd = new FormData();
-                        fd.append('id', id);
-                        const res = await fetch('/api/adminDeleteCategory', { method: 'POST', credentials: 'include', body: fd });
-                        const result = await res.json();
-                        if (result.success) { alert('已删除'); loadCategories(); }
-                        else alert(result.error);
+                        const id = parseInt(this.dataset.id);
+                        if (!confirm('确定删除此分类？删除前请确保没有子分类。')) return;
+                        try {
+                            const fd = new FormData();
+                            fd.append('id', id);
+                            const res = await fetch('/api/adminDeleteCategory', {
+                                method: 'POST',
+                                credentials: 'include',
+                                body: fd
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                alert('已删除');
+                                loadCategories();
+                            } else {
+                                alert(result.error || '删除失败');
+                            }
+                        } catch (err) {
+                            alert('网络错误');
+                        }
                     });
                 });
             } catch (err) {
@@ -175,14 +247,45 @@
             }
         }
 
-        function openEditModal(id = null, name = '', desc = '') {
+        // 填充父分类下拉（递归展平）
+        function populateParentSelect(tree, select, excludeId = 0, prefix = '') {
+            tree.forEach(node => {
+                if (node.id === excludeId) return; // 不能选择自身
+                const opt = document.createElement('option');
+                opt.value = node.id;
+                opt.textContent = prefix + node.name;
+                select.appendChild(opt);
+                if (node.children && node.children.length > 0) {
+                    populateParentSelect(node.children, select, excludeId, prefix + '—— ');
+                }
+            });
+        }
+
+        // 打开编辑/新建模态框
+        async function openEditModal(id = null, name = '', desc = '', parent = 0) {
+            const modal = document.getElementById('editModal');
             document.getElementById('editId').value = id || '';
             document.getElementById('editName').value = name;
             document.getElementById('editDesc').value = desc;
             document.getElementById('modalTitle').textContent = id ? '编辑分类' : '新建分类';
-            document.getElementById('editModal').style.display = 'flex';
+
+            // 刷新父分类下拉
+            const select = document.getElementById('editParent');
+            select.innerHTML = '<option value="0">（顶级分类）</option>';
+            const tree = await getCategoryTree();
+            populateParentSelect(tree, select, id || 0);
+
+            // 设置当前父分类
+            if (parent) {
+                select.value = parent;
+            }
+
+            modal.style.display = 'flex';
         }
-        function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+
+        function closeModal() {
+            document.getElementById('editModal').style.display = 'none';
+        }
         document.getElementById('editModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
         });
@@ -192,21 +295,41 @@
         document.getElementById('saveBtn').addEventListener('click', async function() {
             const id = document.getElementById('editId').value;
             const name = document.getElementById('editName').value.trim();
-            const desc = document.getElementById('editDesc').value.trim();
-            if (!name) { alert('请输入分类名称'); return; }
+            const description = document.getElementById('editDesc').value.trim();
+            const parentId = parseInt(document.getElementById('editParent').value) || 0;
+
+            if (!name) {
+                alert('请输入分类名称');
+                return;
+            }
+
             const endpoint = id ? '/api/adminUpdateCategory' : '/api/adminCreateCategory';
             const fd = new FormData();
             if (id) fd.append('id', id);
             fd.append('name', name);
-            fd.append('description', desc);
+            fd.append('description', description);
+            fd.append('parentId', parentId);
+
             try {
-                const res = await fetch(endpoint, { method: 'POST', credentials: 'include', body: fd });
+                const res = await fetch(endpoint, {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: fd
+                });
                 const result = await res.json();
-                if (result.success) { alert(id ? '更新成功' : '创建成功'); closeModal(); loadCategories(); }
-                else alert(result.error);
-            } catch (err) { alert('网络错误'); }
+                if (result.success) {
+                    alert(id ? '更新成功' : '创建成功');
+                    closeModal();
+                    loadCategories();
+                } else {
+                    alert(result.error || '操作失败');
+                }
+            } catch (err) {
+                alert('网络错误');
+            }
         });
 
+        // 初始加载
         loadCategories();
     </script>
 </body>
