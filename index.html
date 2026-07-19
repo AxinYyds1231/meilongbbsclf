@@ -6,14 +6,7 @@
     <title>梅陇中学论坛</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        /* ---- 全局重置（仅针对本页微调） ---- */
-        body {
-            padding: 0;
-            margin: 0;
-            background: #f0f2f5;
-            display: flex;
-            min-height: 100vh;
-        }
+        /* 首页专用样式 */
         .app-wrapper {
             display: flex;
             width: 100%;
@@ -26,16 +19,15 @@
             box-shadow: 0 8px 32px rgba(0,0,0,0.08);
             border: 1px solid rgba(255,255,255,0.5);
             overflow: hidden;
-            height: 100vh;
-            max-height: calc(100vh - 20px);
-            margin-top: 10px;
-            margin-bottom: 10px;
+            height: 90vh;
+            max-height: calc(100vh - 40px);
+            min-height: 500px;
         }
-        /* ---- 左侧边栏 ---- */
+
         .sidebar {
             width: 260px;
             min-width: 260px;
-            background: rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.25);
             backdrop-filter: blur(4px);
             border-right: 1px solid rgba(0,0,0,0.04);
             padding: 16px 0;
@@ -91,7 +83,7 @@
             font-weight: 500;
         }
         .tree-node .node-label .icon {
-            width: 18px;
+            width: 20px;
             text-align: center;
             flex-shrink: 0;
         }
@@ -108,15 +100,12 @@
             padding-left: 20px;
             overflow: hidden;
             max-height: 0;
-            transition: max-height 0.2s ease;
+            transition: max-height 0.25s ease;
         }
         .tree-node .children.open {
             max-height: 2000px;
         }
-        .tree-node .children .node-label {
-            padding-left: 8px;
-        }
-        /* ---- 右侧主内容 ---- */
+
         .main-content {
             flex: 1;
             padding: 20px 24px;
@@ -149,7 +138,46 @@
             color: #4a5a6a;
             margin-right: 6px;
         }
-        /* 帖子列表 */
+
+        /* 导航栏（统一风格） */
+        .top-nav {
+            display: flex;
+            gap: 18px;
+            flex-wrap: wrap;
+            padding: 0 0 12px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+        .top-nav a {
+            color: #1a3c6e;
+            font-weight: 500;
+            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 12px;
+            transition: background 0.2s;
+            font-size: 0.95rem;
+        }
+        .top-nav a:hover {
+            background: rgba(26, 60, 110, 0.08);
+            text-decoration: none;
+        }
+        .top-nav a .badge {
+            background: #d9534f;
+            color: #fff;
+            border-radius: 50%;
+            padding: 0px 5px;
+            font-size: 0.65rem;
+            font-weight: bold;
+            min-width: 16px;
+            text-align: center;
+            line-height: 16px;
+            margin-left: 2px;
+        }
+        .top-nav a .badge.hidden {
+            display: none;
+        }
+
         .post-list {
             flex: 1;
             overflow-y: auto;
@@ -191,14 +219,22 @@
             color: #8b9aab;
             padding: 40px 0;
         }
-        /* ---- 移动端适配 ---- */
+        .announcement-bar {
+            background: rgba(255,215,0,0.1);
+            padding: 8px 12px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            border-left: 4px solid #ffc107;
+        }
+
         @media (max-width: 768px) {
             .app-wrapper {
                 flex-direction: column;
                 height: auto;
                 max-height: none;
                 border-radius: 16px;
-                margin: 8px;
+                margin: 0;
+                min-height: 80vh;
             }
             .sidebar {
                 width: 100%;
@@ -214,6 +250,12 @@
             }
             .main-content {
                 padding: 12px 16px;
+            }
+            .top-nav {
+                gap: 10px;
+            }
+            .top-nav a {
+                font-size: 0.85rem;
             }
         }
     </style>
@@ -232,6 +274,18 @@
 
         <!-- 右侧主内容 -->
         <main class="main-content">
+            <!-- 顶部导航栏 -->
+            <div class="top-nav">
+                <a href="/index.html">🏠 首页</a>
+                <a href="/dashboard.html">👤 个人中心</a>
+                <a href="/inbox.html" id="inboxLink">📩 私信 <span id="navUnreadBadge" class="badge hidden">0</span></a>
+                <a href="/adminLogin.html">🔑 管理</a>
+            </div>
+
+            <!-- 公告栏 -->
+            <div id="announcementBar"></div>
+
+            <!-- 标题和操作 -->
             <div class="main-header">
                 <h1 id="pageTitle">📚 全部帖子</h1>
                 <div class="actions">
@@ -240,6 +294,8 @@
                     <button id="logoutBtn" class="btn-secondary" style="display:none;">退出</button>
                 </div>
             </div>
+
+            <!-- 帖子列表 -->
             <div id="postList" class="post-list">加载中...</div>
         </main>
     </div>
@@ -258,6 +314,59 @@
         // ---------- 辅助函数 ----------
         function formatTime(ts) {
             return new Date(ts).toLocaleString('zh-CN');
+        }
+
+        // ---------- 检查登录状态 ----------
+        async function checkLogin() {
+            try {
+                const res = await fetch('/api/user', { credentials: 'include' });
+                if (res.status === 200) {
+                    const data = await res.json();
+                    document.getElementById('userInfo').textContent = '👋 ' + data.user.name;
+                    document.getElementById('createBtn').style.display = 'inline-block';
+                    document.getElementById('logoutBtn').style.display = 'inline-block';
+                } else {
+                    document.getElementById('userInfo').textContent = '未登录';
+                }
+            } catch (e) {}
+        }
+
+        // ---------- 更新未读私信小红点 ----------
+        async function updateNavBadge() {
+            try {
+                const res = await fetch('/api/inbox', { credentials: 'include' });
+                if (res.status !== 200) return;
+                const data = await res.json();
+                const unreadCount = data.messages ? data.messages.filter(m => !m.read).length : 0;
+                const badge = document.getElementById('navUnreadBadge');
+                if (badge) {
+                    if (unreadCount > 0) {
+                        badge.textContent = unreadCount;
+                        badge.classList.remove('hidden');
+                    } else {
+                        badge.classList.add('hidden');
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // ---------- 加载公告 ----------
+        async function loadAnnouncements() {
+            try {
+                const res = await fetch('/api/announcement');
+                const data = await res.json();
+                const bar = document.getElementById('announcementBar');
+                if (data.announcements && data.announcements.length > 0) {
+                    let html = '<div class="announcement-bar">';
+                    data.announcements.forEach(a => {
+                        html += `<div><strong>📢 ${a.title}</strong>: ${a.content}</div>`;
+                    });
+                    html += '</div>';
+                    bar.innerHTML = html;
+                } else {
+                    bar.innerHTML = '';
+                }
+            } catch (e) {}
         }
 
         // ---------- 加载分类树 ----------
@@ -279,7 +388,7 @@
                 return;
             }
             let html = '';
-            // 添加"全部"节点（特殊）
+            // 添加"全部"节点
             html += `
                 <div class="tree-node">
                     <div class="node-label ${currentCategoryId === 0 ? 'active' : ''}" data-id="0">
@@ -288,7 +397,6 @@
                     </div>
                 </div>
             `;
-            // 递归生成树节点
             function buildNodes(nodes, level) {
                 let html = '';
                 nodes.forEach(node => {
@@ -311,10 +419,9 @@
             html += buildNodes(nodes, 0);
             treeContainer.innerHTML = html;
 
-            // 绑定点击事件
+            // 绑定事件
             treeContainer.querySelectorAll('.node-label').forEach(el => {
                 el.addEventListener('click', function(e) {
-                    // 如果点击了折叠箭头，不切换分类
                     if (e.target.classList.contains('toggle')) {
                         const parent = this.closest('.tree-node');
                         const children = parent.querySelector('.children');
@@ -326,13 +433,10 @@
                     }
                     const id = parseInt(this.dataset.id);
                     setActiveCategory(id);
-                    // 高亮
                     treeContainer.querySelectorAll('.node-label').forEach(l => l.classList.remove('active'));
                     this.classList.add('active');
                 });
             });
-
-            // 默认展开所有（或根据需求）
         }
 
         // ---------- 切换分类 ----------
@@ -344,7 +448,6 @@
             loadPosts(catId);
         }
 
-        // ---------- 递归查找分类 ----------
         function findCategoryById(nodes, id) {
             for (let node of nodes) {
                 if (node.id === id) return node;
@@ -394,19 +497,6 @@
             postListEl.innerHTML = html;
         }
 
-        // ---------- 用户登录状态 ----------
-        async function checkLogin() {
-            try {
-                const res = await fetch('/api/user', { credentials: 'include' });
-                if (res.status === 200) {
-                    const data = await res.json();
-                    document.getElementById('userInfo').textContent = '👋 ' + data.user.name;
-                    document.getElementById('createBtn').style.display = 'inline-block';
-                    document.getElementById('logoutBtn').style.display = 'inline-block';
-                }
-            } catch (e) {}
-        }
-
         // ---------- 退出 ----------
         document.getElementById('logoutBtn')?.addEventListener('click', async function() {
             await fetch('/api/logout', { credentials: 'include' });
@@ -418,6 +508,8 @@
 
         // ---------- 启动 ----------
         checkLogin();
+        updateNavBadge();
+        loadAnnouncements();
         loadCategories();
         loadPosts(0);
     </script>
