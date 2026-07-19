@@ -8,34 +8,36 @@
     <style>
         .admin-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 12px;
-            margin: 20px 0;
+            margin: 16px 0;
         }
         .admin-grid a {
             background: rgba(255,255,255,0.3);
             backdrop-filter: blur(4px);
-            padding: 16px;
-            border-radius: 16px;
+            padding: 14px;
+            border-radius: 14px;
             text-align: center;
             text-decoration: none;
             color: #1a2332;
             border: 1px solid rgba(255,255,255,0.3);
             transition: 0.2s;
+            font-weight: 500;
         }
         .admin-grid a:hover {
             background: rgba(255,255,255,0.6);
             transform: translateY(-2px);
         }
+        hr {
+            border: none;
+            border-top: 1px solid rgba(0,0,0,0.06);
+            margin: 20px 0;
+        }
     </style>
 </head>
 <body>
-    <div class="container" style="max-width: 700px;">
-        <div class="nav-links">
-            <a href="/index.html">🏠 首页</a>
-            <a href="/adminDashboard.html">📊 后台</a>
-        </div>
-        <h1>🔧 管理后台</h1>
+    <div class="container" style="max-width: 720px;">
+        <h1 class="page-title">🔧 管理后台</h1>
         <div class="admin-grid">
             <a href="/adminUsers.html">👥 用户管理</a>
             <a href="/adminPosts.html">📝 帖子管理</a>
@@ -44,10 +46,11 @@
             <a href="/adminSensitive.html">🛡️ 敏感词</a>
             <a href="/adminAnnouncement.html">📢 公告</a>
         </div>
-        <hr style="margin: 24px 0; border: none; border-top: 1px solid rgba(0,0,0,0.06);">
-        <h2>🔑 修改管理员密码</h2>
-        <div id="pwdError" class="error" style="display:none; background:rgba(217,83,79,0.12); padding:10px; border-radius:12px; margin-bottom:12px;"></div>
-        <div id="pwdSuccess" class="success" style="display:none; background:rgba(92,184,92,0.12); padding:10px; border-radius:12px; margin-bottom:12px;"></div>
+
+        <hr>
+        <h2 style="font-size:1.1rem; margin-bottom:12px;">🔑 修改管理员密码</h2>
+        <div id="pwdError" class="error" style="display:none;"></div>
+        <div id="pwdSuccess" class="success" style="display:none;"></div>
         <form id="changePwdForm">
             <div class="form-group">
                 <label>旧密码</label>
@@ -63,7 +66,8 @@
             </div>
             <button type="submit" class="btn-primary">更新密码</button>
         </form>
-        <hr style="margin: 24px 0; border: none; border-top: 1px solid rgba(0,0,0,0.06);">
+
+        <hr>
         <button onclick="logoutAdmin()" class="btn-secondary">退出管理</button>
     </div>
 

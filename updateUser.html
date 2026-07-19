@@ -12,9 +12,9 @@
             <a href="/index.html">🏠 首页</a>
             <a href="/dashboard.html">👤 个人中心</a>
         </div>
-        <h1 style="text-align:center;">✏️ 修改信息</h1>
-        <div id="error" class="error" style="display:none; background:rgba(217,83,79,0.12); padding:12px; border-radius:14px; margin-bottom:12px;"></div>
-        <div id="success" class="success" style="display:none; background:rgba(92,184,92,0.12); padding:12px; border-radius:14px; margin-bottom:12px;"></div>
+        <h1 class="page-title">✏️ 修改信息</h1>
+        <div id="error" class="error" style="display:none;"></div>
+        <div id="success" class="success" style="display:none;"></div>
         <form id="updateForm">
             <div class="form-group">
                 <label>姓名</label>
@@ -65,7 +65,6 @@
                 const user = data.user;
                 document.getElementById('name').value = user.name || '';
                 document.getElementById('gender').value = user.gender || '';
-                // 年级班级需要从完整资料获取，简化：用户重新选择
             } catch (err) { console.error(err); }
         }
 
