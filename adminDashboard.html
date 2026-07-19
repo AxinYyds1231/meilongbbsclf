@@ -6,72 +6,114 @@
     <title>管理后台</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .admin-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-            gap: 12px;
-            margin: 16px 0;
+        .admin-menu a {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            margin: 0 8px;
+            border-radius: 8px;
+            color: #1a2332;
+            text-decoration: none;
+            transition: background 0.15s;
+            gap: 8px;
         }
-        .admin-grid a {
+        .admin-menu a:hover { background: rgba(26,60,110,0.06); }
+        .admin-menu a.active { background: rgba(26,60,110,0.1); color: #1a3c6e; font-weight:500; }
+        .content-area {
+            flex: 1;
+            padding: 16px 0;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
             background: rgba(255,255,255,0.3);
             backdrop-filter: blur(4px);
-            padding: 14px;
-            border-radius: 14px;
+            padding: 12px;
+            border-radius: 12px;
             text-align: center;
-            text-decoration: none;
-            color: #1a2332;
-            border: 1px solid rgba(255,255,255,0.3);
-            transition: 0.2s;
-            font-weight: 500;
         }
-        .admin-grid a:hover {
-            background: rgba(255,255,255,0.6);
-            transform: translateY(-2px);
-        }
-        hr {
-            border: none;
-            border-top: 1px solid rgba(0,0,0,0.06);
-            margin: 20px 0;
-        }
+        .stat-card .num { font-size: 1.8rem; font-weight: 600; color: #1a3c6e; }
+        .stat-card .label { font-size: 0.85rem; color: #6b7a8a; }
+        hr { border: none; border-top: 1px solid rgba(0,0,0,0.06); margin: 16px 0; }
     </style>
 </head>
 <body>
-    <div class="container" style="max-width: 720px;">
-        <h1 class="page-title">🔧 管理后台</h1>
-        <div class="admin-grid">
-            <a href="/adminUsers.html">👥 用户管理</a>
-            <a href="/adminPosts.html">📝 帖子管理</a>
-            <a href="/adminCategories.html">📂 分类管理</a>
-            <a href="/adminStats.html">📊 统计面板</a>
-            <a href="/adminSensitive.html">🛡️ 敏感词</a>
-            <a href="/adminAnnouncement.html">📢 公告</a>
-        </div>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>🔧 管理</h2></div>
+            <nav class="sidebar-nav admin-menu">
+                <a href="/adminDashboard.html" class="active">📊 仪表盘</a>
+                <a href="/adminUsers.html">👥 用户管理</a>
+                <a href="/adminPosts.html">📝 帖子管理</a>
+                <a href="/adminCategories.html">📂 分类管理</a>
+                <a href="/adminStats.html">📊 统计面板</a>
+                <a href="/adminSensitive.html">🛡️ 敏感词</a>
+                <a href="/adminAnnouncement.html">📢 公告</a>
+            </nav>
+            <div style="padding:16px; margin-top:auto; border-top:1px solid rgba(0,0,0,0.04);">
+                <button onclick="logoutAdmin()" class="btn-secondary btn-sm" style="width:100%;">🚪 退出管理</button>
+            </div>
+        </aside>
 
-        <hr>
-        <h2 style="font-size:1.1rem; margin-bottom:12px;">🔑 修改管理员密码</h2>
-        <div id="pwdError" class="error" style="display:none;"></div>
-        <div id="pwdSuccess" class="success" style="display:none;"></div>
-        <form id="changePwdForm">
-            <div class="form-group">
-                <label>旧密码</label>
-                <input type="password" id="oldPassword" required>
+        <main class="main-content">
+            <h1 class="page-title">📊 管理仪表盘</h1>
+            <div id="statsContainer">
+                <div class="stats-grid">
+                    <div class="stat-card"><div class="num" id="totalUsers">0</div><div class="label">总用户</div></div>
+                    <div class="stat-card"><div class="num" id="totalPosts">0</div><div class="label">总帖子</div></div>
+                    <div class="stat-card"><div class="num" id="totalReplies">0</div><div class="label">总回复</div></div>
+                    <div class="stat-card"><div class="num" id="todayPosts">0</div><div class="label">今日发帖</div></div>
+                </div>
+                <div style="font-size:0.9rem; color:#8b9aab;">更新日期：<span id="statsDate">--</span></div>
             </div>
-            <div class="form-group">
-                <label>新密码</label>
-                <input type="password" id="newPassword" required minlength="8">
-            </div>
-            <div class="form-group">
-                <label>确认新密码</label>
-                <input type="password" id="confirmPassword" required>
-            </div>
-            <button type="submit" class="btn-primary">更新密码</button>
-        </form>
 
-        <hr>
-        <button onclick="logoutAdmin()" class="btn-secondary">退出管理</button>
+            <hr>
+            <h2 style="font-size:1.1rem;">🔑 修改管理员密码</h2>
+            <div id="pwdError" class="error" style="display:none;"></div>
+            <div id="pwdSuccess" class="success" style="display:none;"></div>
+            <form id="changePwdForm" style="max-width:400px;">
+                <div class="form-group">
+                    <label>旧密码</label>
+                    <input type="password" id="oldPassword" required>
+                </div>
+                <div class="form-group">
+                    <label>新密码</label>
+                    <input type="password" id="newPassword" required minlength="8">
+                </div>
+                <div class="form-group">
+                    <label>确认新密码</label>
+                    <input type="password" id="confirmPassword" required>
+                </div>
+                <button type="submit" class="btn-primary">更新密码</button>
+            </form>
+        </main>
     </div>
 
     <script>
+        // 加载统计数据
+        async function loadStats() {
+            try {
+                const res = await fetch('/api/stats', { credentials: 'include' });
+                if (res.status === 401 || res.status === 403) {
+                    window.location.href = '/adminLogin.html';
+                    return;
+                }
+                const stats = await res.json();
+                document.getElementById('totalUsers').textContent = stats.totalUsers || 0;
+                document.getElementById('totalPosts').textContent = stats.totalPosts || 0;
+                document.getElementById('totalReplies').textContent = stats.totalReplies || 0;
+                document.getElementById('todayPosts').textContent = stats.todayPosts || 0;
+                document.getElementById('statsDate').textContent = stats.todayDate || '--';
+            } catch (err) {
+                console.error('加载统计失败');
+            }
+        }
+
+        // 修改密码
         document.getElementById('changePwdForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const oldPassword = document.getElementById('oldPassword').value;
@@ -125,6 +167,8 @@
             document.cookie = 'adminSession=; Path=/; Max-Age=0';
             window.location.href = '/adminLogin.html';
         }
+
+        loadStats();
     </script>
 </body>
 </html>

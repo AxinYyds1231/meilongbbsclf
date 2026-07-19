@@ -6,361 +6,98 @@
     <title>个人中心</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .profile-header {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            margin-bottom: 28px;
-            flex-wrap: wrap;
+        .profile-card {
             background: rgba(255,255,255,0.3);
             backdrop-filter: blur(4px);
-            padding: 20px 24px;
-            border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.5);
+            border-radius: 16px;
+            padding: 16px 20px;
+            margin-bottom: 16px;
         }
-        .avatar-section {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
-        }
-        .avatar-img {
-            width: 100px;
-            height: 100px;
+        .profile-card .avatar {
+            width: 80px;
+            height: 80px;
             border-radius: 50%;
             object-fit: cover;
-            border: 3px solid rgba(255,255,255,0.8);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            border: 2px solid rgba(255,255,255,0.8);
         }
-        .avatar-upload {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-        }
-        .avatar-upload input[type="file"] {
-            font-size: 0.8rem;
-            max-width: 120px;
-        }
-        .avatar-upload .btn-upload {
-            background: rgba(26,60,110,0.1);
-            border: 1px solid rgba(26,60,110,0.15);
-            padding: 4px 16px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            color: #1a3c6e;
-            transition: 0.2s;
-        }
-        .avatar-upload .btn-upload:hover {
-            background: #1a3c6e;
-            color: #fff;
-        }
-        .user-details {
+        .profile-card .info {
             flex: 1;
         }
-        .user-details h2 {
-            margin: 0 0 4px 0;
-            font-size: 1.5rem;
-            color: #1a2332;
-        }
-        .level-badge {
-            display: inline-block;
-            background: rgba(255,215,0,0.15);
-            padding: 2px 14px;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            color: #b8860b;
-        }
-        .info-row {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-top: 6px;
-            color: #4a5a6a;
-            font-size: 0.95rem;
-        }
-        .checkin-area {
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .checkin-btn {
-            padding: 4px 18px;
-            font-size: 0.9rem;
-            background: #1a3c6e;
-            color: #fff;
-            border: none;
-            border-radius: 30px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .checkin-btn:hover {
-            background: #2a5a8e;
-        }
-        .checkin-btn:disabled {
-            background: #8b9aab;
-            cursor: not-allowed;
-        }
-        .checkin-status {
-            font-size: 0.9rem;
-            color: #4a5a6a;
-        }
-        .bio-section {
-            margin: 20px 0 16px 0;
-            background: rgba(255,255,255,0.25);
-            backdrop-filter: blur(4px);
-            padding: 16px 20px;
-            border-radius: 16px;
-        }
-        .bio-section textarea {
-            width: 100%;
-            padding: 10px 14px;
-            border: 1px solid rgba(0,0,0,0.06);
-            border-radius: 14px;
-            background: rgba(255,255,255,0.5);
-            font-family: inherit;
-            resize: vertical;
-            margin-top: 4px;
-        }
-        .section-title {
-            font-weight: 600;
-            color: #1a2332;
-            margin-bottom: 8px;
-        }
-        .notif-item {
-            background: rgba(255,255,255,0.3);
-            backdrop-filter: blur(4px);
-            padding: 10px 14px;
-            border-radius: 12px;
-            margin-bottom: 6px;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-        .notif-item.unread {
-            border-left: 4px solid #1a3c6e;
-            background: rgba(26,60,110,0.06);
-        }
-        .my-post-item {
-            background: rgba(255,255,255,0.3);
-            backdrop-filter: blur(4px);
-            padding: 10px 14px;
-            border-radius: 12px;
-            margin-bottom: 6px;
-            cursor: pointer;
-            transition: 0.2s;
-            border: 1px solid rgba(255,255,255,0.3);
-        }
-        .my-post-item:hover {
-            background: rgba(255,255,255,0.6);
-        }
-        .btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 20px;
-        }
-        .btn-group .btn-secondary {
-            background: rgba(0,0,0,0.04);
-        }
-        .btn-group .btn-danger {
-            background: rgba(217,83,79,0.12);
-            color: #d9534f;
-            border: 1px solid rgba(217,83,79,0.15);
-        }
-        .btn-group .btn-danger:hover {
-            background: #d9534f;
-            color: #fff;
-        }
-        .btn-group .btn-secondary:hover {
-            background: rgba(0,0,0,0.08);
-        }
-        .nav-links {
-            display: flex;
-            gap: 18px;
-            flex-wrap: wrap;
-            padding: 12px 0 16px 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-            margin-bottom: 20px;
-        }
-        .nav-links a {
-            color: #1a3c6e;
-            font-weight: 500;
-            text-decoration: none;
-            padding: 4px 8px;
-            border-radius: 12px;
-            transition: background 0.2s;
-        }
-        .nav-links a:hover {
-            background: rgba(26, 60, 110, 0.08);
-        }
-        .nav-link-with-badge {
-            position: relative;
-            display: inline-block;
-        }
-        .nav-badge {
-            position: absolute;
-            top: -6px;
-            right: -10px;
-            background: #d9534f;
-            color: #fff;
-            border-radius: 50%;
-            padding: 0px 5px;
-            font-size: 0.65rem;
-            font-weight: bold;
-            min-width: 16px;
-            text-align: center;
-            line-height: 16px;
-        }
-        .nav-badge.hidden {
-            display: none;
-        }
-        @media (max-width: 600px) {
-            .profile-header { flex-direction: column; text-align: center; }
-            .info-row { justify-content: center; }
-        }
+        .profile-card .info h2 { margin: 0; font-size: 1.2rem; }
+        .profile-card .info .level { font-size: 0.9rem; color: #b8860b; }
+        .profile-card .info .meta { font-size: 0.9rem; color: #4a5a6a; }
+        .profile-card .actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .notif-item .notif-content { display: flex; justify-content: space-between; align-items: center; }
+        .notif-item .delete-notif { background: none; border: none; color: #d9534f; cursor: pointer; font-size: 0.8rem; }
+        .notif-item .delete-notif:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-    <div class="container" style="max-width: 720px;">
-        <!-- 导航 -->
-        <div class="nav-links">
-            <a href="/index.html">🏠 首页</a>
-            <a href="/dashboard.html">👤 个人中心</a>
-            <a href="/inbox.html" class="nav-link-with-badge">
-                📩 私信
-                <span id="navUnreadBadge" class="nav-badge hidden">0</span>
-            </a>
-            <a href="/adminLogin.html">🔑 管理</a>
-        </div>
+    <div class="app-wrapper">
+        <!-- 左侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>👤 个人中心</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/index.html">🏠 首页</a>
+                <a href="/dashboard.html" class="active">👤 我的账户</a>
+                <a href="/inbox.html">📩 私信</a>
+                <a href="/adminLogin.html">🔑 管理</a>
+            </nav>
+            <div style="padding:16px; margin-top:auto; border-top:1px solid rgba(0,0,0,0.04);">
+                <button id="logoutBtn" class="btn-secondary btn-sm" style="width:100%;">🚪 退出登录</button>
+            </div>
+        </aside>
 
-        <h1 style="margin-bottom: 16px;">👤 个人中心</h1>
+        <!-- 右侧主内容 -->
+        <main class="main-content">
+            <h1 class="page-title">👤 我的账户</h1>
 
-        <!-- 加载状态 -->
-        <div id="loading" style="text-align:center; padding:40px; color:#8b9aab;">加载中...</div>
-
-        <!-- 主要内容 -->
-        <div id="mainContent" style="display:none;">
-            <!-- 头像 + 基本信息 -->
-            <div class="profile-header" id="userInfo">
-                <div class="avatar-section">
-                    <img id="avatarImg" class="avatar-img" src="" alt="头像">
-                    <div class="avatar-upload">
-                        <input type="file" id="avatarInput" accept="image/*">
-                        <button id="uploadAvatarBtn" class="btn-upload">📷 上传头像</button>
-                    </div>
-                </div>
-                <div class="user-details">
+            <!-- 用户信息卡片 -->
+            <div id="userInfo" class="profile-card" style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
+                <img id="avatarImg" class="avatar" src="" alt="头像">
+                <div class="info">
                     <h2 id="userName">用户</h2>
-                    <span class="level-badge" id="levelBadge">🌱 新手</span>
-                    <div class="info-row">
+                    <span class="level" id="levelBadge">🌱 新手</span>
+                    <div class="meta">
                         <span id="userUid">UID: -</span>
                         <span id="userGrade">年级: -</span>
                         <span id="userClass">班级: -</span>
                         <span id="userPoints">积分: 0</span>
                     </div>
-                    <!-- 签到区域 -->
-                    <div class="checkin-area">
-                        <button id="checkinBtn" class="checkin-btn">✅ 签到</button>
-                        <span id="checkinStatus" class="checkin-status">今日未签到</span>
+                    <div class="actions">
+                        <button class="btn-primary btn-sm" onclick="location.href='/updateUser.html'">✏️ 修改信息</button>
+                        <button class="btn-primary btn-sm" onclick="location.href='/favorites.html'">⭐ 收藏</button>
+                        <button id="deleteAccountBtn" class="btn-danger btn-sm">🗑️ 注销账号</button>
                     </div>
                 </div>
             </div>
 
-            <!-- 个人简介 -->
-            <div class="bio-section">
-                <div class="section-title">📝 个人简介</div>
-                <textarea id="bioText" rows="3" placeholder="写点自我介绍..." maxlength="200"></textarea>
-                <button id="saveBioBtn" class="btn-primary" style="margin-top:6px;">💾 保存简介</button>
+            <!-- 简介编辑 -->
+            <div class="profile-card">
+                <div style="font-weight:600; margin-bottom:4px;">📝 个人简介</div>
+                <textarea id="bioText" rows="2" placeholder="写点自我介绍..." style="width:100%; padding:8px; border-radius:12px; border:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.5);"></textarea>
+                <button id="saveBioBtn" class="btn-primary btn-sm" style="margin-top:4px;">💾 保存简介</button>
             </div>
 
-            <!-- 通知 -->
-            <div style="margin-top: 20px;">
-                <div class="section-title">📬 我的通知</div>
-                <div id="notifications">加载中...</div>
-            </div>
+            <!-- 通知列表 -->
+            <h3 style="margin-top:16px; font-size:1.1rem;">📬 我的通知</h3>
+            <div id="notifications">加载中...</div>
 
             <!-- 我的帖子 -->
-            <div style="margin-top: 20px;">
-                <div class="section-title">📝 我的帖子</div>
-                <div id="myPosts">加载中...</div>
-            </div>
-
-            <!-- 操作按钮 -->
-            <div class="btn-group">
-                <button class="btn-primary" onclick="location.href='/favorites.html'">⭐ 我的收藏</button>
-                <button class="btn-primary" onclick="location.href='/updateUser.html'">✏️ 修改信息</button>
-                <button id="logoutBtn" class="btn-secondary">🚪 退出登录</button>
-                <button id="deleteAccountBtn" class="btn-danger">🗑️ 注销账号</button>
-            </div>
-        </div>
+            <h3 style="margin-top:16px; font-size:1.1rem;">📝 我的帖子</h3>
+            <div id="myPosts">加载中...</div>
+        </main>
     </div>
 
     <script>
-        // ---------- 更新导航小红点 ----------
-        async function updateNavBadge() {
-            try {
-                const res = await fetch('/api/inbox', { credentials: 'include' });
-                if (res.status !== 200) return;
-                const data = await res.json();
-                const unreadCount = data.messages ? data.messages.filter(m => !m.read).length : 0;
-                const badge = document.getElementById('navUnreadBadge');
-                if (badge) {
-                    if (unreadCount > 0) {
-                        badge.textContent = unreadCount;
-                        badge.classList.remove('hidden');
-                    } else {
-                        badge.classList.add('hidden');
-                    }
-                }
-            } catch (e) {}
-        }
-
-        // ---------- 签到功能 ----------
-        async function loadCheckinStatus() {
-            try {
-                const res = await fetch('/api/checkin?action=status', { credentials: 'include' });
-                if (res.status !== 200) return;
-                const data = await res.json();
-                const btn = document.getElementById('checkinBtn');
-                const statusEl = document.getElementById('checkinStatus');
-                if (data.checked) {
-                    btn.disabled = true;
-                    btn.textContent = '✅ 已签到';
-                    statusEl.textContent = `连续签到 ${data.streak} 天`;
-                } else {
-                    btn.disabled = false;
-                    btn.textContent = '✅ 签到';
-                    statusEl.textContent = '今日未签到';
-                }
-            } catch (e) { console.error('加载签到状态失败', e); }
-        }
-
-        document.getElementById('checkinBtn')?.addEventListener('click', async function() {
-            try {
-                const res = await fetch('/api/checkin', { method: 'POST', credentials: 'include' });
-                const result = await res.json();
-                if (result.success) {
-                    alert(result.message);
-                    const pointsSpan = document.getElementById('userPoints');
-                    const currentPoints = parseInt(pointsSpan.textContent.replace('积分: ', '')) || 0;
-                    pointsSpan.textContent = `积分: ${currentPoints + result.pointsEarned}`;
-                    loadCheckinStatus();
-                } else {
-                    alert(result.message || '签到失败');
-                }
-            } catch (err) { alert('网络错误，请重试'); }
-        });
-
-        // ---------- 加载个人中心数据 ----------
+        // ---- 加载个人数据 ----
         async function loadDashboard() {
             try {
                 const res = await fetch('/api/user', { credentials: 'include' });
-                if (res.status === 401) {
-                    window.location.href = '/login.html';
-                    return;
-                }
+                if (res.status === 401) { window.location.href = '/login.html'; return; }
                 const userData = await res.json();
                 const uid = userData.user.uid;
 
@@ -378,20 +115,7 @@
                 document.getElementById('bioText').value = u.bio || '';
 
                 // 通知
-                const notifRes = await fetch('/api/notifications', { credentials: 'include' });
-                const notifData = await notifRes.json();
-                const notifContainer = document.getElementById('notifications');
-                if (!notifData.notifications || notifData.notifications.length === 0) {
-                    notifContainer.innerHTML = '<div style="color:#999;">暂无通知</div>';
-                } else {
-                    let html = '';
-                    notifData.notifications.forEach(n => {
-                        const cls = n.read ? '' : 'unread';
-                        const time = new Date(n.createdAt).toLocaleString('zh-CN');
-                        html += `<div class="notif-item ${cls}">${n.content} <span style="font-size:0.75rem;color:#8b9aab;">${time}</span></div>`;
-                    });
-                    notifContainer.innerHTML = html;
-                }
+                await loadNotifications();
 
                 // 我的帖子
                 const postsRes = await fetch('/api/posts');
@@ -403,59 +127,93 @@
                 } else {
                     let html = '';
                     myPosts.forEach(p => {
-                        html += `<div class="my-post-item" onclick="location.href='/post.html?id=${p.id}'">${p.title}</div>`;
+                        html += `<div class="list-item" onclick="location.href='/post.html?id=${p.id}'" style="cursor:pointer;">
+                            <div class="title">${p.title}</div>
+                            <div class="meta">🕒 ${new Date(p.createdAt).toLocaleString()} · 💬 ${p.replyCount}</div>
+                        </div>`;
                     });
                     container.innerHTML = html;
                 }
-
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
-
-                loadCheckinStatus();
             } catch (err) {
-                document.getElementById('loading').innerHTML = '<div style="color:red;">加载失败，请刷新</div>';
+                document.getElementById('userInfo').innerHTML = '<div style="color:red;">加载失败</div>';
             }
         }
 
-        // ---------- 头像上传 ----------
-        document.getElementById('uploadAvatarBtn')?.addEventListener('click', async function() {
-            const fileInput = document.getElementById('avatarInput');
-            if (!fileInput.files.length) { alert('请先选择图片'); return; }
-            const fd = new FormData();
-            fd.append('avatar', fileInput.files[0]);
+        // ---- 加载通知（可删除） ----
+        async function loadNotifications() {
             try {
-                const res = await fetch('/api/uploadAvatar', { method: 'POST', credentials: 'include', body: fd });
-                const result = await res.json();
-                if (result.success) {
-                    document.getElementById('avatarImg').src = result.avatar;
-                    alert('✅ 头像更新成功！');
-                } else {
-                    alert(result.error || '上传失败');
+                const res = await fetch('/api/notifications', { credentials: 'include' });
+                const data = await res.json();
+                const container = document.getElementById('notifications');
+                if (!data.notifications || data.notifications.length === 0) {
+                    container.innerHTML = '<div style="color:#999;">暂无通知</div>';
+                    return;
                 }
-            } catch (err) { alert('网络错误，请重试'); }
-        });
+                let html = '';
+                data.notifications.forEach(n => {
+                    const cls = n.read ? '' : 'unread';
+                    const time = new Date(n.createdAt).toLocaleString('zh-CN');
+                    html += `
+                        <div class="notif-item ${cls}">
+                            <div class="notif-content">
+                                <span>${n.content} <span style="font-size:0.75rem;color:#8b9aab;">${time}</span></span>
+                                <button class="delete-notif" data-id="${n.id}">删除</button>
+                            </div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
 
-        // ---------- 保存简介 ----------
-        document.getElementById('saveBioBtn')?.addEventListener('click', async function() {
+                // 绑定删除事件
+                container.querySelectorAll('.delete-notif').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const id = parseInt(this.dataset.id);
+                        if (!confirm('确定删除此通知？')) return;
+                        try {
+                            const fd = new FormData();
+                            fd.append('id', id);
+                            const res = await fetch('/api/deleteNotification', {
+                                method: 'POST',
+                                credentials: 'include',
+                                body: fd
+                            });
+                            const result = await res.json();
+                            if (result.success) {
+                                loadNotifications(); // 刷新
+                            } else {
+                                alert(result.error || '删除失败');
+                            }
+                        } catch (err) {
+                            alert('网络错误');
+                        }
+                    });
+                });
+            } catch (err) {
+                document.getElementById('notifications').innerHTML = '<div style="color:red;">加载失败</div>';
+            }
+        }
+
+        // ---- 保存简介 ----
+        document.getElementById('saveBioBtn').addEventListener('click', async function() {
             const bio = document.getElementById('bioText').value.trim();
             const fd = new FormData();
             fd.append('bio', bio);
             try {
                 const res = await fetch('/api/updateProfile', { method: 'POST', credentials: 'include', body: fd });
                 const result = await res.json();
-                if (result.success) { alert('✅ 简介已保存'); }
-                else { alert(result.error || '保存失败'); }
+                if (result.success) alert('✅ 简介已保存');
+                else alert(result.error);
             } catch (err) { alert('网络错误'); }
         });
 
-        // ---------- 退出登录 ----------
-        document.getElementById('logoutBtn')?.addEventListener('click', async function() {
+        // ---- 退出 ----
+        document.getElementById('logoutBtn').addEventListener('click', async function() {
             await fetch('/api/logout', { credentials: 'include' });
             window.location.href = '/login.html';
         });
 
-        // ---------- 注销账号 ----------
-        document.getElementById('deleteAccountBtn')?.addEventListener('click', async function() {
+        // ---- 注销 ----
+        document.getElementById('deleteAccountBtn').addEventListener('click', async function() {
             const pwd = prompt('请输入密码确认注销：');
             if (!pwd) return;
             const fd = new FormData();
@@ -464,13 +222,11 @@
                 const res = await fetch('/api/deleteAccount', { method: 'POST', credentials: 'include', body: fd });
                 const result = await res.json();
                 if (result.success) { alert('账号已注销'); window.location.href = '/login.html'; }
-                else { alert(result.error || '注销失败'); }
+                else alert(result.error);
             } catch (err) { alert('网络错误'); }
         });
 
-        // ---------- 启动 ----------
         loadDashboard();
-        updateNavBadge();
     </script>
 </body>
 </html>
