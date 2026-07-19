@@ -6,30 +6,179 @@
     <title>梅陇中学论坛</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .post-item {
-            background: rgba(255,255,255,0.5);
+        /* ---- 全局重置（仅针对本页微调） ---- */
+        body {
+            padding: 0;
+            margin: 0;
+            background: #f0f2f5;
+            display: flex;
+            min-height: 100vh;
+        }
+        .app-wrapper {
+            display: flex;
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 24px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.5);
+            overflow: hidden;
+            height: 100vh;
+            max-height: calc(100vh - 20px);
+            margin-top: 10px;
+            margin-bottom: 10px;
+        }
+        /* ---- 左侧边栏 ---- */
+        .sidebar {
+            width: 260px;
+            min-width: 260px;
+            background: rgba(255,255,255,0.3);
             backdrop-filter: blur(4px);
-            border: 1px solid rgba(255,255,255,0.7);
-            padding: 14px 18px;
-            border-radius: 16px;
-            margin-bottom: 12px;
+            border-right: 1px solid rgba(0,0,0,0.04);
+            padding: 16px 0;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            height: 100%;
+        }
+        .sidebar-header {
+            padding: 0 16px 12px 16px;
+            border-bottom: 1px solid rgba(0,0,0,0.04);
+            flex-shrink: 0;
+        }
+        .sidebar-header h2 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #1a2332;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sidebar-header .sub {
+            font-size: 0.75rem;
+            font-weight: 400;
+            color: #8b9aab;
+        }
+        .category-tree {
+            padding: 8px 0;
+            flex: 1;
+            overflow-y: auto;
+        }
+        .category-tree .tree-node {
+            padding: 0 8px;
+        }
+        .tree-node .node-label {
+            display: flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background 0.15s;
+            color: #1a2332;
+            font-size: 0.9rem;
+            gap: 4px;
+        }
+        .tree-node .node-label:hover {
+            background: rgba(26,60,110,0.06);
+        }
+        .tree-node .node-label.active {
+            background: rgba(26,60,110,0.12);
+            color: #1a3c6e;
+            font-weight: 500;
+        }
+        .tree-node .node-label .icon {
+            width: 18px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+        .tree-node .node-label .toggle {
+            margin-left: auto;
+            font-size: 0.7rem;
+            color: #8b9aab;
+            transition: transform 0.2s;
+        }
+        .tree-node .node-label .toggle.open {
+            transform: rotate(90deg);
+        }
+        .tree-node .children {
+            padding-left: 20px;
+            overflow: hidden;
+            max-height: 0;
+            transition: max-height 0.2s ease;
+        }
+        .tree-node .children.open {
+            max-height: 2000px;
+        }
+        .tree-node .children .node-label {
+            padding-left: 8px;
+        }
+        /* ---- 右侧主内容 ---- */
+        .main-content {
+            flex: 1;
+            padding: 20px 24px;
+            overflow-y: auto;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+            flex-shrink: 0;
+        }
+        .main-header h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 600;
+            color: #1a2332;
+        }
+        .main-header .actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .main-header .actions .user-info {
+            font-size: 0.9rem;
+            color: #4a5a6a;
+            margin-right: 6px;
+        }
+        /* 帖子列表 */
+        .post-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .post-item {
+            background: rgba(255,255,255,0.4);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.6);
+            padding: 12px 16px;
+            border-radius: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.15s;
         }
         .post-item:hover {
-            background: rgba(255,255,255,0.8);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+            background: rgba(255,255,255,0.7);
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .post-title {
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 600;
             color: #1a2332;
         }
         .post-meta {
-            font-size: 0.85rem;
-            color: #5a6a7a;
-            margin-top: 6px;
+            font-size: 0.8rem;
+            color: #6b7a8a;
+            margin-top: 4px;
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
@@ -37,305 +186,174 @@
         .post-meta a {
             color: #1a3c6e;
         }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 20px;
-        }
-        .header h1 {
-            font-size: 1.7rem;
-            font-weight: 600;
-            background: linear-gradient(135deg, #1a3c6e, #2a5a8e);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .btn-primary {
-            background: #1a3c6e;
-            color: #fff;
-            border: none;
-            padding: 8px 22px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.2s;
-            box-shadow: 0 2px 8px rgba(26,60,110,0.2);
-        }
-        .btn-primary:hover {
-            background: #2a5a8e;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(26,60,110,0.3);
-        }
-        .btn-secondary {
-            background: rgba(0,0,0,0.06);
-            color: #1a2332;
-            border: 1px solid rgba(0,0,0,0.08);
-            padding: 8px 22px;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: 500;
-        }
-        .btn-secondary:hover {
-            background: rgba(0,0,0,0.1);
-        }
-        .nav-links {
-            display: flex;
-            gap: 18px;
-            flex-wrap: wrap;
-            padding: 12px 0 16px 0;
-            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-            margin-bottom: 20px;
-        }
-        .nav-links a {
-            color: #1a3c6e;
-            font-weight: 500;
-            text-decoration: none;
-            padding: 4px 8px;
-            border-radius: 12px;
-            transition: background 0.2s;
-        }
-        .nav-links a:hover {
-            background: rgba(26, 60, 110, 0.08);
-        }
-        .nav-link-with-badge {
-            position: relative;
-            display: inline-block;
-        }
-        .nav-badge {
-            position: absolute;
-            top: -6px;
-            right: -10px;
-            background: #d9534f;
-            color: #fff;
-            border-radius: 50%;
-            padding: 0px 5px;
-            font-size: 0.65rem;
-            font-weight: bold;
-            min-width: 16px;
-            text-align: center;
-            line-height: 16px;
-        }
-        .nav-badge.hidden {
-            display: none;
-        }
-        .category-nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            margin-bottom: 20px;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(4px);
-            padding: 8px 12px;
-            border-radius: 16px;
-        }
-        .category-btn {
-            background: rgba(255,255,255,0.3);
-            border: 1px solid rgba(255,255,255,0.5);
-            padding: 4px 12px;
-            border-radius: 20px;
-            cursor: pointer;
-            font-size: 0.9rem;
-            transition: all 0.2s;
-            color: #1a2332;
-            white-space: nowrap;
-        }
-        .category-btn:hover {
-            background: rgba(255,255,255,0.7);
-        }
-        .category-btn.active {
-            background: #1a3c6e;
-            color: #fff;
-            border-color: #1a3c6e;
-        }
-        .category-btn.has-children {
-            background: rgba(255,215,0,0.15);
-        }
-        .category-child-wrap {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin-left: 8px;
-            padding-left: 8px;
-            border-left: 1px solid rgba(0,0,0,0.06);
-        }
         .empty {
             text-align: center;
             color: #8b9aab;
             padding: 40px 0;
         }
-        .announcement-bar {
-            background: rgba(255,215,0,0.1);
-            padding: 8px 12px;
-            border-radius: 12px;
-            margin-bottom: 12px;
-            border-left: 4px solid #ffc107;
-        }
-        @media (max-width: 600px) {
-            .container { padding: 16px; }
-            .header h1 { font-size: 1.3rem; }
-            .post-meta { font-size: 0.75rem; gap: 6px; }
-            .category-nav { flex-direction: column; align-items: stretch; }
-            .category-child-wrap { border-left: none; padding-left: 0; margin-left: 0; }
+        /* ---- 移动端适配 ---- */
+        @media (max-width: 768px) {
+            .app-wrapper {
+                flex-direction: column;
+                height: auto;
+                max-height: none;
+                border-radius: 16px;
+                margin: 8px;
+            }
+            .sidebar {
+                width: 100%;
+                min-width: unset;
+                border-right: none;
+                border-bottom: 1px solid rgba(0,0,0,0.04);
+                max-height: 200px;
+                overflow-y: auto;
+                padding: 12px 0;
+            }
+            .sidebar-header h2 {
+                font-size: 1rem;
+            }
+            .main-content {
+                padding: 12px 16px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container" style="max-width: 720px;">
-        <!-- 顶部 -->
-        <div class="header">
-            <h1>📚 梅陇中学论坛</h1>
-            <div class="header-actions">
-                <button id="createBtn" class="btn-primary" style="display:none;">➕ 发帖</button>
-                <span id="userInfo"></span>
-                <button id="logoutBtn" class="btn-secondary" style="display:none;">退出</button>
+    <div class="app-wrapper">
+        <!-- 左侧边栏 -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>📂 分类 <span class="sub">(点击展开)</span></h2>
             </div>
-        </div>
+            <div id="categoryTree" class="category-tree">
+                <!-- 由 JavaScript 动态生成 -->
+            </div>
+        </aside>
 
-        <!-- 导航 -->
-        <div class="nav-links">
-            <a href="/index.html">🏠 首页</a>
-            <a href="/dashboard.html">👤 个人中心</a>
-            <a href="/inbox.html" class="nav-link-with-badge">
-                📩 私信
-                <span id="navUnreadBadge" class="nav-badge hidden">0</span>
-            </a>
-            <a href="/adminLogin.html">🔑 管理</a>
-        </div>
-
-        <!-- 公告栏 -->
-        <div id="announcementBar"></div>
-
-        <!-- 分类导航（树形） -->
-        <div id="categoryNav" class="category-nav"></div>
-
-        <!-- 帖子列表 -->
-        <div id="postList" class="post-list">加载中...</div>
+        <!-- 右侧主内容 -->
+        <main class="main-content">
+            <div class="main-header">
+                <h1 id="pageTitle">📚 全部帖子</h1>
+                <div class="actions">
+                    <span id="userInfo" class="user-info"></span>
+                    <button id="createBtn" class="btn-primary" style="display:none;">➕ 发帖</button>
+                    <button id="logoutBtn" class="btn-secondary" style="display:none;">退出</button>
+                </div>
+            </div>
+            <div id="postList" class="post-list">加载中...</div>
+        </main>
     </div>
 
     <script>
-        // ---------- 加载公告 ----------
-        async function loadAnnouncements() {
-            try {
-                const res = await fetch('/api/announcement');
-                const data = await res.json();
-                const bar = document.getElementById('announcementBar');
-                if (data.announcements && data.announcements.length > 0) {
-                    let html = '<div class="announcement-bar">';
-                    data.announcements.forEach(a => {
-                        html += `<div><strong>📢 ${a.title}</strong>: ${a.content}</div>`;
-                    });
-                    html += '</div>';
-                    bar.innerHTML = html;
-                } else {
-                    bar.innerHTML = '';
-                }
-            } catch (e) {}
-        }
-
-        // ---------- 检查登录 ----------
-        async function checkLogin() {
-            try {
-                const res = await fetch('/api/user', { credentials: 'include' });
-                if (res.status === 200) {
-                    const data = await res.json();
-                    document.getElementById('userInfo').innerHTML = '👋 ' + data.user.name;
-                    document.getElementById('createBtn').style.display = 'inline-block';
-                    document.getElementById('logoutBtn').style.display = 'inline-block';
-                }
-            } catch (e) {}
-        }
-
-        // ---------- 更新未读小红点 ----------
-        async function updateNavBadge() {
-            try {
-                const res = await fetch('/api/inbox', { credentials: 'include' });
-                if (res.status !== 200) return;
-                const data = await res.json();
-                const unreadCount = data.messages ? data.messages.filter(m => !m.read).length : 0;
-                const badge = document.getElementById('navUnreadBadge');
-                if (badge) {
-                    if (unreadCount > 0) {
-                        badge.textContent = unreadCount;
-                        badge.classList.remove('hidden');
-                    } else {
-                        badge.classList.add('hidden');
-                    }
-                }
-            } catch (e) {}
-        }
-
-        // ---------- 加载分类导航（树形） ----------
+        // ---------- 数据状态 ----------
         let currentCategoryId = 0;
+        let categoriesTree = [];
+        let allPosts = [];
 
-        async function loadCategoryNav() {
+        // ---------- DOM引用 ----------
+        const treeContainer = document.getElementById('categoryTree');
+        const postListEl = document.getElementById('postList');
+        const pageTitle = document.getElementById('pageTitle');
+
+        // ---------- 辅助函数 ----------
+        function formatTime(ts) {
+            return new Date(ts).toLocaleString('zh-CN');
+        }
+
+        // ---------- 加载分类树 ----------
+        async function loadCategories() {
             try {
                 const res = await fetch('/api/categories');
                 const data = await res.json();
-                const tree = data.categories || [];
-                const nav = document.getElementById('categoryNav');
-                if (tree.length === 0) {
-                    nav.innerHTML = '<span style="color:#999;">暂无分类</span>';
-                    return;
-                }
-                // 递归生成分类按钮（平铺，但用缩进和子容器）
-                function renderNav(nodes, level = 0) {
-                    let html = '';
-                    nodes.forEach(node => {
-                        const hasChildren = node.children && node.children.length > 0;
-                        const cls = hasChildren ? 'category-btn has-children' : 'category-btn';
-                        html += `
-                            <button class="${cls}" data-category="${node.id}" style="margin-left: ${level * 12}px;">
-                                ${node.name}
-                            </button>
-                        `;
-                        if (hasChildren) {
-                            html += `<div class="category-child-wrap">`;
-                            html += renderNav(node.children, level + 1);
-                            html += `</div>`;
-                        }
-                    });
-                    return html;
-                }
-                nav.innerHTML = renderNav(tree);
-
-                // 绑定点击事件
-                nav.querySelectorAll('.category-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const catId = parseInt(this.dataset.category);
-                        // 移除其他active
-                        nav.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
-                        currentCategoryId = catId;
-                        loadPosts(catId);
-                    });
-                });
-
-                // 默认选中"全部"（但我们没有全部按钮，可添加）
-                // 在树形顶部添加一个"全部"按钮
-                const allBtn = document.createElement('button');
-                allBtn.className = 'category-btn active';
-                allBtn.dataset.category = '0';
-                allBtn.textContent = '全部';
-                allBtn.addEventListener('click', function() {
-                    nav.querySelectorAll('.category-btn').forEach(b => b.classList.remove('active'));
-                    this.classList.add('active');
-                    currentCategoryId = 0;
-                    loadPosts(0);
-                });
-                nav.prepend(allBtn);
-                // 将"全部"按钮放在最前面
+                categoriesTree = data.categories || [];
+                renderTree(categoriesTree);
             } catch (err) {
-                console.error('加载分类失败', err);
-                document.getElementById('categoryNav').innerHTML = '<div style="color:red;">加载分类失败</div>';
+                treeContainer.innerHTML = '<div style="color:red; padding:12px;">加载分类失败</div>';
             }
+        }
+
+        // ---------- 渲染树 ----------
+        function renderTree(nodes, level = 0) {
+            if (!nodes || nodes.length === 0) {
+                treeContainer.innerHTML = '<div style="color:#999; padding:12px; font-size:0.9rem;">暂无分类</div>';
+                return;
+            }
+            let html = '';
+            // 添加"全部"节点（特殊）
+            html += `
+                <div class="tree-node">
+                    <div class="node-label ${currentCategoryId === 0 ? 'active' : ''}" data-id="0">
+                        <span class="icon">📋</span>
+                        <span>全部</span>
+                    </div>
+                </div>
+            `;
+            // 递归生成树节点
+            function buildNodes(nodes, level) {
+                let html = '';
+                nodes.forEach(node => {
+                    const hasChildren = node.children && node.children.length > 0;
+                    const isActive = currentCategoryId === node.id;
+                    const indent = level * 12;
+                    html += `
+                        <div class="tree-node">
+                            <div class="node-label ${isActive ? 'active' : ''}" data-id="${node.id}" style="padding-left: ${12 + indent}px;">
+                                <span class="icon">📁</span>
+                                <span>${node.name}</span>
+                                ${hasChildren ? `<span class="toggle open">▶</span>` : ''}
+                            </div>
+                            ${hasChildren ? `<div class="children open">${buildNodes(node.children, level + 1)}</div>` : ''}
+                        </div>
+                    `;
+                });
+                return html;
+            }
+            html += buildNodes(nodes, 0);
+            treeContainer.innerHTML = html;
+
+            // 绑定点击事件
+            treeContainer.querySelectorAll('.node-label').forEach(el => {
+                el.addEventListener('click', function(e) {
+                    // 如果点击了折叠箭头，不切换分类
+                    if (e.target.classList.contains('toggle')) {
+                        const parent = this.closest('.tree-node');
+                        const children = parent.querySelector('.children');
+                        if (children) {
+                            children.classList.toggle('open');
+                            this.querySelector('.toggle').classList.toggle('open');
+                        }
+                        return;
+                    }
+                    const id = parseInt(this.dataset.id);
+                    setActiveCategory(id);
+                    // 高亮
+                    treeContainer.querySelectorAll('.node-label').forEach(l => l.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+
+            // 默认展开所有（或根据需求）
+        }
+
+        // ---------- 切换分类 ----------
+        function setActiveCategory(catId) {
+            currentCategoryId = catId;
+            const cat = findCategoryById(categoriesTree, catId);
+            const name = cat ? cat.name : '全部';
+            pageTitle.textContent = `📚 ${name}`;
+            loadPosts(catId);
+        }
+
+        // ---------- 递归查找分类 ----------
+        function findCategoryById(nodes, id) {
+            for (let node of nodes) {
+                if (node.id === id) return node;
+                if (node.children) {
+                    const found = findCategoryById(node.children, id);
+                    if (found) return found;
+                }
+            }
+            return null;
         }
 
         // ---------- 加载帖子 ----------
@@ -344,32 +362,49 @@
                 const url = categoryId ? `/api/posts?category=${categoryId}` : '/api/posts';
                 const res = await fetch(url);
                 const data = await res.json();
-                const container = document.getElementById('postList');
-                if (!data.posts || data.posts.length === 0) {
-                    container.innerHTML = '<div class="empty">📭 暂无帖子</div>';
-                    return;
-                }
-                let html = '';
-                data.posts.forEach(p => {
-                    const time = new Date(p.createdAt).toLocaleString('zh-CN');
-                    html += `
-                        <div class="post-item" onclick="location.href='/post.html?id=${p.id}'">
-                            <div class="post-title">${p.title}</div>
-                            <div class="post-meta">
-                                <span>📂 ${p.categoryName || '未分类'}</span>
-                                <span>✍️ <a href="/profile.html?uid=${p.authorUid}" onclick="event.stopPropagation();">${p.authorName}</a></span>
-                                <span>🕒 ${time}</span>
-                                <span>💬 ${p.replyCount}</span>
-                                <span>👍 ${p.likesCount}</span>
-                                <span>👎 ${p.dislikesCount}</span>
-                            </div>
-                        </div>
-                    `;
-                });
-                container.innerHTML = html;
+                allPosts = data.posts || [];
+                renderPosts(allPosts);
             } catch (err) {
-                document.getElementById('postList').innerHTML = '<div style="color:red;">加载失败</div>';
+                postListEl.innerHTML = '<div style="color:red; padding:20px;">加载帖子失败</div>';
             }
+        }
+
+        // ---------- 渲染帖子列表 ----------
+        function renderPosts(posts) {
+            if (!posts || posts.length === 0) {
+                postListEl.innerHTML = '<div class="empty">📭 暂无帖子</div>';
+                return;
+            }
+            let html = '';
+            posts.forEach(p => {
+                html += `
+                    <div class="post-item" onclick="location.href='/post.html?id=${p.id}'">
+                        <div class="post-title">${p.title}</div>
+                        <div class="post-meta">
+                            <span>📂 ${p.categoryName || '未分类'}</span>
+                            <span>✍️ <a href="/profile.html?uid=${p.authorUid}" onclick="event.stopPropagation();">${p.authorName}</a></span>
+                            <span>🕒 ${formatTime(p.createdAt)}</span>
+                            <span>💬 ${p.replyCount}</span>
+                            <span>👍 ${p.likesCount}</span>
+                            <span>👎 ${p.dislikesCount}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            postListEl.innerHTML = html;
+        }
+
+        // ---------- 用户登录状态 ----------
+        async function checkLogin() {
+            try {
+                const res = await fetch('/api/user', { credentials: 'include' });
+                if (res.status === 200) {
+                    const data = await res.json();
+                    document.getElementById('userInfo').textContent = '👋 ' + data.user.name;
+                    document.getElementById('createBtn').style.display = 'inline-block';
+                    document.getElementById('logoutBtn').style.display = 'inline-block';
+                }
+            } catch (e) {}
         }
 
         // ---------- 退出 ----------
@@ -383,10 +418,8 @@
 
         // ---------- 启动 ----------
         checkLogin();
-        updateNavBadge();
-        loadAnnouncements();
-        loadCategoryNav();
-        loadPosts();
+        loadCategories();
+        loadPosts(0);
     </script>
 </body>
 </html>
