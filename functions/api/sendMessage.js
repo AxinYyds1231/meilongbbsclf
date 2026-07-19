@@ -24,21 +24,14 @@ export async function onRequest(context) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
-
     if (request.method !== 'POST') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: CORS_HEADERS });
     }
 
     const cookieHeader = request.headers.get('Cookie') || '';
     const sessionMatch = cookieHeader.match(/session=([^;]+)/);
     if (!sessionMatch) {
-        return new Response(JSON.stringify({ error: '请先登录' }), {
-            status: 401,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: '请先登录' }), { status: 401, headers: CORS_HEADERS });
     }
 
     try {
@@ -48,38 +41,31 @@ export async function onRequest(context) {
 
         const formData = await request.formData();
         const toUid = formData.get('toUid');
-        const content = formData.get('content');
+        let content = formData.get('content');
 
         if (!toUid || !content) {
-            return new Response(JSON.stringify({ error: '收件人或内容不能为空' }), {
-                status: 400,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '收件人或内容不能为空' }), { status: 400, headers: CORS_HEADERS });
         }
+
+        // 字数限制（500字）
+        if (content.length > 500) {
+            return new Response(JSON.stringify({ error: '私信内容不能超过500字' }), { status: 400, headers: CORS_HEADERS });
+        }
+
+        // 敏感词过滤
+        const words = await db.getSensitiveWords();
+        content = db.filterSensitive(content, words);
 
         const target = await db.findUserByUid(toUid);
         if (!target) {
-            return new Response(JSON.stringify({ error: '收件人不存在' }), {
-                status: 404,
-                headers: CORS_HEADERS
-            });
+            return new Response(JSON.stringify({ error: '收件人不存在' }), { status: 404, headers: CORS_HEADERS });
         }
 
         const msg = await db.sendMessage(fromUid, toUid, content);
-        // 通知收件人
-        await db.addNotification(toUid, 'message', `您收到来自 ${fromName} 的私信`, `/inbox.html`);
+        await db.addNotification(toUid, 'message', `您收到来自 ${fromName} 的私信：${content.substring(0, 30)}${content.length > 30 ? '...' : ''}`, `/inbox.html`);
 
-        return new Response(JSON.stringify({ success: true, message: msg }), {
-            status: 200,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ success: true, message: msg }), { status: 200, headers: CORS_HEADERS });
     } catch (error) {
-        return new Response(JSON.stringify({
-            error: '服务器错误',
-            detail: error.message
-        }), {
-            status: 500,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), { status: 500, headers: CORS_HEADERS });
     }
 }
