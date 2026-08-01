@@ -55,6 +55,7 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ error: '用户不存在' }), { status: 404, headers: CORS_HEADERS });
         }
 
+        // 更新封禁状态
         const updated = await db.updateUser(targetUid, { avatarBanned: action === 'ban' });
         return new Response(JSON.stringify({ success: true, avatarBanned: action === 'ban' }), {
             status: 200,

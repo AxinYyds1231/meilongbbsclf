@@ -80,7 +80,7 @@
                 <a href="/adminCategories.html">📂 分类管理</a>
                 <a href="/adminSensitive.html">🛡️ 敏感词</a>
                 <a href="/adminAnnouncement.html">📢 公告</a>
-				<a href="/adminMessages.html">📩 消息管理</a>
+                <a href="/adminMessages.html">📩 消息管理</a>
             </nav>
             <div style="padding:16px; margin-top:auto; border-top:1px solid rgba(0,0,0,0.04);">
                 <button onclick="location.href='/adminLogin.html'" class="btn-secondary btn-sm" style="width:100%;">🚪 退出管理</button>
@@ -181,6 +181,8 @@
             let html = '';
             users.forEach(u => {
                 const banned = u.avatarBanned ? ' (头像封禁)' : '';
+                const banBtnText = u.avatarBanned ? '解封头像' : '封禁头像';
+                const banBtnClass = u.avatarBanned ? 'ban-btn' : 'ban-btn';
                 html += `
                     <tr>
                         <td><code>${u.uid}</code></td>
@@ -190,7 +192,7 @@
                         <td>${u.class}</td>
                         <td style="text-align:center;">
                             <button class="edit-btn" data-uid="${u.uid}" data-name="${u.name}" data-gender="${u.gender}" data-grade="${u.grade}" data-class="${u.class}">编辑</button>
-                            <button class="ban-btn" data-uid="${u.uid}" data-banned="${u.avatarBanned}">${u.avatarBanned ? '解封头像' : '封禁头像'}</button>
+                            <button class="${banBtnClass}" data-uid="${u.uid}" data-banned="${u.avatarBanned}">${banBtnText}</button>
                             <button class="msg-btn" data-uid="${u.uid}">发消息</button>
                             <button class="delete-btn" data-uid="${u.uid}">删除</button>
                         </td>
@@ -199,12 +201,14 @@
             });
             tbody.innerHTML = html;
 
-            // 绑定事件
+            // 绑定编辑按钮
             document.querySelectorAll('.edit-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     openEditModal(this.dataset.uid, this.dataset.name, this.dataset.gender, this.dataset.grade, this.dataset.class);
                 });
             });
+
+            // 绑定封禁/解封按钮
             document.querySelectorAll('.ban-btn').forEach(btn => {
                 btn.addEventListener('click', async function() {
                     const uid = this.dataset.uid;
@@ -215,22 +219,32 @@
                         const fd = new FormData();
                         fd.append('uid', uid);
                         fd.append('action', action);
-                        const res = await fetch('/api/adminBanAvatar', { method: 'POST', credentials: 'include', body: fd });
+                        const res = await fetch('/api/adminBanAvatar', {
+                            method: 'POST',
+                            credentials: 'include',
+                            body: fd
+                        });
                         const result = await res.json();
                         if (result.success) {
                             alert('操作成功');
-                            loadUsers();
+                            loadUsers(); // 刷新列表
                         } else {
                             alert(result.error || '操作失败');
                         }
-                    } catch (err) { alert('网络错误'); }
+                    } catch (err) {
+                        alert('网络错误');
+                    }
                 });
             });
+
+            // 绑定发送消息按钮
             document.querySelectorAll('.msg-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
                     openMsgModal(this.dataset.uid);
                 });
             });
+
+            // 绑定删除按钮
             document.querySelectorAll('.delete-btn').forEach(btn => {
                 btn.addEventListener('click', async function() {
                     const uid = this.dataset.uid;
@@ -238,16 +252,26 @@
                     try {
                         const fd = new FormData();
                         fd.append('uid', uid);
-                        const res = await fetch('/api/adminDeleteUser', { method: 'POST', credentials: 'include', body: fd });
+                        const res = await fetch('/api/adminDeleteUser', {
+                            method: 'POST',
+                            credentials: 'include',
+                            body: fd
+                        });
                         const result = await res.json();
-                        if (result.success) { alert('已删除'); loadUsers(); }
-                        else alert(result.error);
-                    } catch (err) { alert('网络错误'); }
+                        if (result.success) {
+                            alert('已删除');
+                            loadUsers();
+                        } else {
+                            alert(result.error || '删除失败');
+                        }
+                    } catch (err) {
+                        alert('网络错误');
+                    }
                 });
             });
         }
 
-        // 编辑模态框
+        // ---- 编辑模态框 ----
         function openEditModal(uid, name, gender, grade, cls) {
             document.getElementById('editUid').value = uid;
             document.getElementById('editName').value = name;
@@ -267,7 +291,10 @@
             const gender = document.getElementById('editGender').value;
             const grade = document.getElementById('editGrade').value;
             const cls = document.getElementById('editClass').value;
-            if (!name || !gender || !grade || !cls) { alert('请填写完整'); return; }
+            if (!name || !gender || !grade || !cls) {
+                alert('请填写完整信息');
+                return;
+            }
             const fd = new FormData();
             fd.append('uid', uid);
             fd.append('name', name);
@@ -275,14 +302,25 @@
             fd.append('grade', grade);
             fd.append('class', cls);
             try {
-                const res = await fetch('/api/adminUpdateUser', { method: 'POST', credentials: 'include', body: fd });
+                const res = await fetch('/api/adminUpdateUser', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: fd
+                });
                 const result = await res.json();
-                if (result.success) { alert('修改成功！'); closeEditModal(); loadUsers(); }
-                else alert(result.error);
-            } catch (err) { alert('网络错误'); }
+                if (result.success) {
+                    alert('修改成功！');
+                    closeEditModal();
+                    loadUsers();
+                } else {
+                    alert(result.error || '修改失败');
+                }
+            } catch (err) {
+                alert('网络错误');
+            }
         });
 
-        // 发消息模态框
+        // ---- 发送消息模态框 ----
         function openMsgModal(uid) {
             document.getElementById('msgUid').value = uid;
             document.getElementById('msgContent').value = '';
@@ -296,16 +334,29 @@
         document.getElementById('sendMsgBtn').addEventListener('click', async function() {
             const toUid = document.getElementById('msgUid').value;
             const content = document.getElementById('msgContent').value.trim();
-            if (!content) { alert('请输入消息内容'); return; }
+            if (!content) {
+                alert('请输入消息内容');
+                return;
+            }
             const fd = new FormData();
             fd.append('toUid', toUid);
             fd.append('content', content);
             try {
-                const res = await fetch('/api/adminSendMessage', { method: 'POST', credentials: 'include', body: fd });
+                const res = await fetch('/api/adminSendMessage', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: fd
+                });
                 const result = await res.json();
-                if (result.success) { alert('消息发送成功'); closeMsgModal(); }
-                else alert(result.error);
-            } catch (err) { alert('网络错误'); }
+                if (result.success) {
+                    alert('消息发送成功');
+                    closeMsgModal();
+                } else {
+                    alert(result.error || '发送失败');
+                }
+            } catch (err) {
+                alert('网络错误');
+            }
         });
 
         loadUsers();
