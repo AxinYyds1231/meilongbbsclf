@@ -5,13 +5,13 @@ export function createDb(kv) {
     const COUNTER_KEY = 'postCounter';
     const CATEGORIES_KEY = 'categories';
     const MESSAGES_KEY = 'messages';
-    const NOTIFICATIONS_KEY = 'notifications';
     const ADMIN_PASSWORD_KEY = 'admin_password_hash';
     const CHECKIN_PREFIX = 'checkin_';
     const FAVORITES_KEY = 'favorites';
     const SENSITIVE_KEY = 'sensitive_words';
     const STATS_KEY = 'stats';
     const ANNOUNCEMENT_KEY = 'announcements';
+    const CONTACTS_KEY = 'contacts';
 
     // ---- 通用 ----
     async function getData(key) {
@@ -253,16 +253,17 @@ export function createDb(kv) {
         return roots;
     }
 
-    // ---- 私信 ----
+    // ---- 私信（核心） ----
     async function getMessages() { return (await getData(MESSAGES_KEY)) || []; }
     async function saveMessages(msgs) { await setData(MESSAGES_KEY, msgs); }
-    async function sendMessage(fromUid, toUid, content) {
+    async function sendMessage(fromUid, toUid, content, type = 'user') {
         const msgs = await getMessages();
         const msg = {
             id: msgs.length ? Math.max(...msgs.map(m => m.id)) + 1 : 1,
             fromUid,
             toUid,
             content,
+            type,
             sentAt: Date.now(),
             read: false
         };
@@ -272,7 +273,7 @@ export function createDb(kv) {
     }
     async function getInbox(uid) {
         const msgs = await getMessages();
-        return msgs.filter(m => m.toUid === uid).sort((a,b) => b.sentAt - a.sentAt);
+        return msgs.filter(m => m.toUid === uid).sort((a, b) => a.sentAt - b.sentAt);
     }
     async function markMessageRead(msgId) {
         const msgs = await getMessages();
@@ -289,39 +290,38 @@ export function createDb(kv) {
         await saveMessages(msgs);
         return true;
     }
+    // 获取所有发给 admin 的消息（管理员专用）
+    async function getAdminMessages() {
+        const msgs = await getMessages();
+        return msgs.filter(m => m.toUid === 'admin').sort((a, b) => a.sentAt - b.sentAt);
+    }
 
-    // ---- 通知 ----
-    async function getNotifications() { return (await getData(NOTIFICATIONS_KEY)) || []; }
-    async function saveNotifications(notifs) { await setData(NOTIFICATIONS_KEY, notifs); }
-    async function addNotification(uid, type, content, link = '') {
-        const notifs = await getNotifications();
-        const notif = {
-            id: notifs.length ? Math.max(...notifs.map(n => n.id)) + 1 : 1,
-            uid,
-            type,
-            content,
-            link,
-            createdAt: Date.now(),
-            read: false
-        };
-        notifs.push(notif);
-        await saveNotifications(notifs);
-        return notif;
+    // ---- 联系人 ----
+    async function getContacts(uid) {
+        const data = await getData(CONTACTS_KEY) || {};
+        return data[uid] || [];
     }
-    async function getNotificationsForUser(uid) {
-        const notifs = await getNotifications();
-        return notifs.filter(n => n.uid === uid).sort((a,b) => b.createdAt - a.createdAt);
+    async function addContact(uid, contactUid) {
+        const data = await getData(CONTACTS_KEY) || {};
+        if (!data[uid]) data[uid] = [];
+        if (data[uid].includes(contactUid)) return false;
+        data[uid].push(contactUid);
+        await setData(CONTACTS_KEY, data);
+        return true;
     }
-    async function markNotificationRead(notifId) {
-        const notifs = await getNotifications();
-        const n = notifs.find(n => n.id === notifId);
-        if (n) { n.read = true; await saveNotifications(notifs); return true; }
+    async function removeContact(uid, contactUid) {
+        const data = await getData(CONTACTS_KEY) || {};
+        if (data[uid]) {
+            data[uid] = data[uid].filter(c => c !== contactUid);
+            await setData(CONTACTS_KEY, data);
+            return true;
+        }
         return false;
     }
-
-    // ---- 管理员密码 ----
-    async function getAdminPasswordHash() { return await getData(ADMIN_PASSWORD_KEY) || null; }
-    async function setAdminPasswordHash(hash) { await setData(ADMIN_PASSWORD_KEY, hash); }
+    async function searchUsers(keyword) {
+        const users = await getUsers();
+        return users.filter(u => u.uid.includes(keyword) || u.name.includes(keyword)).slice(0, 20);
+    }
 
     // ---- 签到 ----
     async function getCheckinData(uid) {
@@ -441,43 +441,6 @@ export function createDb(kv) {
         const now = Date.now();
         return anns.filter(a => !a.expiresAt || a.expiresAt > now).sort((a,b) => b.isPinned - a.isPinned);
     }
-	
-	// ---- 联系人 ----
-    const CONTACTS_KEY = 'contacts';
-
-    async function getContacts(uid) {
-        const data = await getData(CONTACTS_KEY) || {};
-        return data[uid] || [];
-    }
-
-    async function addContact(uid, contactUid) {
-        const data = await getData(CONTACTS_KEY) || {};
-        if (!data[uid]) data[uid] = [];
-        if (data[uid].includes(contactUid)) {
-            return false; // 已存在
-        }
-        data[uid].push(contactUid);
-        await setData(CONTACTS_KEY, data);
-        return true;
-    }
-
-    async function removeContact(uid, contactUid) {
-        const data = await getData(CONTACTS_KEY) || {};
-        if (data[uid]) {
-            data[uid] = data[uid].filter(c => c !== contactUid);
-            await setData(CONTACTS_KEY, data);
-            return true;
-        }
-        return false;
-    }
-
-    async function searchUsers(keyword) {
-        const users = await getUsers();
-        return users.filter(u => 
-            u.uid.includes(keyword) || 
-            u.name.includes(keyword)
-        ).slice(0, 20);
-    }
 
     // ---- 导出 ----
     return {
@@ -515,13 +478,11 @@ export function createDb(kv) {
         getInbox,
         markMessageRead,
         deleteMessage,
-        getNotifications,
-        saveNotifications,
-        addNotification,
-        getNotificationsForUser,
-        markNotificationRead,
-        getAdminPasswordHash,
-        setAdminPasswordHash,
+        getAdminMessages,
+        getContacts,
+        addContact,
+        removeContact,
+        searchUsers,
         getTodayCheckinStatus,
         doCheckin,
         getFavorites,
@@ -536,10 +497,6 @@ export function createDb(kv) {
         addAnnouncement,
         updateAnnouncement,
         deleteAnnouncement,
-        getActiveAnnouncements,
-		getContacts,
-        addContact,
-        removeContact,
-        searchUsers
+        getActiveAnnouncements
     };
 }

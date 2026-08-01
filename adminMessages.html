@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理员消息</title>
+    <link rel="stylesheet" href="/style.css">
+    <style>
+        .app-wrapper { max-width: 1400px; }
+        .msg-item {
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(4px);
+            padding: 8px 14px;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+        .msg-item .from { font-weight: 600; }
+        .msg-item .time { font-size: 0.8rem; color: #6b7a8a; }
+        .msg-item .content { margin-top: 2px; }
+        .admin-menu a {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            margin: 0 8px;
+            border-radius: 8px;
+            color: #1a2332;
+            text-decoration: none;
+            gap: 8px;
+        }
+        .admin-menu a:hover { background: rgba(26,60,110,0.06); }
+        .admin-menu a.active { background: rgba(26,60,110,0.1); color: #1a3c6e; font-weight:500; }
+    </style>
+</head>
+<body>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>🔧 管理</h2></div>
+            <nav class="sidebar-nav admin-menu">
+                <a href="/adminDashboard.html">📊 仪表盘</a>
+                <a href="/adminUsers.html">👥 用户管理</a>
+                <a href="/adminPosts.html">📝 帖子管理</a>
+                <a href="/adminCategories.html">📂 分类管理</a>
+                <a href="/adminSensitive.html">🛡️ 敏感词</a>
+                <a href="/adminAnnouncement.html">📢 公告</a>
+                <a href="/adminMessages.html" class="active">📩 消息管理</a>
+            </nav>
+            <div style="padding:16px; margin-top:auto; border-top:1px solid rgba(0,0,0,0.04);">
+                <button onclick="location.href='/adminLogin.html'" class="btn-secondary btn-sm" style="width:100%;">🚪 退出管理</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <h1 class="page-title">📩 管理员收件箱</h1>
+            <div id="msgList">加载中...</div>
+        </main>
+    </div>
+
+    <script>
+        async function loadMessages() {
+            try {
+                const res = await fetch('/api/adminMessages', { credentials: 'include' });
+                if (res.status === 401 || res.status === 403) {
+                    window.location.href = '/adminLogin.html';
+                    return;
+                }
+                const data = await res.json();
+                const container = document.getElementById('msgList');
+                const msgs = data.messages || [];
+                if (msgs.length === 0) {
+                    container.innerHTML = '<div style="color:#999; padding:20px;">暂无消息</div>';
+                    return;
+                }
+                let html = '';
+                msgs.forEach(m => {
+                    const time = new Date(m.sentAt).toLocaleString('zh-CN');
+                    html += `
+                        <div class="msg-item">
+                            <div><span class="from">${m.fromUid}</span> <span class="time">${time}</span></div>
+                            <div class="content">${m.content}</div>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+            } catch (err) {
+                document.getElementById('msgList').innerHTML = '<div style="color:red;">加载失败</div>';
+            }
+        }
+        loadMessages();
+    </script>
+</body>
+</html>
