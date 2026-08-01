@@ -97,7 +97,6 @@
             line-height: 18px;
         }
 
-        /* ---- 聊天窗口 ---- */
         .chat-window {
             flex: 1;
             display: flex;
@@ -260,20 +259,30 @@
         let currentContact = null;
         let allContacts = [];
         let allMessages = [];
+        let currentUser = null;
+
+        // ---- 获取当前用户 ----
+        async function getCurrentUser() {
+            try {
+                const res = await fetch('/api/user', { credentials: 'include' });
+                if (res.status === 200) {
+                    const data = await res.json();
+                    currentUser = data.user;
+                }
+            } catch (e) {}
+        }
 
         // ---- 加载联系人 ----
         async function loadContacts() {
             const container = document.getElementById('contacts');
             container.innerHTML = '加载中...';
             try {
-                // 1. 获取收件箱消息
                 const inboxRes = await fetch('/api/inbox', { credentials: 'include' });
                 if (inboxRes.status === 401) { window.location.href = '/login.html'; return; }
                 if (!inboxRes.ok) throw new Error(`HTTP ${inboxRes.status}`);
                 const inboxData = await inboxRes.json();
                 const msgs = Array.isArray(inboxData.messages) ? inboxData.messages : [];
 
-                // 2. 获取已保存的联系人
                 const contactsRes = await fetch('/api/contacts', { credentials: 'include' });
                 let savedContacts = [];
                 if (contactsRes.ok) {
@@ -281,32 +290,33 @@
                     savedContacts = Array.isArray(contactsData.contacts) ? contactsData.contacts : [];
                 }
 
-                // 3. 合并
                 const map = {};
+                // 从消息中提取联系人
                 msgs.forEach(m => {
-                    // 只显示对方（如果是自己发送的，则显示 toUid；如果是收到的，则显示 fromUid）
-                    let uid = m.fromUid;
-                    if (m.fromUid === 'admin') uid = 'admin';
-                    else if (m.fromUid === currentUser?.uid) uid = m.toUid;
-                    else uid = m.fromUid;
-                    // 对于系统消息，fromUid 可能是 'admin'，但我们也显示 'admin'
-                    if (!map[uid]) {
-                        map[uid] = { uid, lastMsg: m.content, lastTime: m.sentAt, unread: !m.read };
+                    // 确定对方是谁
+                    let contactUid;
+                    if (m.fromUid === currentUser?.uid) {
+                        contactUid = m.toUid;
                     } else {
-                        if (m.sentAt > map[uid].lastTime) {
-                            map[uid].lastMsg = m.content;
-                            map[uid].lastTime = m.sentAt;
+                        contactUid = m.fromUid;
+                    }
+                    if (!map[contactUid]) {
+                        map[contactUid] = { uid: contactUid, lastMsg: m.content, lastTime: m.sentAt, unread: !m.read };
+                    } else {
+                        if (m.sentAt > map[contactUid].lastTime) {
+                            map[contactUid].lastMsg = m.content;
+                            map[contactUid].lastTime = m.sentAt;
                         }
-                        if (!m.read) map[uid].unread = true;
+                        if (!m.read) map[contactUid].unread = true;
                     }
                 });
-                // 添加已保存联系人（如果没有消息）
+                // 添加已保存联系人
                 savedContacts.forEach(uid => {
                     if (!map[uid]) {
                         map[uid] = { uid, lastMsg: '暂无消息', lastTime: 0, unread: false };
                     }
                 });
-                // 确保 admin 始终在列表中（如果当前用户不是 admin，则显示 admin）
+                // 确保 admin 存在（如果不是当前用户）
                 if (currentUser?.uid !== 'admin' && !map['admin']) {
                     map['admin'] = { uid: 'admin', lastMsg: '管理员', lastTime: 0, unread: false };
                 }
@@ -335,10 +345,9 @@
                 const active = currentContact === c.uid ? 'active' : '';
                 const unread = c.unread ? `<span class="unread-badge">●</span>` : '';
                 const displayName = c.uid === 'admin' ? '🔔 管理员' : c.uid;
-                const avatar = c.uid === 'admin' ? '' : ''; // 可获取头像
                 html += `
                     <div class="contact-item ${active}" data-uid="${c.uid}">
-                        <img src="${avatar || ''}" class="avatar" onerror="this.src=''">
+                        <img src="" class="avatar" onerror="this.src=''">
                         <div class="info">
                             <div class="name">${displayName}</div>
                             <div class="last-msg">${c.lastMsg}</div>
@@ -359,7 +368,6 @@
         async function selectContact(uid) {
             currentContact = uid;
             renderContacts();
-            // 更新聊天窗口标题
             const displayName = uid === 'admin' ? '🔔 管理员' : uid;
             document.getElementById('chatHeader').innerHTML = `<span>${displayName}</span>`;
 
@@ -368,22 +376,27 @@
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
                 const msgs = Array.isArray(data.messages) ? data.messages : [];
-                // 过滤出与该联系人的消息：包括发给该联系人的和收到的
-                const filtered = msgs.filter(m =>
-                    (m.fromUid === uid && m.toUid === currentUser?.uid) ||
-                    (m.toUid === uid && m.fromUid === currentUser?.uid) ||
-                    (m.fromUid === 'admin' && m.toUid === currentUser?.uid) ||
-                    (m.toUid === 'admin' && m.fromUid === currentUser?.uid)
-                );
-                // 系统消息（fromUid === 'admin' && type === 'system'）也显示
+
+                // 关键修复：过滤出与当前联系人的所有消息（包括自己发送的）
+                const filtered = msgs.filter(m => {
+                    // 发送者和接收者中，一个等于当前用户，另一个等于选中的联系人（或 admin）
+                    const fromMe = m.fromUid === currentUser?.uid;
+                    const toMe = m.toUid === currentUser?.uid;
+                    const fromContact = m.fromUid === uid;
+                    const toContact = m.toUid === uid;
+                    // 如果当前用户是 admin，则需要特殊处理，但逻辑类似
+                    return (fromMe && toContact) || (toMe && fromContact) ||
+                           (m.fromUid === 'admin' && m.toUid === currentUser?.uid) ||
+                           (m.toUid === 'admin' && m.fromUid === currentUser?.uid);
+                });
+
                 filtered.sort((a, b) => a.sentAt - b.sentAt);
                 allMessages = filtered;
                 renderMessages();
 
-                // 显示输入框
                 document.getElementById('chatInput').style.display = 'flex';
 
-                // 标记未读
+                // 标记已读
                 for (let m of filtered) {
                     if (!m.read && m.fromUid === uid) {
                         await fetch('/api/readMessage', {
@@ -507,19 +520,7 @@
             } catch (e) {}
         }
 
-        // ---- 当前用户信息 ----
-        let currentUser = null;
-        async function getCurrentUser() {
-            try {
-                const res = await fetch('/api/user', { credentials: 'include' });
-                if (res.status === 200) {
-                    const data = await res.json();
-                    currentUser = data.user;
-                }
-            } catch (e) {}
-        }
-
-        // ---- 启动 ----
+        // ---- 初始化 ----
         (async function init() {
             await getCurrentUser();
             loadContacts();
