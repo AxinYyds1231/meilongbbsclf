@@ -5,36 +5,91 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>用户主页</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .app-wrapper { max-width: 1400px; }
+        .profile-content {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px 0;
+            text-align: center;
+        }
+        .profile-content .avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid rgba(255,255,255,0.8);
+        }
+        .profile-content h2 { margin: 10px 0 4px; }
+        .profile-content .level-badge {
+            display: inline-block;
+            background: rgba(255,215,0,0.15);
+            padding: 2px 14px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            color: #b8860b;
+        }
+        .profile-content .info { color: #4a5a6a; margin: 6px 0; }
+        .profile-content .bio { margin: 12px 0; padding: 10px; background: rgba(255,255,255,0.2); border-radius: 12px; }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            color: #1a2332;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 8px;
+            gap: 8px;
+        }
+        .sidebar-nav a:hover { background: rgba(26,60,110,0.06); }
+        .sidebar-nav a.active { background: rgba(26,60,110,0.1); color: #1a3c6e; font-weight: 500; }
+    </style>
 </head>
 <body>
-    <div class="container" style="max-width: 500px;">
-        <div id="profileContainer">加载中...</div>
+    <div class="app-wrapper">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>👤 用户主页</h2></div>
+            <nav class="sidebar-nav">
+                <a href="/index.html">🏠 首页</a>
+                <a href="/dashboard.html">👤 个人中心</a>
+                <a href="/inbox.html">📩 私信</a>
+                <a href="/adminLogin.html">🔑 管理</a>
+            </nav>
+        </aside>
+
+        <main class="main-content" style="display:flex; align-items:center; justify-content:center;">
+            <div id="profileContainer" class="profile-content">加载中...</div>
+        </main>
     </div>
+
     <script>
         const params = new URLSearchParams(window.location.search);
         const uid = params.get('uid');
         if (!uid) {
-            document.getElementById('profileContainer').innerHTML = '<p>缺少参数</p>';
+            document.getElementById('profileContainer').innerHTML = '<p style="color:red;">缺少参数</p>';
         } else {
             fetch(`/api/getUserProfile?uid=${uid}`)
                 .then(r => r.json())
                 .then(data => {
                     const u = data.user;
                     document.getElementById('profileContainer').innerHTML = `
-                        <div style="text-align:center; padding:20px;">
-                            <img src="${u.avatar || ''}" class="profile-avatar">
-                            <h2>${u.name} ${u.levelIcon} ${u.level}</h2>
-                            <p>UID: ${u.uid}</p>
-                            <p>性别: ${u.gender}</p>
-                            <p>年级: ${u.grade} 班级: ${u.class}</p>
-                            <p>积分: ${u.points}</p>
-                            <p>简介: ${u.bio || '这个人很懒...'}</p>
-                            <button onclick="location.href='/sendMessage.html?to=${u.uid}'" class="btn-primary">发送私信</button>
-                            <a href="/index.html" style="display:block;margin-top:10px;">返回首页</a>
+                        <div>
+                            <img src="${u.avatar || ''}" class="avatar" onerror="this.src=''">
+                            <h2>${u.name}</h2>
+                            <span class="level-badge">${u.levelIcon} ${u.level}</span>
+                            <div class="info">
+                                <p>UID: ${u.uid}</p>
+                                <p>性别: ${u.gender}</p>
+                                <p>年级: ${u.grade} 班级: ${u.class}</p>
+                                <p>积分: ${u.points}</p>
+                            </div>
+                            <div class="bio">${u.bio || '这个人很懒，什么都没写'}</div>
+                            <button onclick="location.href='/sendMessage.html?to=${u.uid}'" class="btn-primary">📩 发送私信</button>
+                            <a href="/index.html" style="display:block; margin-top:12px; color:#1a3c6e;">← 返回首页</a>
                         </div>
                     `;
                 })
-                .catch(() => document.getElementById('profileContainer').innerHTML = '<p>加载失败</p>');
+                .catch(() => document.getElementById('profileContainer').innerHTML = '<p style="color:red;">加载失败</p>');
         }
     </script>
 </body>

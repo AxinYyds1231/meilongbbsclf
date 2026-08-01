@@ -1,7 +1,7 @@
 // functions/api/adminLogin.js
 import { createDb } from '../utils/db.js';
 
-// SHA-256 哈希函数（与 register/login 保持一致）
+// SHA-256 哈希函数（与 register 一致）
 async function hashPassword(password) {
     const encoder = new TextEncoder();
     const data = encoder.encode(password);
@@ -37,22 +37,19 @@ export async function onRequest(context) {
         }
 
         // 获取存储的哈希
-        const storedHash = await db.getAdminPasswordHash();
+        let storedHash = await db.getAdminPasswordHash();
+
+        // 如果没有存储，说明是首次，使用默认密码并存入
         if (!storedHash) {
-            // 如果还没有设置过管理员密码，则使用默认密码并哈希存储（首次使用）
             const defaultPassword = 'meilongbbsadmin123';
-            const defaultHash = await hashPassword(defaultPassword);
-            await db.setAdminPasswordHash(defaultHash);
-            // 用默认密码验证本次登录
-            const inputHash = await hashPassword(password);
-            if (inputHash !== defaultHash) {
-                return new Response(JSON.stringify({ error: '密码错误' }), { status: 401, headers: CORS_HEADERS });
-            }
-        } else {
-            const inputHash = await hashPassword(password);
-            if (inputHash !== storedHash) {
-                return new Response(JSON.stringify({ error: '密码错误' }), { status: 401, headers: CORS_HEADERS });
-            }
+            storedHash = await hashPassword(defaultPassword);
+            await db.setAdminPasswordHash(storedHash);
+        }
+
+        // 验证输入的密码
+        const inputHash = await hashPassword(password);
+        if (inputHash !== storedHash) {
+            return new Response(JSON.stringify({ error: '密码错误' }), { status: 401, headers: CORS_HEADERS });
         }
 
         // 登录成功，设置 session
@@ -65,6 +62,10 @@ export async function onRequest(context) {
             headers: { ...CORS_HEADERS, 'Set-Cookie': cookie }
         });
     } catch (error) {
-        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), { status: 500, headers: CORS_HEADERS });
+        // 输出详细错误便于调试
+        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), {
+            status: 500,
+            headers: CORS_HEADERS
+        });
     }
 }
