@@ -441,6 +441,43 @@ export function createDb(kv) {
         const now = Date.now();
         return anns.filter(a => !a.expiresAt || a.expiresAt > now).sort((a,b) => b.isPinned - a.isPinned);
     }
+	
+	    // ---- 联系人 ----
+    const CONTACTS_KEY = 'contacts';
+
+    async function getContacts(uid) {
+        const data = await getData(CONTACTS_KEY) || {};
+        return data[uid] || [];
+    }
+
+    async function addContact(uid, contactUid) {
+        const data = await getData(CONTACTS_KEY) || {};
+        if (!data[uid]) data[uid] = [];
+        if (!data[uid].includes(contactUid)) {
+            data[uid].push(contactUid);
+            await setData(CONTACTS_KEY, data);
+            return true;
+        }
+        return false;
+    }
+
+    async function removeContact(uid, contactUid) {
+        const data = await getData(CONTACTS_KEY) || {};
+        if (data[uid]) {
+            data[uid] = data[uid].filter(c => c !== contactUid);
+            await setData(CONTACTS_KEY, data);
+            return true;
+        }
+        return false;
+    }
+
+    async function searchUsers(keyword) {
+        const users = await getUsers();
+        return users.filter(u => 
+            u.uid.includes(keyword) || 
+            u.name.includes(keyword)
+        ).slice(0, 20); // 最多返回20个
+    }
 
     // ---- 导出 ----
     return {
@@ -499,6 +536,10 @@ export function createDb(kv) {
         addAnnouncement,
         updateAnnouncement,
         deleteAnnouncement,
-        getActiveAnnouncements
+        getActiveAnnouncements,
+		getContacts,
+        addContact,
+        removeContact,
+        searchUsers
     };
 }

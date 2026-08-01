@@ -6,18 +6,9 @@
     <title>私信</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .chat-container {
-            display: flex;
-            height: 100%;
-            gap: 16px;
-        }
-        .contact-list {
-            width: 220px;
-            min-width: 220px;
-            border-right: 1px solid rgba(0,0,0,0.04);
-            padding-right: 12px;
-            overflow-y: auto;
-        }
+        .app-wrapper { max-width: 1400px; }
+        .chat-container { display: flex; height: 100%; gap: 16px; }
+        .contact-list { width: 240px; min-width: 240px; border-right: 1px solid rgba(0,0,0,0.04); padding-right: 12px; overflow-y: auto; }
         .contact-list .contact-item {
             padding: 8px 12px;
             border-radius: 10px;
@@ -27,22 +18,10 @@
             align-items: center;
             gap: 8px;
         }
-        .contact-list .contact-item:hover {
-            background: rgba(255,255,255,0.3);
-        }
-        .contact-list .contact-item.active {
-            background: rgba(26,60,110,0.08);
-        }
-        .chat-window {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 10px 0;
-        }
+        .contact-list .contact-item:hover { background: rgba(255,255,255,0.3); }
+        .contact-list .contact-item.active { background: rgba(26,60,110,0.08); }
+        .chat-window { flex: 1; display: flex; flex-direction: column; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 10px 0; }
         .chat-message {
             margin-bottom: 8px;
             max-width: 75%;
@@ -51,38 +30,25 @@
             background: rgba(255,255,255,0.5);
             backdrop-filter: blur(4px);
         }
-        .chat-message.sent {
-            margin-left: auto;
-            background: #1a3c6e;
-            color: #fff;
-        }
-        .chat-message .time {
-            font-size: 0.7rem;
-            color: #8b9aab;
-            display: block;
-            margin-top: 2px;
-        }
-        .chat-message.sent .time {
-            color: rgba(255,255,255,0.6);
-        }
-        .chat-input {
+        .chat-message.sent { margin-left: auto; background: #1a3c6e; color: #fff; }
+        .chat-message .time { font-size: 0.7rem; color: #8b9aab; display: block; margin-top: 2px; }
+        .chat-message.sent .time { color: rgba(255,255,255,0.6); }
+        .chat-input { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid rgba(0,0,0,0.04); }
+        .chat-input textarea { flex: 1; padding: 8px 12px; border-radius: 12px; border: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.5); resize: none; font-family: inherit; }
+        .chat-input button { align-self: flex-end; }
+        .add-contact-area { padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.04); margin-bottom: 8px; }
+        .add-contact-area input { flex: 1; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.3); }
+        .add-contact-area .search-results { margin-top: 4px; max-height: 120px; overflow-y: auto; }
+        .add-contact-area .search-result-item {
+            padding: 4px 10px;
+            border-radius: 6px;
+            cursor: pointer;
             display: flex;
+            align-items: center;
             gap: 8px;
-            padding-top: 10px;
-            border-top: 1px solid rgba(0,0,0,0.04);
         }
-        .chat-input textarea {
-            flex: 1;
-            padding: 8px 12px;
-            border-radius: 12px;
-            border: 1px solid rgba(0,0,0,0.06);
-            background: rgba(255,255,255,0.5);
-            resize: none;
-            font-family: inherit;
-        }
-        .chat-input button {
-            align-self: flex-end;
-        }
+        .add-contact-area .search-result-item:hover { background: rgba(255,255,255,0.3); }
+        .avatar-sm { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
         @media (max-width: 768px) {
             .contact-list { width: 100%; min-width: unset; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.04); max-height: 150px; }
             .chat-container { flex-direction: column; }
@@ -91,7 +57,6 @@
 </head>
 <body>
     <div class="app-wrapper">
-        <!-- 左侧边栏 -->
         <aside class="sidebar">
             <div class="sidebar-header"><h2>📩 私信</h2></div>
             <nav class="sidebar-nav">
@@ -102,21 +67,29 @@
             </nav>
         </aside>
 
-        <!-- 右侧聊天区域 -->
         <main class="main-content" style="padding:16px 20px;">
             <div class="chat-container" style="height:100%;">
                 <!-- 联系人列表 -->
-                <div class="contact-list" id="contactList">
-                    <div style="font-weight:500; margin-bottom:8px;">联系人</div>
+                <div class="contact-list">
+                    <div style="font-weight:500; margin-bottom:6px;">联系人</div>
+                    <!-- 添加联系人 -->
+                    <div class="add-contact-area">
+                        <div style="display:flex; gap:4px;">
+                            <input type="text" id="searchInput" placeholder="搜索用户UID/姓名..." style="flex:1; padding:4px 10px; border-radius:20px; border:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.3);">
+                            <button id="searchBtn" class="btn-primary btn-sm">搜索</button>
+                        </div>
+                        <div id="searchResults" class="search-results"></div>
+                    </div>
                     <div id="contacts">加载中...</div>
                 </div>
+
                 <!-- 聊天窗口 -->
                 <div class="chat-window">
                     <div class="chat-messages" id="chatMessages">
                         <div style="color:#999; text-align:center; padding:40px 0;">选择一位联系人开始聊天</div>
                     </div>
                     <div class="chat-input" id="chatInput" style="display:none;">
-                        <textarea id="msgContent" rows="2" placeholder="输入消息..."></textarea>
+                        <textarea id="msgContent" rows="2" placeholder="输入消息..." maxlength="500"></textarea>
                         <button id="sendBtn" class="btn-primary btn-sm">发送</button>
                     </div>
                 </div>
@@ -129,30 +102,41 @@
         let allContacts = [];
         let allMessages = [];
 
-        // 加载联系人（从收件箱中提取，按发件人分组，并取最新消息）
+        // ---------- 加载联系人 ----------
         async function loadContacts() {
             try {
                 const res = await fetch('/api/inbox', { credentials: 'include' });
                 if (res.status === 401) { window.location.href = '/login.html'; return; }
                 const data = await res.json();
                 const msgs = data.messages || [];
-                // 按发件人分组
                 const map = {};
                 msgs.forEach(m => {
-                    if (!map[m.fromUid]) {
-                        map[m.fromUid] = { uid: m.fromUid, lastMsg: m.content, lastTime: m.sentAt, unread: !m.read };
+                    const uid = m.fromUid === 'admin' ? 'admin' : m.fromUid;
+                    if (!map[uid]) {
+                        map[uid] = { uid, lastMsg: m.content, lastTime: m.sentAt, unread: !m.read };
                     } else {
-                        if (m.sentAt > map[m.fromUid].lastTime) {
-                            map[m.fromUid].lastMsg = m.content;
-                            map[m.fromUid].lastTime = m.sentAt;
+                        if (m.sentAt > map[uid].lastTime) {
+                            map[uid].lastMsg = m.content;
+                            map[uid].lastTime = m.sentAt;
                         }
-                        if (!m.read) map[m.fromUid].unread = true;
+                        if (!m.read) map[uid].unread = true;
                     }
                 });
-                allContacts = Object.values(map).sort((a,b) => b.lastTime - a.lastTime);
+                // 加载联系人列表（从 contacts 存储）
+                const contactsRes = await fetch('/api/contacts', { credentials: 'include' });
+                let contactUids = [];
+                if (contactsRes.status === 200) {
+                    const contactsData = await contactsRes.json();
+                    contactUids = contactsData.contacts || [];
+                }
+                // 合并联系人
+                const allUids = new Set([...Object.keys(map), ...contactUids]);
+                allContacts = Array.from(allUids).map(uid => {
+                    const info = map[uid] || { uid, lastMsg: '暂无消息', lastTime: 0, unread: false };
+                    return info;
+                }).sort((a,b) => b.lastTime - a.lastTime);
                 renderContacts();
-                // 如果有联系人，默认选中第一个
-                if (allContacts.length > 0) {
+                if (allContacts.length > 0 && !currentContact) {
                     selectContact(allContacts[0].uid);
                 }
             } catch (err) {
@@ -163,16 +147,17 @@
         function renderContacts() {
             const container = document.getElementById('contacts');
             if (allContacts.length === 0) {
-                container.innerHTML = '<div style="color:#999;">暂无联系人</div>';
+                container.innerHTML = '<div style="color:#999; padding:8px;">暂无联系人<br><span style="font-size:0.8rem;">搜索上方添加</span></div>';
                 return;
             }
             let html = '';
             allContacts.forEach(c => {
                 const active = currentContact === c.uid ? 'active' : '';
                 const unreadBadge = c.unread ? '<span style="background:#d9534f;color:#fff;border-radius:50%;padding:0px 6px;font-size:0.7rem;margin-left:auto;">●</span>' : '';
+                const displayName = c.uid === 'admin' ? '🔔 管理员' : c.uid;
                 html += `
                     <div class="contact-item ${active}" data-uid="${c.uid}">
-                        <span>👤 ${c.uid}</span>
+                        <span>${displayName}</span>
                         ${unreadBadge}
                     </div>
                 `;
@@ -185,28 +170,30 @@
             });
         }
 
-        // 选择联系人，加载聊天记录
+        // ---------- 选择联系人 ----------
         async function selectContact(uid) {
             currentContact = uid;
             renderContacts();
-            // 加载与该联系人的所有消息
+            // 加载聊天记录
             const res = await fetch('/api/inbox', { credentials: 'include' });
             const data = await res.json();
             const msgs = data.messages || [];
-            const filtered = msgs.filter(m => m.fromUid === uid || (m.toUid === uid && m.fromUid === currentContact));
-            // 按时间排序
+            const filtered = msgs.filter(m => 
+                (m.fromUid === uid && m.toUid === currentContact) || 
+                (m.toUid === uid && m.fromUid === currentContact) ||
+                (m.fromUid === 'admin' && m.toUid === uid) ||
+                (m.toUid === 'admin' && m.fromUid === uid)
+            );
             filtered.sort((a,b) => a.sentAt - b.sentAt);
             allMessages = filtered;
             renderMessages();
             document.getElementById('chatInput').style.display = 'flex';
-            // 标记所有来自该联系人的未读消息为已读
-            // 可以调用 markRead 批量，这里简单逐条
+            // 标记未读
             for (let m of filtered) {
                 if (!m.read && m.fromUid === uid) {
                     await fetch('/api/readMessage', { method: 'POST', credentials: 'include', body: new FormData().append('msgId', m.id) });
                 }
             }
-            // 刷新小红点
             updateBadge();
         }
 
@@ -218,10 +205,12 @@
             }
             let html = '';
             allMessages.forEach(m => {
-                const sent = m.fromUid === currentContact ? '' : 'sent';
+                const sent = m.fromUid === currentContact || m.fromUid === 'admin' ? '' : 'sent';
                 const time = new Date(m.sentAt).toLocaleString('zh-CN');
+                const sender = m.fromUid === 'admin' ? '🔔 管理员' : m.fromUid;
                 html += `
                     <div class="chat-message ${sent}">
+                        <div style="font-size:0.75rem;color:#888;${sent ? 'color:rgba(255,255,255,0.7);' : ''}">${sender}</div>
                         ${m.content}
                         <span class="time">${time}</span>
                     </div>
@@ -231,7 +220,7 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // 发送消息
+        // ---------- 发送消息 ----------
         document.getElementById('sendBtn').addEventListener('click', async function() {
             const content = document.getElementById('msgContent').value.trim();
             if (!content || !currentContact) return;
@@ -243,7 +232,6 @@
                 const result = await res.json();
                 if (result.success) {
                     document.getElementById('msgContent').value = '';
-                    // 重新加载消息
                     selectContact(currentContact);
                 } else {
                     alert(result.error);
@@ -251,14 +239,64 @@
             } catch (err) { alert('网络错误'); }
         });
 
-        // 未读小红点
+        // ---------- 搜索用户 ----------
+        document.getElementById('searchBtn').addEventListener('click', async function() {
+            const q = document.getElementById('searchInput').value.trim();
+            if (!q) { document.getElementById('searchResults').innerHTML = ''; return; }
+            try {
+                const res = await fetch(`/api/searchUsers?q=${encodeURIComponent(q)}`, { credentials: 'include' });
+                const data = await res.json();
+                const container = document.getElementById('searchResults');
+                if (!data.users || data.users.length === 0) {
+                    container.innerHTML = '<div style="color:#999;padding:4px;">未找到用户</div>';
+                    return;
+                }
+                let html = '';
+                data.users.forEach(u => {
+                    html += `
+                        <div class="search-result-item" data-uid="${u.uid}">
+                            <img src="${u.avatar || ''}" class="avatar-sm" onerror="this.src=''">
+                            <span>${u.name} (${u.uid})</span>
+                            <button class="add-contact-btn btn-primary btn-sm" style="margin-left:auto;padding:2px 10px;">添加</button>
+                        </div>
+                    `;
+                });
+                container.innerHTML = html;
+                container.querySelectorAll('.add-contact-btn').forEach(btn => {
+                    btn.addEventListener('click', async function(e) {
+                        e.stopPropagation();
+                        const contactUid = this.closest('.search-result-item').dataset.uid;
+                        const fd = new FormData();
+                        fd.append('contactUid', contactUid);
+                        try {
+                            const res = await fetch('/api/addContact', { method: 'POST', credentials: 'include', body: fd });
+                            const result = await res.json();
+                            if (result.success) {
+                                alert('已添加联系人');
+                                document.getElementById('searchResults').innerHTML = '';
+                                document.getElementById('searchInput').value = '';
+                                loadContacts();
+                            } else {
+                                alert(result.error || '添加失败');
+                            }
+                        } catch (err) { alert('网络错误'); }
+                    });
+                });
+            } catch (err) { alert('搜索失败'); }
+        });
+
+        // 回车搜索
+        document.getElementById('searchInput').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') document.getElementById('searchBtn').click();
+        });
+
+        // ---------- 未读小红点 ----------
         async function updateBadge() {
             try {
                 const res = await fetch('/api/inbox', { credentials: 'include' });
                 if (res.status === 200) {
                     const data = await res.json();
                     const unread = data.messages ? data.messages.filter(m => !m.read).length : 0;
-                    // 更新导航栏badge
                     const badge = document.querySelector('.sidebar-nav .badge');
                     if (badge) {
                         if (unread > 0) { badge.textContent = unread; badge.style.display = 'inline-block'; }
@@ -267,6 +305,9 @@
                 }
             } catch (e) {}
         }
+
+        // ---------- 新增：获取联系人API ----------
+        // 在 functions/api/contacts.js 中已有
 
         loadContacts();
     </script>
