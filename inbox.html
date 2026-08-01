@@ -121,33 +121,27 @@
             contactsContainer.innerHTML = '加载中...';
 
             try {
-                const res = await fetch('/api/inbox', { credentials: 'include' });
+                // 1. 获取私信消息（用于提取有往来的用户）
+                const inboxRes = await fetch('/api/inbox', { credentials: 'include' });
+                if (inboxRes.status === 401) { window.location.href = '/login.html'; return; }
+                if (!inboxRes.ok) throw new Error(`HTTP ${inboxRes.status}`);
+                const inboxData = await inboxRes.json();
+                const msgs = Array.isArray(inboxData.messages) ? inboxData.messages : [];
 
-                // 检查 HTTP 状态
-                if (res.status === 401) {
-                    window.location.href = '/login.html';
-                    return;
-                }
-                if (!res.ok) {
-                    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-                }
-
-                // 解析 JSON
-                let data;
-                try {
-                    data = await res.json();
-                } catch (e) {
-                    throw new Error('响应格式无效（非JSON）');
+                // 2. 获取已保存的联系人列表
+                const contactsRes = await fetch('/api/contacts', { credentials: 'include' });
+                let savedContacts = [];
+                if (contactsRes.ok) {
+                    const contactsData = await contactsRes.json();
+                    savedContacts = Array.isArray(contactsData.contacts) ? contactsData.contacts : [];
+                } else {
+                    console.warn('无法获取联系人列表，使用消息记录中的联系人');
                 }
 
-                // 确保 messages 是数组
-                const msgs = Array.isArray(data.messages) ? data.messages : [];
-                console.log('📩 收到消息:', msgs.length, '条');
-
-                // 按发件人分组（排除自己发送的）
+                // 3. 合并：从消息中提取的联系人 + 已保存的联系人
                 const map = {};
+                // 先从消息中提取
                 msgs.forEach(m => {
-                    // 只显示别人发给我的，或我发给别人的（显示对方）
                     const uid = m.fromUid === 'admin' ? 'admin' : m.fromUid;
                     if (!map[uid]) {
                         map[uid] = { uid, lastMsg: m.content, lastTime: m.sentAt, unread: !m.read };
@@ -159,14 +153,18 @@
                         if (!m.read) map[uid].unread = true;
                     }
                 });
+                // 再从已保存联系人中添加（如果不存在）
+                savedContacts.forEach(uid => {
+                    if (!map[uid]) {
+                        map[uid] = { uid, lastMsg: '暂无消息', lastTime: 0, unread: false };
+                    }
+                });
 
-                // 转换为数组并排序
                 allContacts = Object.values(map).sort((a, b) => b.lastTime - a.lastTime);
-                console.log('👤 联系人:', allContacts.length);
+                console.log('👤 联系人:', allContacts);
 
                 renderContacts();
 
-                // 如果有联系人且没有选中的，默认选中第一个
                 if (allContacts.length > 0 && !currentContact) {
                     selectContact(allContacts[0].uid);
                 } else if (allContacts.length === 0) {
