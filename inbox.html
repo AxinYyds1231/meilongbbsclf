@@ -99,16 +99,19 @@
             } catch (e) {}
         }
 
+        // ---- 加载联系人（含头像） ----
         async function loadContacts() {
             const container = document.getElementById('contacts');
             container.innerHTML = '加载中...';
             try {
+                // 1. 获取消息
                 const inboxRes = await fetch('/api/inbox', { credentials: 'include' });
                 if (inboxRes.status === 401) { window.location.href = '/login.html'; return; }
                 if (!inboxRes.ok) throw new Error(`HTTP ${inboxRes.status}`);
                 const inboxData = await inboxRes.json();
                 const msgs = Array.isArray(inboxData.messages) ? inboxData.messages : [];
 
+                // 2. 获取联系人列表（包含头像）
                 const contactsRes = await fetch('/api/contacts', { credentials: 'include' });
                 let savedContacts = [];
                 if (contactsRes.ok) {
@@ -116,7 +119,9 @@
                     savedContacts = Array.isArray(contactsData.contacts) ? contactsData.contacts : [];
                 }
 
+                // 3. 构建联系人映射
                 const map = {};
+                // 先从消息中提取
                 msgs.forEach(m => {
                     let contactUid;
                     if (m.fromUid === currentUser?.uid) {
@@ -125,7 +130,13 @@
                         contactUid = m.fromUid;
                     }
                     if (!map[contactUid]) {
-                        map[contactUid] = { uid: contactUid, lastMsg: m.content, lastTime: m.sentAt, unread: !m.read };
+                        map[contactUid] = {
+                            uid: contactUid,
+                            lastMsg: m.content,
+                            lastTime: m.sentAt,
+                            unread: !m.read,
+                            avatar: '' // 暂为空
+                        };
                     } else {
                         if (m.sentAt > map[contactUid].lastTime) {
                             map[contactUid].lastMsg = m.content;
@@ -134,15 +145,31 @@
                         if (!m.read) map[contactUid].unread = true;
                     }
                 });
-                savedContacts.forEach(uid => {
-                    if (!map[uid]) map[uid] = { uid, lastMsg: '暂无消息', lastTime: 0, unread: false };
+
+                // 从联系人列表补充头像和缺失的联系人
+                savedContacts.forEach(contact => {
+                    const uid = contact.uid;
+                    if (map[uid]) {
+                        if (contact.avatar) map[uid].avatar = contact.avatar;
+                    } else {
+                        map[uid] = {
+                            uid: contact.uid,
+                            lastMsg: '暂无消息',
+                            lastTime: 0,
+                            unread: false,
+                            avatar: contact.avatar || ''
+                        };
+                    }
                 });
+
+                // 添加 admin（特殊账号）
                 if (currentUser?.uid !== 'admin' && !map['admin']) {
-                    map['admin'] = { uid: 'admin', lastMsg: '管理员', lastTime: 0, unread: false };
+                    map['admin'] = { uid: 'admin', lastMsg: '管理员', lastTime: 0, unread: false, avatar: '' };
                 }
 
                 allContacts = Object.values(map).sort((a, b) => b.lastTime - a.lastTime);
                 renderContacts();
+
                 if (allContacts.length > 0 && !currentContact) {
                     selectContact(allContacts[0].uid);
                 } else if (allContacts.length === 0) {
@@ -167,7 +194,7 @@
                 const displayName = c.uid === 'admin' ? '🔔 管理员' : c.uid;
                 html += `
                     <div class="contact-item ${active}" data-uid="${c.uid}">
-                        <img src="" class="avatar" onerror="this.src=''">
+                        <img src="${c.avatar || ''}" class="avatar" onerror="this.src=''">
                         <div class="info">
                             <div class="name">${displayName}</div>
                             <div class="last-msg">${c.lastMsg}</div>
@@ -184,6 +211,7 @@
             });
         }
 
+        // ---- 选择联系人 ----
         async function selectContact(uid) {
             currentContact = uid;
             renderContacts();
@@ -212,7 +240,7 @@
 
                 document.getElementById('chatInput').style.display = 'flex';
 
-                // 自动标记已读（去掉手动标记按钮）
+                // 自动标记已读
                 for (let m of filtered) {
                     if (!m.read && m.fromUid === uid) {
                         await fetch('/api/readMessage', {
@@ -254,6 +282,7 @@
             container.scrollTop = container.scrollHeight;
         }
 
+        // ---- 发送消息 ----
         document.getElementById('sendBtn').addEventListener('click', async function() {
             const content = document.getElementById('msgContent').value.trim();
             if (!content || !currentContact) return;
@@ -272,6 +301,7 @@
             } catch (err) { alert('网络错误'); }
         });
 
+        // ---- 搜索用户 ----
         document.getElementById('searchInput').addEventListener('input', function() {
             const q = this.value.trim();
             const container = document.getElementById('searchResults');
@@ -318,6 +348,7 @@
                 .catch(err => console.error(err));
         });
 
+        // ---- 未读小红点 ----
         async function updateBadge() {
             try {
                 const res = await fetch('/api/inbox', { credentials: 'include' });

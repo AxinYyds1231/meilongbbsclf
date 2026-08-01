@@ -38,7 +38,22 @@ export async function onRequest(context) {
         const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
         const uid = sessionData.uid;
 
-        const contacts = await db.getContacts(uid);
+        // 获取联系人 UID 列表
+        const contactUids = await db.getContacts(uid);
+
+        // 查询每个联系人的基本信息（包括头像）
+        const contacts = [];
+        for (const cid of contactUids) {
+            const user = await db.findUserByUid(cid);
+            if (user) {
+                contacts.push({
+                    uid: user.uid,
+                    name: user.name,
+                    avatar: user.avatar || ''
+                });
+            }
+        }
+
         return new Response(JSON.stringify({ contacts }), {
             status: 200,
             headers: CORS_HEADERS
