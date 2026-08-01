@@ -1,6 +1,17 @@
 // functions/api/updateUser.js
 import { createDb } from '../utils/db.js';
 
+// 支持中文的 Base64 编码
+function utf8ToBase64(str) {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+}
+
+// 支持中文的 Base64 解码
 function base64ToUtf8(base64) {
     const binary = atob(base64);
     const bytes = new Uint8Array(binary.length);
@@ -35,8 +46,9 @@ export async function onRequest(context) {
     }
 
     try {
+        // 解码 session 获取 uid
         const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
-        const { uid } = sessionData;
+        const uid = sessionData.uid;
 
         const formData = await request.formData();
         const name = formData.get('name');
@@ -66,9 +78,9 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ error: '用户不存在' }), { status: 404, headers: CORS_HEADERS });
         }
 
-        // 更新 session 中的 name
+        // 更新 session 中的 name（使用 utf8ToBase64 编码）
         const newSessionData = JSON.stringify({ uid: updatedUser.uid, name: updatedUser.name });
-        const encoded = btoa(newSessionData);
+        const encoded = utf8ToBase64(newSessionData);
         const cookie = `session=${encoded}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
 
         return new Response(JSON.stringify({ success: true, user: updatedUser }), {
