@@ -442,7 +442,7 @@ export function createDb(kv) {
         return anns.filter(a => !a.expiresAt || a.expiresAt > now).sort((a,b) => b.isPinned - a.isPinned);
     }
 	
-	    // ---- 联系人 ----
+	// ---- 联系人 ----
     const CONTACTS_KEY = 'contacts';
 
     async function getContacts(uid) {
@@ -453,12 +453,12 @@ export function createDb(kv) {
     async function addContact(uid, contactUid) {
         const data = await getData(CONTACTS_KEY) || {};
         if (!data[uid]) data[uid] = [];
-        if (!data[uid].includes(contactUid)) {
-            data[uid].push(contactUid);
-            await setData(CONTACTS_KEY, data);
-            return true;
+        if (data[uid].includes(contactUid)) {
+            return false; // 已存在
         }
-        return false;
+        data[uid].push(contactUid);
+        await setData(CONTACTS_KEY, data);
+        return true;
     }
 
     async function removeContact(uid, contactUid) {
@@ -476,7 +476,7 @@ export function createDb(kv) {
         return users.filter(u => 
             u.uid.includes(keyword) || 
             u.name.includes(keyword)
-        ).slice(0, 20); // 最多返回20个
+        ).slice(0, 20);
     }
 
     // ---- 导出 ----

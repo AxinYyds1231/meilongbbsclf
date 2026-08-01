@@ -56,11 +56,21 @@ export async function onRequest(context) {
         }
 
         const success = await db.addContact(uid, contactUid);
-        return new Response(JSON.stringify({ success, message: success ? '已添加联系人' : '联系人已存在' }), {
-            status: 200,
+        if (success) {
+            return new Response(JSON.stringify({ success: true, message: '已添加联系人' }), {
+                status: 200,
+                headers: CORS_HEADERS
+            });
+        } else {
+            return new Response(JSON.stringify({ error: '联系人已存在' }), {
+                status: 400,
+                headers: CORS_HEADERS
+            });
+        }
+    } catch (error) {
+        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), {
+            status: 500,
             headers: CORS_HEADERS
         });
-    } catch (error) {
-        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), { status: 500, headers: CORS_HEADERS });
     }
 }
