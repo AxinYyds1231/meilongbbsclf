@@ -38,9 +38,13 @@ export async function onRequest(context) {
         const userData = JSON.parse(base64ToUtf8(sessionMatch[1]));
         const uid = userData.uid;
 
-        const messages = await db.getInbox(uid);
-        // 返回时，如果 fromUid 为 'admin' 且 type 为 'system'，可添加标识
-        return new Response(JSON.stringify({ messages }), {
+        // 获取所有消息（只取该用户相关）
+        const allMessages = await db.getMessages();
+        const related = allMessages.filter(m => 
+            m.fromUid === uid || m.toUid === uid
+        );
+
+        return new Response(JSON.stringify({ messages: related }), {
             status: 200,
             headers: CORS_HEADERS
         });
