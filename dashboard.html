@@ -13,6 +13,10 @@
             border-radius: 16px;
             padding: 16px 20px;
             margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
         }
         .profile-card .avatar {
             width: 80px;
@@ -21,29 +25,78 @@
             object-fit: cover;
             border: 2px solid rgba(255,255,255,0.8);
         }
-        .profile-card .info {
-            flex: 1;
-        }
+        .profile-card .info { flex: 1; }
         .profile-card .info h2 { margin: 0; font-size: 1.2rem; }
         .profile-card .info .level { font-size: 0.9rem; color: #b8860b; }
         .profile-card .info .meta { font-size: 0.9rem; color: #4a5a6a; }
-        .profile-card .actions { margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; }
+        .profile-card .actions { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; }
         .notif-item .notif-content { display: flex; justify-content: space-between; align-items: center; }
         .notif-item .delete-notif { background: none; border: none; color: #d9534f; cursor: pointer; font-size: 0.8rem; }
         .notif-item .delete-notif:hover { text-decoration: underline; }
+        .bio-section textarea {
+            width: 100%;
+            padding: 8px;
+            border-radius: 12px;
+            border: 1px solid rgba(0,0,0,0.06);
+            background: rgba(255,255,255,0.5);
+            resize: vertical;
+        }
+        .list-item {
+            background: rgba(255,255,255,0.3);
+            backdrop-filter: blur(4px);
+            border: 1px solid rgba(255,255,255,0.5);
+            padding: 10px 14px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: 0.15s;
+        }
+        .list-item:hover { background: rgba(255,255,255,0.6); }
+        .list-item .title { font-weight: 500; }
+        .list-item .meta { font-size: 0.8rem; color: #6b7a8a; }
+        .avatar-upload {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .avatar-upload input[type="file"] { font-size: 0.8rem; max-width: 120px; }
+        .avatar-upload .btn-upload {
+            background: rgba(26,60,110,0.1);
+            border: 1px solid rgba(26,60,110,0.15);
+            padding: 4px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: #1a3c6e;
+            transition: 0.2s;
+        }
+        .avatar-upload .btn-upload:hover {
+            background: #1a3c6e;
+            color: #fff;
+        }
+        .sidebar-nav .badge {
+            margin-left: auto;
+            background: #d9534f;
+            color: #fff;
+            border-radius: 50%;
+            padding: 0px 6px;
+            font-size: 0.7rem;
+            line-height: 18px;
+            min-width: 18px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <div class="app-wrapper">
         <!-- 左侧边栏 -->
         <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>👤 个人中心</h2>
-            </div>
+            <div class="sidebar-header"><h2>👤 个人中心</h2></div>
             <nav class="sidebar-nav">
                 <a href="/index.html">🏠 首页</a>
                 <a href="/dashboard.html" class="active">👤 我的账户</a>
-                <a href="/inbox.html">📩 私信</a>
+                <a href="/inbox.html">📩 私信 <span id="navBadge" class="badge" style="display:none;">0</span></a>
                 <a href="/adminLogin.html">🔑 管理</a>
             </nav>
             <div style="padding:16px; margin-top:auto; border-top:1px solid rgba(0,0,0,0.04);">
@@ -56,8 +109,14 @@
             <h1 class="page-title">👤 我的账户</h1>
 
             <!-- 用户信息卡片 -->
-            <div id="userInfo" class="profile-card" style="display:flex; align-items:center; gap:20px; flex-wrap:wrap;">
-                <img id="avatarImg" class="avatar" src="" alt="头像">
+            <div id="userInfo" class="profile-card">
+                <div>
+                    <img id="avatarImg" class="avatar" src="" alt="头像">
+                    <div class="avatar-upload">
+                        <input type="file" id="avatarInput" accept="image/*">
+                        <button id="uploadAvatarBtn" class="btn-upload">📷 上传</button>
+                    </div>
+                </div>
                 <div class="info">
                     <h2 id="userName">用户</h2>
                     <span class="level" id="levelBadge">🌱 新手</span>
@@ -76,9 +135,9 @@
             </div>
 
             <!-- 简介编辑 -->
-            <div class="profile-card">
+            <div class="bio-section" style="background:rgba(255,255,255,0.3); backdrop-filter:blur(4px); border-radius:16px; padding:16px 20px; margin-bottom:16px;">
                 <div style="font-weight:600; margin-bottom:4px;">📝 个人简介</div>
-                <textarea id="bioText" rows="2" placeholder="写点自我介绍..." style="width:100%; padding:8px; border-radius:12px; border:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.5);"></textarea>
+                <textarea id="bioText" rows="2" placeholder="写点自我介绍..."></textarea>
                 <button id="saveBioBtn" class="btn-primary btn-sm" style="margin-top:4px;">💾 保存简介</button>
             </div>
 
@@ -127,13 +186,26 @@
                 } else {
                     let html = '';
                     myPosts.forEach(p => {
-                        html += `<div class="list-item" onclick="location.href='/post.html?id=${p.id}'" style="cursor:pointer;">
+                        html += `<div class="list-item" onclick="location.href='/post.html?id=${p.id}'">
                             <div class="title">${p.title}</div>
                             <div class="meta">🕒 ${new Date(p.createdAt).toLocaleString()} · 💬 ${p.replyCount}</div>
                         </div>`;
                     });
                     container.innerHTML = html;
                 }
+
+                // 更新未读消息数
+                updateBadge();
+
+                // 检查头像是否被封禁
+                if (u.avatarBanned) {
+                    document.getElementById('uploadAvatarBtn').disabled = true;
+                    document.getElementById('uploadAvatarBtn').textContent = '🚫 已封禁';
+                } else {
+                    document.getElementById('uploadAvatarBtn').disabled = false;
+                    document.getElementById('uploadAvatarBtn').textContent = '📷 上传';
+                }
+
             } catch (err) {
                 document.getElementById('userInfo').innerHTML = '<div style="color:red;">加载失败</div>';
             }
@@ -164,7 +236,6 @@
                 });
                 container.innerHTML = html;
 
-                // 绑定删除事件
                 container.querySelectorAll('.delete-notif').forEach(btn => {
                     btn.addEventListener('click', async function() {
                         const id = parseInt(this.dataset.id);
@@ -179,7 +250,7 @@
                             });
                             const result = await res.json();
                             if (result.success) {
-                                loadNotifications(); // 刷新
+                                loadNotifications();
                             } else {
                                 alert(result.error || '删除失败');
                             }
@@ -192,6 +263,48 @@
                 document.getElementById('notifications').innerHTML = '<div style="color:red;">加载失败</div>';
             }
         }
+
+        // ---- 未读消息数 ----
+        async function updateBadge() {
+            try {
+                const res = await fetch('/api/inbox', { credentials: 'include' });
+                if (res.status === 200) {
+                    const data = await res.json();
+                    const unread = data.messages ? data.messages.filter(m => !m.read).length : 0;
+                    const badge = document.getElementById('navBadge');
+                    if (unread > 0) {
+                        badge.textContent = unread;
+                        badge.style.display = 'inline-block';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                }
+            } catch (e) {}
+        }
+
+        // ---- 上传头像 ----
+        document.getElementById('uploadAvatarBtn').addEventListener('click', async function() {
+            const fileInput = document.getElementById('avatarInput');
+            if (!fileInput.files.length) { alert('请先选择图片'); return; }
+            const fd = new FormData();
+            fd.append('avatar', fileInput.files[0]);
+            try {
+                const res = await fetch('/api/uploadAvatar', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: fd
+                });
+                const result = await res.json();
+                if (result.success) {
+                    document.getElementById('avatarImg').src = result.avatar;
+                    alert('✅ 头像更新成功！');
+                } else {
+                    alert(result.error || '上传失败');
+                }
+            } catch (err) {
+                alert('网络错误，请重试');
+            }
+        });
 
         // ---- 保存简介 ----
         document.getElementById('saveBioBtn').addEventListener('click', async function() {

@@ -87,13 +87,7 @@ export function createDb(kv) {
     async function createCategory(name, description, parentId = 0) {
         const cats = await getCategories();
         const id = cats.length ? Math.max(...cats.map(c => c.id)) + 1 : 1;
-        const newCat = {
-            id,
-            name: name.trim(),
-            description: description ? description.trim() : '',
-            parentId: parentId || 0,
-            created_at: Date.now()
-        };
+        const newCat = { id, name: name.trim(), description: description ? description.trim() : '', parentId: parentId || 0, created_at: Date.now() };
         cats.push(newCat);
         await saveCategories(cats);
         return newCat;
@@ -102,7 +96,7 @@ export function createDb(kv) {
         const cats = await getCategories();
         const idx = cats.findIndex(c => c.id === id);
         if (idx === -1) return null;
-        if (parentId === id) return null; // 不能自己当自己的父级
+        if (parentId === id) return null;
         cats[idx].name = name.trim();
         cats[idx].description = description ? description.trim() : '';
         cats[idx].parentId = parentId || 0;
@@ -123,11 +117,8 @@ export function createDb(kv) {
         const roots = [];
         cats.forEach(c => { map[c.id] = { ...c, children: [] }; });
         cats.forEach(c => {
-            if (c.parentId === 0 || !map[c.parentId]) {
-                roots.push(map[c.id]);
-            } else {
-                map[c.parentId].children.push(map[c.id]);
-            }
+            if (c.parentId === 0 || !map[c.parentId]) roots.push(map[c.id]);
+            else map[c.parentId].children.push(map[c.id]);
         });
         return roots;
     }
@@ -136,10 +127,7 @@ export function createDb(kv) {
         const result = [];
         function findChildren(parentId) {
             cats.forEach(c => {
-                if (c.parentId === parentId) {
-                    result.push(c.id);
-                    findChildren(c.id);
-                }
+                if (c.parentId === parentId) { result.push(c.id); findChildren(c.id); }
             });
         }
         findChildren(id);
@@ -183,14 +171,7 @@ export function createDb(kv) {
         const posts = await getPosts();
         const post = posts.find(p => p.id === postId);
         if (!post) return null;
-        const reply = {
-            uid,
-            name,
-            content,
-            createdAt: Date.now(),
-            likes: [],
-            dislikes: []
-        };
+        const reply = { uid, name, content, createdAt: Date.now(), likes: [], dislikes: [] };
         post.replies.push(reply);
         await setData(POSTS_KEY, posts);
         return reply;
@@ -239,7 +220,7 @@ export function createDb(kv) {
         return reply;
     }
 
-    // ---- 树形回复（楼中楼） ----
+    // ---- 树形回复 ----
     async function addTreeReply(postId, parentId, content, uid, name) {
         const posts = await getPosts();
         const post = posts.find(p => p.id === postId);
@@ -473,7 +454,6 @@ export function createDb(kv) {
         isValidPassword,
         isValidGrade,
         isValidClass,
-        // 分类（树形）
         getCategories,
         saveCategories,
         getCategoryById,
@@ -482,7 +462,6 @@ export function createDb(kv) {
         deleteCategory,
         getCategoryTree,
         getChildrenIds,
-        // 帖子
         getPosts,
         savePosts,
         getPostById,
@@ -491,40 +470,31 @@ export function createDb(kv) {
         deletePostById,
         toggleLike,
         toggleReplyLike,
-        // 树形回复
         addTreeReply,
         getTreeReplies,
-        // 私信
         getMessages,
         saveMessages,
         sendMessage,
         getInbox,
         markMessageRead,
         deleteMessage,
-        // 通知
         getNotifications,
         saveNotifications,
         addNotification,
         getNotificationsForUser,
         markNotificationRead,
-        // 管理员密码
         getAdminPasswordHash,
         setAdminPasswordHash,
-        // 签到
         getTodayCheckinStatus,
         doCheckin,
-        // 收藏
         getFavorites,
         toggleFavorite,
-        // 敏感词
         getSensitiveWords,
         addSensitiveWord,
         removeSensitiveWord,
         filterSensitive,
-        // 统计
         getStats,
         incrementStats,
-        // 公告
         getAnnouncements,
         addAnnouncement,
         updateAnnouncement,

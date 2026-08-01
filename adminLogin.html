@@ -5,19 +5,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管理员登录</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .admin-login-container {
+            max-width: 420px;
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .admin-login-container h1 {
+            font-size: 1.6rem;
+            margin-bottom: 8px;
+            color: #1a2332;
+        }
+        .admin-login-container .sub {
+            color: #6b7a8a;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container" style="max-width: 420px; text-align: center;">
-        <h1 class="page-title" style="justify-content:center;">👑 管理员登录</h1>
-        <div id="error" class="error" style="display:none;"></div>
-        <form id="adminLoginForm">
-            <div class="form-group">
-                <label>管理员密码</label>
-                <input type="password" id="password" placeholder="请输入管理员密码" required>
-            </div>
-            <button type="submit" class="btn-primary" style="width:100%;">登录</button>
-        </form>
-        <p style="margin-top:16px;"><a href="/login.html" style="color:#1a3c6e;">← 返回用户登录</a></p>
+    <div class="app-wrapper" style="max-width: 600px; min-height: auto; padding: 30px 20px;">
+        <div class="admin-login-container">
+            <h1>👑 管理员登录</h1>
+            <p class="sub">输入管理员密码</p>
+            <div id="error" class="error" style="display:none;"></div>
+            <form id="adminLoginForm">
+                <div class="form-group">
+                    <label>管理员密码</label>
+                    <input type="password" id="password" placeholder="请输入管理员密码" required>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%;">登录</button>
+            </form>
+            <p style="margin-top:16px;"><a href="/login.html" style="color:#1a3c6e;">← 返回用户登录</a></p>
+        </div>
     </div>
 
     <script>

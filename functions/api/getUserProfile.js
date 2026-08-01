@@ -31,6 +31,17 @@ export async function onRequest(context) {
         return new Response(JSON.stringify({ error: '用户不存在' }), { status: 404, headers: CORS_HEADERS });
     }
 
+    // 判断当前请求是否是管理员（用于返回敏感字段）
+    const cookieHeader = request.headers.get('Cookie') || '';
+    const adminMatch = cookieHeader.match(/adminSession=([^;]+)/);
+    let isAdmin = false;
+    try {
+        if (adminMatch) {
+            const adminData = JSON.parse(atob(adminMatch[1]));
+            if (adminData.isAdmin) isAdmin = true;
+        }
+    } catch (e) {}
+
     const level = getLevel(user.points || 0);
     const profile = {
         uid: user.uid,
@@ -42,7 +53,9 @@ export async function onRequest(context) {
         bio: user.bio || '',
         points: user.points || 0,
         level: level.name,
-        levelIcon: level.icon
+        levelIcon: level.icon,
+        avatarBanned: user.avatarBanned || false  // 始终返回（管理员可用来显示状态）
     };
+
     return new Response(JSON.stringify({ user: profile }), { status: 200, headers: CORS_HEADERS });
 }

@@ -5,55 +5,68 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>修改个人信息</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .update-container {
+            max-width: 480px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        .update-container h1 {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+    </style>
 </head>
 <body>
-    <div class="container" style="max-width: 440px;">
-        <div class="nav-links">
-            <a href="/index.html">🏠 首页</a>
-            <a href="/dashboard.html">👤 个人中心</a>
+    <div class="app-wrapper" style="max-width: 600px; min-height: auto; padding: 30px 20px;">
+        <div class="update-container">
+            <div class="nav-links" style="border-bottom: none; padding: 0 0 10px 0;">
+                <a href="/index.html">🏠 首页</a>
+                <a href="/dashboard.html">👤 个人中心</a>
+            </div>
+            <h1>✏️ 修改信息</h1>
+            <div id="error" class="error" style="display:none;"></div>
+            <div id="success" class="success" style="display:none;"></div>
+            <form id="updateForm">
+                <div class="form-group">
+                    <label>姓名</label>
+                    <input type="text" id="name" placeholder="姓名" required>
+                </div>
+                <div class="form-group">
+                    <label>性别</label>
+                    <select id="gender" required>
+                        <option value="">选择</option>
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>年级</label>
+                    <select id="grade" required>
+                        <option value="">选择</option>
+                        <option value="6">六年级</option>
+                        <option value="7">七年级</option>
+                        <option value="8">八年级</option>
+                        <option value="9">九年级</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>班级</label>
+                    <select id="class" required>
+                        <option value="">选择</option>
+                        <option value="1">1班</option><option value="2">2班</option>
+                        <option value="3">3班</option><option value="4">4班</option>
+                        <option value="5">5班</option><option value="6">6班</option>
+                        <option value="7">7班</option><option value="8">8班</option>
+                        <option value="9">9班</option><option value="10">10班</option>
+                        <option value="11">11班</option><option value="12">12班</option>
+                        <option value="13">13班</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width:100%;">💾 保存修改</button>
+            </form>
+            <p style="text-align:center; margin-top:16px;"><a href="/dashboard.html" style="color:#1a3c6e;">← 返回个人中心</a></p>
         </div>
-        <h1 class="page-title">✏️ 修改信息</h1>
-        <div id="error" class="error" style="display:none;"></div>
-        <div id="success" class="success" style="display:none;"></div>
-        <form id="updateForm">
-            <div class="form-group">
-                <label>姓名</label>
-                <input type="text" id="name" placeholder="姓名" required>
-            </div>
-            <div class="form-group">
-                <label>性别</label>
-                <select id="gender" required>
-                    <option value="">选择</option>
-                    <option value="男">男</option>
-                    <option value="女">女</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>年级</label>
-                <select id="grade" required>
-                    <option value="">选择</option>
-                    <option value="6">六年级</option>
-                    <option value="7">七年级</option>
-                    <option value="8">八年级</option>
-                    <option value="9">九年级</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>班级</label>
-                <select id="class" required>
-                    <option value="">选择</option>
-                    <option value="1">1班</option><option value="2">2班</option>
-                    <option value="3">3班</option><option value="4">4班</option>
-                    <option value="5">5班</option><option value="6">6班</option>
-                    <option value="7">7班</option><option value="8">8班</option>
-                    <option value="9">9班</option><option value="10">10班</option>
-                    <option value="11">11班</option><option value="12">12班</option>
-                    <option value="13">13班</option>
-                </select>
-            </div>
-            <button type="submit" class="btn-primary" style="width:100%;">💾 保存修改</button>
-        </form>
-        <p style="text-align:center; margin-top:16px;"><a href="/dashboard.html" style="color:#1a3c6e;">← 返回个人中心</a></p>
     </div>
 
     <script>

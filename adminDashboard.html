@@ -3,42 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管理后台</title>
+    <title>管理仪表盘</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .admin-menu a {
-            display: flex;
-            align-items: center;
-            padding: 8px 16px;
-            margin: 0 8px;
-            border-radius: 8px;
-            color: #1a2332;
-            text-decoration: none;
-            transition: background 0.15s;
-            gap: 8px;
-        }
-        .admin-menu a:hover { background: rgba(26,60,110,0.06); }
-        .admin-menu a.active { background: rgba(26,60,110,0.1); color: #1a3c6e; font-weight:500; }
-        .content-area {
-            flex: 1;
-            padding: 16px 0;
-        }
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 12px;
-            margin-bottom: 20px;
+            gap: 16px;
+            margin: 16px 0;
         }
         .stat-card {
             background: rgba(255,255,255,0.3);
             backdrop-filter: blur(4px);
-            padding: 12px;
-            border-radius: 12px;
+            padding: 16px;
+            border-radius: 16px;
             text-align: center;
+            border: 1px solid rgba(255,255,255,0.5);
         }
-        .stat-card .num { font-size: 1.8rem; font-weight: 600; color: #1a3c6e; }
-        .stat-card .label { font-size: 0.85rem; color: #6b7a8a; }
+        .stat-card .num {
+            font-size: 2rem;
+            font-weight: 600;
+            color: #1a3c6e;
+        }
+        .stat-card .label {
+            font-size: 0.9rem;
+            color: #6b7a8a;
+        }
         hr { border: none; border-top: 1px solid rgba(0,0,0,0.06); margin: 16px 0; }
+        .admin-menu a.active { background: rgba(26,60,110,0.1); color: #1a3c6e; font-weight:500; }
     </style>
 </head>
 <body>
@@ -94,7 +86,6 @@
     </div>
 
     <script>
-        // 加载统计数据
         async function loadStats() {
             try {
                 const res = await fetch('/api/stats', { credentials: 'include' });
@@ -163,7 +154,7 @@
             }
         });
 
-        async function logoutAdmin() {
+        function logoutAdmin() {
             document.cookie = 'adminSession=; Path=/; Max-Age=0';
             window.location.href = '/adminLogin.html';
         }

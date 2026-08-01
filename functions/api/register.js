@@ -73,10 +73,11 @@ export async function onRequest(context) {
             class: parseInt(cls),
             points: 0,
             avatar: '',
-            bio: ''
+            bio: '',
+            avatarBanned: false  // 新增字段
         });
         await db.saveUsers(users);
-        await db.incrementStats('user'); // 👈 增加统计
+        await db.incrementStats('user');
 
         return new Response(JSON.stringify({ success: true, message: '注册成功' }), { status: 200, headers: CORS_HEADERS });
     } catch (error) {
