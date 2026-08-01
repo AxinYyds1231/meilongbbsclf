@@ -253,7 +253,7 @@ export function createDb(kv) {
         return roots;
     }
 
-    // ---- 私信（核心） ----
+    // ---- 私信 ----
     async function getMessages() { return (await getData(MESSAGES_KEY)) || []; }
     async function saveMessages(msgs) { await setData(MESSAGES_KEY, msgs); }
     async function sendMessage(fromUid, toUid, content, type = 'user') {
@@ -290,7 +290,6 @@ export function createDb(kv) {
         await saveMessages(msgs);
         return true;
     }
-    // 获取所有发给 admin 的消息（管理员专用）
     async function getAdminMessages() {
         const msgs = await getMessages();
         return msgs.filter(m => m.toUid === 'admin').sort((a, b) => a.sentAt - b.sentAt);
@@ -442,6 +441,14 @@ export function createDb(kv) {
         return anns.filter(a => !a.expiresAt || a.expiresAt > now).sort((a,b) => b.isPinned - a.isPinned);
     }
 
+    // ==================== 管理员密码（新增） ====================
+    async function getAdminPasswordHash() {
+        return await getData(ADMIN_PASSWORD_KEY) || null;
+    }
+    async function setAdminPasswordHash(hash) {
+        await setData(ADMIN_PASSWORD_KEY, hash);
+    }
+
     // ---- 导出 ----
     return {
         getUsers,
@@ -497,6 +504,8 @@ export function createDb(kv) {
         addAnnouncement,
         updateAnnouncement,
         deleteAnnouncement,
-        getActiveAnnouncements
+        getActiveAnnouncements,
+        getAdminPasswordHash,   // 确保这里暴露
+        setAdminPasswordHash    // 确保这里暴露
     };
 }
