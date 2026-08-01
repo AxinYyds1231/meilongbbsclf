@@ -6,29 +6,39 @@
     <title>敏感词管理</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .word-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 12px;
-        }
+        .app-wrapper { max-width: 1400px; }
         .word-tag {
             background: rgba(255,255,255,0.3);
             padding: 4px 12px;
             border-radius: 20px;
             border: 1px solid rgba(255,255,255,0.5);
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 6px;
+            margin: 4px;
         }
         .word-tag .remove-btn {
-            background: none;
+            background: rgba(217,83,79,0.2);
             border: none;
-            color: #d9534f;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
             cursor: pointer;
+            color: #d9534f;
             font-weight: bold;
         }
-        .word-tag .remove-btn:hover { color: #c9302c; }
+        .word-tag .remove-btn:hover { background: #d9534f; color: #fff; }
+        .admin-menu a {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            margin: 0 8px;
+            border-radius: 8px;
+            color: #1a2332;
+            text-decoration: none;
+            gap: 8px;
+        }
+        .admin-menu a:hover { background: rgba(26,60,110,0.06); }
         .admin-menu a.active { background: rgba(26,60,110,0.1); color: #1a3c6e; font-weight:500; }
     </style>
 </head>
@@ -41,32 +51,28 @@
                 <a href="/adminUsers.html">👥 用户管理</a>
                 <a href="/adminPosts.html">📝 帖子管理</a>
                 <a href="/adminCategories.html">📂 分类管理</a>
-                <a href="/adminStats.html">📊 统计面板</a>
                 <a href="/adminSensitive.html" class="active">🛡️ 敏感词</a>
                 <a href="/adminAnnouncement.html">📢 公告</a>
             </nav>
             <div style="padding:16px; margin-top:auto; border-top:1px solid rgba(0,0,0,0.04);">
-                <button onclick="logoutAdmin()" class="btn-secondary btn-sm" style="width:100%;">🚪 退出管理</button>
+                <button onclick="location.href='/adminLogin.html'" class="btn-secondary btn-sm" style="width:100%;">🚪 退出管理</button>
             </div>
         </aside>
 
         <main class="main-content">
             <h1 class="page-title">🛡️ 敏感词管理</h1>
-            <div style="display:flex; gap:8px; margin-bottom:12px;">
-                <input type="text" id="newWord" placeholder="输入敏感词" style="flex:1; padding:8px; border-radius:12px; border:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.5);">
-                <button id="addBtn" class="btn-primary btn-sm">添加</button>
+            <div class="form-group" style="max-width:500px;">
+                <label>添加敏感词</label>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="newWord" placeholder="输入敏感词" style="flex:1; padding:6px 12px; border-radius:12px; border:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.5);">
+                    <button id="addBtn" class="btn-primary">添加</button>
+                </div>
             </div>
             <div id="wordList">加载中...</div>
-            <a href="/adminDashboard.html" style="display:inline-block; margin-top:16px; color:#1a3c6e;">← 返回管理后台</a>
         </main>
     </div>
 
     <script>
-        function logoutAdmin() {
-            document.cookie = 'adminSession=; Path=/; Max-Age=0';
-            window.location.href = '/adminLogin.html';
-        }
-
         async function loadWords() {
             try {
                 const res = await fetch('/api/sensitive', { credentials: 'include' });
@@ -80,7 +86,7 @@
                     container.innerHTML = '<div style="color:#999;">暂无敏感词</div>';
                     return;
                 }
-                let html = '<div class="word-list">';
+                let html = '<div style="display:flex; flex-wrap:wrap; gap:4px;">';
                 data.words.forEach(w => {
                     html += `
                         <span class="word-tag">
@@ -97,12 +103,9 @@
                         const word = this.dataset.word;
                         if (!confirm(`确定删除敏感词 "${word}" 吗？`)) return;
                         try {
-                            const res = await fetch(`/api/sensitive?word=${encodeURIComponent(word)}`, {
-                                method: 'DELETE',
-                                credentials: 'include'
-                            });
+                            const res = await fetch(`/api/sensitive?word=${encodeURIComponent(word)}`, { method: 'DELETE', credentials: 'include' });
                             const result = await res.json();
-                            if (result.success) loadWords();
+                            if (result.success) { loadWords(); }
                             else alert('删除失败');
                         } catch (err) { alert('网络错误'); }
                     });
@@ -115,9 +118,9 @@
         document.getElementById('addBtn').addEventListener('click', async function() {
             const word = document.getElementById('newWord').value.trim();
             if (!word) { alert('请输入敏感词'); return; }
-            const fd = new FormData();
-            fd.append('word', word);
             try {
+                const fd = new FormData();
+                fd.append('word', word);
                 const res = await fetch('/api/sensitive', { method: 'POST', credentials: 'include', body: fd });
                 const result = await res.json();
                 if (result.success) {

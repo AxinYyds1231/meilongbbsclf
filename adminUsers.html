@@ -6,65 +6,27 @@
     <title>用户管理</title>
     <link rel="stylesheet" href="/style.css">
     <style>
-        .table-wrapper {
-            overflow-x: auto;
-            max-height: 450px;
-            overflow-y: auto;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(4px);
-            padding: 4px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.9rem;
-        }
-        th {
-            background: rgba(26,60,110,0.1);
-            padding: 8px 10px;
-            text-align: left;
-            font-weight: 600;
-            position: sticky;
-            top: 0;
-            backdrop-filter: blur(4px);
-        }
-        td {
-            padding: 8px 10px;
-            border-bottom: 1px solid rgba(0,0,0,0.04);
-        }
-        .btn-sm {
+        .app-wrapper { max-width: 1400px; }
+        .table-wrapper { overflow-x: auto; margin-top: 12px; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th { background: rgba(255,255,255,0.2); padding: 8px 12px; text-align: left; border-bottom: 2px solid rgba(0,0,0,0.06); }
+        td { padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.04); }
+        .edit-btn, .delete-btn, .ban-btn, .msg-btn {
+            border: none;
             padding: 2px 10px;
-            font-size: 0.75rem;
-            margin: 2px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.15s;
         }
-        .btn-ban {
-            background: rgba(217,83,79,0.1);
-            color: #d9534f;
-            border: 1px solid rgba(217,83,79,0.15);
-        }
-        .btn-ban:hover {
-            background: #d9534f;
-            color: #fff;
-        }
-        .btn-unban {
-            background: rgba(92,184,92,0.1);
-            color: #5cb85c;
-            border: 1px solid rgba(92,184,92,0.15);
-        }
-        .btn-unban:hover {
-            background: #5cb85c;
-            color: #fff;
-        }
-        .btn-msg {
-            background: rgba(26,60,110,0.1);
-            color: #1a3c6e;
-            border: 1px solid rgba(26,60,110,0.15);
-        }
-        .btn-msg:hover {
-            background: #1a3c6e;
-            color: #fff;
-        }
+        .edit-btn { background: rgba(26,60,110,0.1); color: #1a3c6e; }
+        .edit-btn:hover { background: #1a3c6e; color: #fff; }
+        .delete-btn { background: rgba(217,83,79,0.1); color: #d9534f; }
+        .delete-btn:hover { background: #d9534f; color: #fff; }
+        .ban-btn { background: rgba(255,193,7,0.15); color: #d39e00; }
+        .ban-btn:hover { background: #ffc107; color: #fff; }
+        .msg-btn { background: rgba(40,167,69,0.1); color: #28a745; }
+        .msg-btn:hover { background: #28a745; color: #fff; }
         .modal {
             display: none;
             position: fixed;
@@ -78,26 +40,32 @@
         .modal-content {
             background: rgba(255,255,255,0.85);
             backdrop-filter: blur(20px);
-            padding: 24px;
-            border-radius: 24px;
-            max-width: 420px;
+            padding: 20px;
+            border-radius: 20px;
+            max-width: 400px;
             width: 90%;
         }
-        .modal-content textarea {
+        .modal-content input, .modal-content select, .modal-content textarea {
             width: 100%;
-            height: 80px;
-            padding: 8px;
-            border-radius: 12px;
+            margin: 4px 0;
+            padding: 6px 10px;
+            border-radius: 10px;
             border: 1px solid rgba(0,0,0,0.06);
             background: rgba(255,255,255,0.5);
-            resize: vertical;
         }
-        .modal-actions {
-            display: flex;
-            gap: 10px;
-            margin-top: 12px;
-        }
+        .modal-actions { display: flex; gap: 8px; margin-top: 10px; }
         .modal-actions button { flex: 1; }
+        .admin-menu a {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            margin: 0 8px;
+            border-radius: 8px;
+            color: #1a2332;
+            text-decoration: none;
+            gap: 8px;
+        }
+        .admin-menu a:hover { background: rgba(26,60,110,0.06); }
         .admin-menu a.active { background: rgba(26,60,110,0.1); color: #1a3c6e; font-weight:500; }
     </style>
 </head>
@@ -110,12 +78,11 @@
                 <a href="/adminUsers.html" class="active">👥 用户管理</a>
                 <a href="/adminPosts.html">📝 帖子管理</a>
                 <a href="/adminCategories.html">📂 分类管理</a>
-                <a href="/adminStats.html">📊 统计面板</a>
                 <a href="/adminSensitive.html">🛡️ 敏感词</a>
                 <a href="/adminAnnouncement.html">📢 公告</a>
             </nav>
             <div style="padding:16px; margin-top:auto; border-top:1px solid rgba(0,0,0,0.04);">
-                <button onclick="logoutAdmin()" class="btn-secondary btn-sm" style="width:100%;">🚪 退出管理</button>
+                <button onclick="location.href='/adminLogin.html'" class="btn-secondary btn-sm" style="width:100%;">🚪 退出管理</button>
             </div>
         </aside>
 
@@ -131,43 +98,63 @@
                             <th>性别</th>
                             <th>年级</th>
                             <th>班级</th>
-                            <th>头像状态</th>
                             <th style="text-align:center;">操作</th>
                         </tr>
                     </thead>
                     <tbody id="userList">
-                        <tr><td colspan="7" style="text-align:center; padding:20px; color:#8b9aab;">加载中...</td></tr>
+                        <tr><td colspan="6" style="text-align:center; padding:20px; color:#8b9aab;">加载中...</td></tr>
                     </tbody>
                 </table>
             </div>
-            <a href="/adminDashboard.html" style="display:inline-block; margin-top:16px; color:#1a3c6e;">← 返回管理后台</a>
-        </main>
-    </div>
 
-    <!-- 发送消息模态框 -->
-    <div id="msgModal" class="modal">
-        <div class="modal-content">
-            <h3>📨 发送私信</h3>
-            <p style="font-size:0.9rem; color:#6b7a8a;">发送给 <strong id="msgToUidLabel"></strong></p>
-            <input type="hidden" id="msgToUid">
-            <textarea id="msgContent" placeholder="输入消息内容..."></textarea>
-            <div class="modal-actions">
-                <button id="sendMsgBtn" class="btn-primary">发送</button>
-                <button onclick="closeMsgModal()" class="btn-secondary">取消</button>
+            <!-- 编辑模态框 -->
+            <div id="editModal" class="modal">
+                <div class="modal-content">
+                    <h3>✏️ 编辑用户</h3>
+                    <input type="hidden" id="editUid">
+                    <input type="text" id="editName" placeholder="姓名">
+                    <select id="editGender">
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                    <select id="editGrade">
+                        <option value="6">六年级</option><option value="7">七年级</option>
+                        <option value="8">八年级</option><option value="9">九年级</option>
+                    </select>
+                    <select id="editClass">
+                        <option value="1">1班</option><option value="2">2班</option>
+                        <option value="3">3班</option><option value="4">4班</option>
+                        <option value="5">5班</option><option value="6">6班</option>
+                        <option value="7">7班</option><option value="8">8班</option>
+                        <option value="9">9班</option><option value="10">10班</option>
+                        <option value="11">11班</option><option value="12">12班</option>
+                        <option value="13">13班</option>
+                    </select>
+                    <div class="modal-actions">
+                        <button id="saveEditBtn" class="btn-primary">保存</button>
+                        <button onclick="closeEditModal()" class="btn-secondary">取消</button>
+                    </div>
+                </div>
             </div>
-        </div>
+
+            <!-- 发消息模态框 -->
+            <div id="msgModal" class="modal">
+                <div class="modal-content">
+                    <h3>📩 发送消息</h3>
+                    <input type="hidden" id="msgUid">
+                    <textarea id="msgContent" rows="4" placeholder="输入消息内容..."></textarea>
+                    <div class="modal-actions">
+                        <button id="sendMsgBtn" class="btn-primary">发送</button>
+                        <button onclick="closeMsgModal()" class="btn-secondary">取消</button>
+                    </div>
+                </div>
+            </div>
+        </main>
     </div>
 
     <script>
         let currentUserList = [];
 
-        // 退出管理
-        function logoutAdmin() {
-            document.cookie = 'adminSession=; Path=/; Max-Age=0';
-            window.location.href = '/adminLogin.html';
-        }
-
-        // 加载用户列表
         async function loadUsers() {
             try {
                 const res = await fetch('/api/adminDashboard', { credentials: 'include' });
@@ -187,130 +174,137 @@
         function renderTable(users) {
             const tbody = document.getElementById('userList');
             if (users.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; padding:20px; color:#8b9aab;">暂无用户</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:#8b9aab;">暂无用户</td></tr>';
                 return;
             }
             let html = '';
             users.forEach(u => {
-                const avatarStatus = u.avatarBanned ? '🚫 封禁' : '✅ 正常';
-                const banBtn = u.avatarBanned
-                    ? `<button class="btn-sm btn-unban" data-uid="${u.uid}" data-action="unban">解封</button>`
-                    : `<button class="btn-sm btn-ban" data-uid="${u.uid}" data-action="ban">封禁</button>`;
+                const banned = u.avatarBanned ? ' (头像封禁)' : '';
                 html += `
                     <tr>
                         <td><code>${u.uid}</code></td>
-                        <td>${u.name}</td>
+                        <td>${u.name}${banned}</td>
                         <td>${u.gender}</td>
                         <td>${u.grade}</td>
                         <td>${u.class}</td>
-                        <td>${avatarStatus}</td>
-                        <td style="text-align:center; white-space:nowrap;">
-                            ${banBtn}
-                            <button class="btn-sm btn-msg" data-uid="${u.uid}">📨 发消息</button>
-                            <button class="btn-sm btn-danger" data-uid="${u.uid}" onclick="deleteUser('${u.uid}')">删除</button>
+                        <td style="text-align:center;">
+                            <button class="edit-btn" data-uid="${u.uid}" data-name="${u.name}" data-gender="${u.gender}" data-grade="${u.grade}" data-class="${u.class}">编辑</button>
+                            <button class="ban-btn" data-uid="${u.uid}" data-banned="${u.avatarBanned}">${u.avatarBanned ? '解封头像' : '封禁头像'}</button>
+                            <button class="msg-btn" data-uid="${u.uid}">发消息</button>
+                            <button class="delete-btn" data-uid="${u.uid}">删除</button>
                         </td>
                     </tr>
                 `;
             });
             tbody.innerHTML = html;
 
-            // 绑定封禁/解封事件
-            document.querySelectorAll('.btn-ban, .btn-unban').forEach(btn => {
+            // 绑定事件
+            document.querySelectorAll('.edit-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    openEditModal(this.dataset.uid, this.dataset.name, this.dataset.gender, this.dataset.grade, this.dataset.class);
+                });
+            });
+            document.querySelectorAll('.ban-btn').forEach(btn => {
                 btn.addEventListener('click', async function() {
                     const uid = this.dataset.uid;
-                    const action = this.dataset.action;
-                    if (!confirm(`确定要${action === 'ban' ? '封禁' : '解封'}用户 ${uid} 的头像吗？`)) return;
+                    const banned = this.dataset.banned === 'true';
+                    const action = banned ? 'unban' : 'ban';
+                    if (!confirm(`确定要${banned ? '解封' : '封禁'}用户 ${uid} 的头像吗？`)) return;
                     try {
                         const fd = new FormData();
                         fd.append('uid', uid);
                         fd.append('action', action);
-                        const res = await fetch('/api/adminBanAvatar', {
-                            method: 'POST',
-                            credentials: 'include',
-                            body: fd
-                        });
+                        const res = await fetch('/api/adminBanAvatar', { method: 'POST', credentials: 'include', body: fd });
                         const result = await res.json();
                         if (result.success) {
-                            alert(`✅ 已${action === 'ban' ? '封禁' : '解封'}用户头像`);
-                            loadUsers(); // 刷新
+                            alert('操作成功');
+                            loadUsers();
                         } else {
                             alert(result.error || '操作失败');
                         }
-                    } catch (err) {
-                        alert('网络错误');
-                    }
+                    } catch (err) { alert('网络错误'); }
                 });
             });
-
-            // 绑定发送消息按钮
-            document.querySelectorAll('.btn-msg').forEach(btn => {
+            document.querySelectorAll('.msg-btn').forEach(btn => {
                 btn.addEventListener('click', function() {
+                    openMsgModal(this.dataset.uid);
+                });
+            });
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
                     const uid = this.dataset.uid;
-                    openMsgModal(uid);
+                    if (!confirm(`确定删除用户 ${uid} 吗？此操作不可恢复！`)) return;
+                    try {
+                        const fd = new FormData();
+                        fd.append('uid', uid);
+                        const res = await fetch('/api/adminDeleteUser', { method: 'POST', credentials: 'include', body: fd });
+                        const result = await res.json();
+                        if (result.success) { alert('已删除'); loadUsers(); }
+                        else alert(result.error);
+                    } catch (err) { alert('网络错误'); }
                 });
             });
         }
 
-        // 删除用户
-        async function deleteUser(uid) {
-            if (!confirm(`确定删除用户 ${uid} 吗？此操作不可恢复！`)) return;
-            try {
-                const fd = new FormData();
-                fd.append('uid', uid);
-                const res = await fetch('/api/adminDeleteUser', {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: fd
-                });
-                const result = await res.json();
-                if (result.success) {
-                    alert('已删除');
-                    loadUsers();
-                } else {
-                    alert(result.error || '删除失败');
-                }
-            } catch (err) {
-                alert('网络错误');
-            }
+        // 编辑模态框
+        function openEditModal(uid, name, gender, grade, cls) {
+            document.getElementById('editUid').value = uid;
+            document.getElementById('editName').value = name;
+            document.getElementById('editGender').value = gender;
+            document.getElementById('editGrade').value = grade;
+            document.getElementById('editClass').value = cls;
+            document.getElementById('editModal').style.display = 'flex';
         }
+        function closeEditModal() { document.getElementById('editModal').style.display = 'none'; }
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditModal();
+        });
 
-        // 发送消息模态框
+        document.getElementById('saveEditBtn').addEventListener('click', async function() {
+            const uid = document.getElementById('editUid').value;
+            const name = document.getElementById('editName').value.trim();
+            const gender = document.getElementById('editGender').value;
+            const grade = document.getElementById('editGrade').value;
+            const cls = document.getElementById('editClass').value;
+            if (!name || !gender || !grade || !cls) { alert('请填写完整'); return; }
+            const fd = new FormData();
+            fd.append('uid', uid);
+            fd.append('name', name);
+            fd.append('gender', gender);
+            fd.append('grade', grade);
+            fd.append('class', cls);
+            try {
+                const res = await fetch('/api/adminUpdateUser', { method: 'POST', credentials: 'include', body: fd });
+                const result = await res.json();
+                if (result.success) { alert('修改成功！'); closeEditModal(); loadUsers(); }
+                else alert(result.error);
+            } catch (err) { alert('网络错误'); }
+        });
+
+        // 发消息模态框
         function openMsgModal(uid) {
-            document.getElementById('msgToUid').value = uid;
-            document.getElementById('msgToUidLabel').textContent = uid;
+            document.getElementById('msgUid').value = uid;
             document.getElementById('msgContent').value = '';
             document.getElementById('msgModal').style.display = 'flex';
         }
-        function closeMsgModal() {
-            document.getElementById('msgModal').style.display = 'none';
-        }
+        function closeMsgModal() { document.getElementById('msgModal').style.display = 'none'; }
         document.getElementById('msgModal').addEventListener('click', function(e) {
             if (e.target === this) closeMsgModal();
         });
 
         document.getElementById('sendMsgBtn').addEventListener('click', async function() {
-            const toUid = document.getElementById('msgToUid').value;
+            const toUid = document.getElementById('msgUid').value;
             const content = document.getElementById('msgContent').value.trim();
             if (!content) { alert('请输入消息内容'); return; }
             const fd = new FormData();
             fd.append('toUid', toUid);
             fd.append('content', content);
             try {
-                const res = await fetch('/api/adminSendMessage', {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: fd
-                });
+                const res = await fetch('/api/adminSendMessage', { method: 'POST', credentials: 'include', body: fd });
                 const result = await res.json();
-                if (result.success) {
-                    alert('✅ 消息已发送');
-                    closeMsgModal();
-                } else {
-                    alert(result.error || '发送失败');
-                }
-            } catch (err) {
-                alert('网络错误');
-            }
+                if (result.success) { alert('消息发送成功'); closeMsgModal(); }
+                else alert(result.error);
+            } catch (err) { alert('网络错误'); }
         });
 
         loadUsers();
