@@ -24,37 +24,28 @@ export async function onRequest(context) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
-
     if (request.method !== 'GET') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: CORS_HEADERS });
     }
 
-    const cookieHeader = request.headers.get('Cookie') || '';
-    const sessionMatch = cookieHeader.match(/session=([^;]+)/);
+    const cookie = request.headers.get('Cookie') || '';
+    const sessionMatch = cookie.match(/session=([^;]+)/);
     if (!sessionMatch) {
-        return new Response(JSON.stringify({ error: '请先登录' }), {
-            status: 401,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: '请先登录' }), { status: 401, headers: CORS_HEADERS });
     }
 
     try {
-        const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
-        const uid = sessionData.uid;
+        const userData = JSON.parse(base64ToUtf8(sessionMatch[1]));
+        const uid = userData.uid;
 
         const messages = await db.getInbox(uid);
+        // 返回时，如果 fromUid 为 'admin' 且 type 为 'system'，可添加标识
         return new Response(JSON.stringify({ messages }), {
             status: 200,
             headers: CORS_HEADERS
         });
     } catch (error) {
-        return new Response(JSON.stringify({
-            error: '服务器错误',
-            detail: error.message
-        }), {
+        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), {
             status: 500,
             headers: CORS_HEADERS
         });

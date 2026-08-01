@@ -37,7 +37,6 @@ export async function onRequest(context) {
     try {
         const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
         const fromUid = sessionData.uid;
-        const fromName = sessionData.name;
 
         const formData = await request.formData();
         const toUid = formData.get('toUid');
@@ -46,8 +45,6 @@ export async function onRequest(context) {
         if (!toUid || !content) {
             return new Response(JSON.stringify({ error: '收件人或内容不能为空' }), { status: 400, headers: CORS_HEADERS });
         }
-
-        // 字数限制（500字）
         if (content.length > 500) {
             return new Response(JSON.stringify({ error: '私信内容不能超过500字' }), { status: 400, headers: CORS_HEADERS });
         }
@@ -56,15 +53,23 @@ export async function onRequest(context) {
         const words = await db.getSensitiveWords();
         content = db.filterSensitive(content, words);
 
+        // 允许发送给 admin 或普通用户
         const target = await db.findUserByUid(toUid);
-        if (!target) {
+        if (toUid !== 'admin' && !target) {
             return new Response(JSON.stringify({ error: '收件人不存在' }), { status: 404, headers: CORS_HEADERS });
         }
 
-        const msg = await db.sendMessage(fromUid, toUid, content);
-        await db.addNotification(toUid, 'message', `您收到来自 ${fromName} 的私信：${content.substring(0, 30)}${content.length > 30 ? '...' : ''}`, `/inbox.html`);
+        // 如果是发送给 admin，直接允许；否则检查是否为联系人（可选）
+        // 这里不强制要求是联系人，允许任何人给 admin 发消息
+        const msg = await db.sendMessage(fromUid, toUid, content, 'user');
 
-        return new Response(JSON.stringify({ success: true, message: msg }), { status: 200, headers: CORS_HEADERS });
+        // 如果是发送给 admin，不需要额外通知；如果是普通用户，可以添加系统通知（但已取消通知，直接通过消息即可）
+        // 但如果发给普通用户，对方可以在收件箱看到
+
+        return new Response(JSON.stringify({ success: true, message: msg }), {
+            status: 200,
+            headers: CORS_HEADERS
+        });
     } catch (error) {
         return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), { status: 500, headers: CORS_HEADERS });
     }

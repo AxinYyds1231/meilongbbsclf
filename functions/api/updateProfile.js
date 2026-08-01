@@ -58,8 +58,15 @@ export async function onRequest(context) {
         if (!updated) {
             return new Response(JSON.stringify({ error: '用户不存在' }), { status: 404, headers: CORS_HEADERS });
         }
-        return new Response(JSON.stringify({ success: true, bio: updated.bio }), { status: 200, headers: CORS_HEADERS });
+
+        return new Response(JSON.stringify({ success: true, bio: updated.bio }), {
+            status: 200,
+            headers: CORS_HEADERS
+        });
     } catch (error) {
-        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), { status: 500, headers: CORS_HEADERS });
+        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), {
+            status: 500,
+            headers: CORS_HEADERS
+        });
     }
 }

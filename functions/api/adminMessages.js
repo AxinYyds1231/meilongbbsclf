@@ -1,4 +1,4 @@
-// functions/api/notifications.js
+// functions/api/adminMessages.js
 import { createDb } from '../utils/db.js';
 
 function base64ToUtf8(base64) {
@@ -24,37 +24,32 @@ export async function onRequest(context) {
     if (request.method === 'OPTIONS') {
         return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
-
     if (request.method !== 'GET') {
-        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), {
-            status: 405,
-            headers: CORS_HEADERS
-        });
+        return new Response(JSON.stringify({ error: 'Method Not Allowed' }), { status: 405, headers: CORS_HEADERS });
     }
 
     const cookieHeader = request.headers.get('Cookie') || '';
-    const sessionMatch = cookieHeader.match(/session=([^;]+)/);
-    if (!sessionMatch) {
-        return new Response(JSON.stringify({ error: '请先登录' }), {
-            status: 401,
-            headers: CORS_HEADERS
-        });
+    const adminMatch = cookieHeader.match(/adminSession=([^;]+)/);
+    if (!adminMatch) {
+        return new Response(JSON.stringify({ error: '未登录' }), { status: 401, headers: CORS_HEADERS });
+    }
+    let isAdmin = false;
+    try {
+        const adminData = JSON.parse(base64ToUtf8(adminMatch[1]));
+        if (adminData.isAdmin) isAdmin = true;
+    } catch (e) {}
+    if (!isAdmin) {
+        return new Response(JSON.stringify({ error: '无权限' }), { status: 403, headers: CORS_HEADERS });
     }
 
     try {
-        const sessionData = JSON.parse(base64ToUtf8(sessionMatch[1]));
-        const uid = sessionData.uid;
-
-        const notifications = await db.getNotificationsForUser(uid);
-        return new Response(JSON.stringify({ notifications }), {
+        const messages = await db.getAdminMessages();
+        return new Response(JSON.stringify({ messages }), {
             status: 200,
             headers: CORS_HEADERS
         });
     } catch (error) {
-        return new Response(JSON.stringify({
-            error: '服务器错误',
-            detail: error.message
-        }), {
+        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), {
             status: 500,
             headers: CORS_HEADERS
         });

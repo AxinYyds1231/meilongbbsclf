@@ -45,19 +45,28 @@ export async function onRequest(context) {
     try {
         const formData = await request.formData();
         const toUid = formData.get('toUid');
-        const content = formData.get('content');
+        let content = formData.get('content');
         if (!toUid || !content) {
             return new Response(JSON.stringify({ error: '收件人或内容不能为空' }), { status: 400, headers: CORS_HEADERS });
         }
-
-        const target = await db.findUserByUid(toUid);
-        if (!target) {
-            return new Response(JSON.stringify({ error: '收件人不存在' }), { status: 404, headers: CORS_HEADERS });
+        if (content.length > 500) {
+            return new Response(JSON.stringify({ error: '消息内容不能超过500字' }), { status: 400, headers: CORS_HEADERS });
         }
 
-        const msg = await db.sendMessage('admin', toUid, content);
-        await db.addNotification(toUid, 'message', `管理员给您发送了私信：${content.substring(0, 30)}${content.length > 30 ? '...' : ''}`, `/inbox.html`);
+        // 敏感词过滤
+        const words = await db.getSensitiveWords();
+        content = db.filterSensitive(content, words);
 
+        // 检查收件人是否存在（但 admin 也可以给 admin 发？不需要）
+        if (toUid !== 'admin') {
+            const target = await db.findUserByUid(toUid);
+            if (!target) {
+                return new Response(JSON.stringify({ error: '收件人不存在' }), { status: 404, headers: CORS_HEADERS });
+            }
+        }
+
+        // 发件人为 'admin'
+        const msg = await db.sendMessage('admin', toUid, content, 'user');
         return new Response(JSON.stringify({ success: true, message: msg }), {
             status: 200,
             headers: CORS_HEADERS
