@@ -17,7 +17,7 @@ const CORS_HEADERS = {
     'Content-Type': 'application/json'
 };
 
-const MAX_AVATAR_SIZE = 2 * 1024 * 1024;
+const MAX_AVATAR_SIZE = 2 * 1024 * 1024; // 2MB
 
 export async function onRequest(context) {
     const { request, env } = context;
@@ -80,6 +80,9 @@ export async function onRequest(context) {
             headers: CORS_HEADERS
         });
     } catch (error) {
-        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), { status: 500, headers: CORS_HEADERS });
+        return new Response(JSON.stringify({ error: '服务器错误', detail: error.message }), {
+            status: 500,
+            headers: CORS_HEADERS
+        });
     }
 }

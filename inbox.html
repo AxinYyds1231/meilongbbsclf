@@ -7,211 +7,48 @@
     <link rel="stylesheet" href="/style.css">
     <style>
         .app-wrapper { max-width: 1400px; }
-        .chat-container {
-            display: flex;
-            height: 100%;
-            gap: 0;
-            background: rgba(255,255,255,0.2);
-            backdrop-filter: blur(4px);
-            border-radius: 16px;
-            overflow: hidden;
-        }
-        .contact-list {
-            width: 260px;
-            min-width: 260px;
-            background: rgba(255,255,255,0.3);
-            border-right: 1px solid rgba(0,0,0,0.06);
-            display: flex;
-            flex-direction: column;
-            max-height: 70vh;
-        }
-        .contact-list .header {
-            padding: 12px 16px;
-            font-weight: 600;
-            border-bottom: 1px solid rgba(0,0,0,0.06);
-            background: rgba(255,255,255,0.2);
-        }
-        .contact-list .search-area {
-            padding: 8px 12px;
-            border-bottom: 1px solid rgba(0,0,0,0.06);
-        }
-        .contact-list .search-area input {
-            width: 100%;
-            padding: 4px 10px;
-            border-radius: 20px;
-            border: 1px solid rgba(0,0,0,0.06);
-            background: rgba(255,255,255,0.4);
-            font-size: 0.9rem;
-        }
-        .contact-list .search-results {
-            padding: 4px 8px;
-            max-height: 120px;
-            overflow-y: auto;
-        }
-        .contact-list .contacts {
-            flex: 1;
-            overflow-y: auto;
-            padding: 4px 0;
-        }
-        .contact-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 14px;
-            cursor: pointer;
-            transition: background 0.15s;
-            gap: 10px;
-            border-bottom: 1px solid rgba(0,0,0,0.02);
-        }
+        .chat-container { display: flex; height: 100%; gap: 0; background: rgba(255,255,255,0.2); backdrop-filter: blur(4px); border-radius: 16px; overflow: hidden; }
+        .contact-list { width: 260px; min-width: 260px; background: rgba(255,255,255,0.3); border-right: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; max-height: 70vh; }
+        .contact-list .header { padding: 12px 16px; font-weight: 600; border-bottom: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.2); }
+        .contact-list .search-area { padding: 8px 12px; border-bottom: 1px solid rgba(0,0,0,0.06); }
+        .contact-list .search-area input { width: 100%; padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.4); font-size: 0.9rem; }
+        .contact-list .search-results { padding: 4px 8px; max-height: 120px; overflow-y: auto; }
+        .contact-list .contacts { flex: 1; overflow-y: auto; padding: 4px 0; }
+        .contact-item { display: flex; align-items: center; padding: 8px 14px; cursor: pointer; transition: background 0.15s; gap: 10px; border-bottom: 1px solid rgba(0,0,0,0.02); }
         .contact-item:hover { background: rgba(255,255,255,0.3); }
         .contact-item.active { background: rgba(26,60,110,0.08); }
-        .contact-item .avatar {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 1px solid rgba(255,255,255,0.5);
-        }
-        .contact-item .info {
-            flex: 1;
-            overflow: hidden;
-        }
-        .contact-item .info .name {
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-        .contact-item .info .last-msg {
-            font-size: 0.8rem;
-            color: #6b7a8a;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .contact-item .unread-badge {
-            background: #d9534f;
-            color: #fff;
-            border-radius: 50%;
-            padding: 0px 6px;
-            font-size: 0.7rem;
-            min-width: 18px;
-            text-align: center;
-            line-height: 18px;
-        }
+        .contact-item .avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.5); }
+        .contact-item .info { flex: 1; overflow: hidden; }
+        .contact-item .info .name { font-weight: 500; font-size: 0.95rem; }
+        .contact-item .info .last-msg { font-size: 0.8rem; color: #6b7a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .contact-item .unread-badge { background: #d9534f; color: #fff; border-radius: 50%; padding: 0px 6px; font-size: 0.7rem; min-width: 18px; text-align: center; line-height: 18px; }
 
-        .chat-window {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            background: rgba(255,255,255,0.1);
-        }
-        .chat-window .chat-header {
-            padding: 10px 16px;
-            border-bottom: 1px solid rgba(0,0,0,0.06);
-            background: rgba(255,255,255,0.15);
-            font-weight: 500;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .chat-window .chat-header img {
-            width: 30px;
-            height: 30px;
-            border-radius: 50%;
-        }
-        .chat-messages {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .chat-message {
-            max-width: 75%;
-            padding: 6px 12px;
-            border-radius: 16px;
-            word-wrap: break-word;
-            position: relative;
-        }
-        .chat-message .sender-name {
-            font-size: 0.7rem;
-            color: #6b7a8a;
-            margin-bottom: 2px;
-        }
-        .chat-message .time {
-            font-size: 0.6rem;
-            color: #8b9aab;
-            margin-left: 6px;
-        }
-        .chat-message.sent {
-            align-self: flex-end;
-            background: #1a3c6e;
-            color: #fff;
-            border-bottom-right-radius: 4px;
-        }
+        .chat-window { flex: 1; display: flex; flex-direction: column; background: rgba(255,255,255,0.1); }
+        .chat-window .chat-header { padding: 10px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.15); font-weight: 500; display: flex; align-items: center; gap: 8px; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 6px; }
+        .chat-message { max-width: 75%; padding: 6px 12px; border-radius: 16px; word-wrap: break-word; position: relative; }
+        .chat-message .sender-name { font-size: 0.7rem; color: #6b7a8a; margin-bottom: 2px; }
+        .chat-message .time { font-size: 0.6rem; color: #8b9aab; margin-left: 6px; }
+        .chat-message.sent { align-self: flex-end; background: #1a3c6e; color: #fff; border-bottom-right-radius: 4px; }
         .chat-message.sent .sender-name { color: rgba(255,255,255,0.6); }
-        .chat-message.received {
-            align-self: flex-start;
-            background: rgba(255,255,255,0.6);
-            border-bottom-left-radius: 4px;
-        }
-        .chat-message.system {
-            align-self: center;
-            background: rgba(0,0,0,0.04);
-            color: #6b7a8a;
-            font-size: 0.8rem;
-            padding: 4px 12px;
-            border-radius: 12px;
-            max-width: 90%;
-        }
-        .chat-input {
-            display: flex;
-            gap: 8px;
-            padding: 10px 16px;
-            border-top: 1px solid rgba(0,0,0,0.06);
-            background: rgba(255,255,255,0.1);
-        }
-        .chat-input textarea {
-            flex: 1;
-            padding: 6px 12px;
-            border-radius: 20px;
-            border: 1px solid rgba(0,0,0,0.06);
-            background: rgba(255,255,255,0.4);
-            resize: none;
-            font-family: inherit;
-            font-size: 0.95rem;
-            height: 40px;
-        }
-        .chat-input button {
-            align-self: flex-end;
-            height: 40px;
-        }
-        .empty-state {
-            color: #999;
-            text-align: center;
-            padding: 40px 0;
-            font-size: 0.95rem;
-        }
-        @media (max-width: 768px) {
-            .contact-list { width: 100%; min-width: unset; max-height: 150px; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.06); }
-            .chat-container { flex-direction: column; }
-        }
-        .sidebar-nav a {
-            display: flex;
-            align-items: center;
-            padding: 8px 16px;
-            color: #1a2332;
-            text-decoration: none;
-            border-radius: 8px;
-            margin: 0 8px;
-            gap: 8px;
-        }
-        .sidebar-nav a:hover { background: rgba(26,60,110,0.06); }
-        .sidebar-nav a.active { background: rgba(26,60,110,0.1); color: #1a3c6e; font-weight: 500; }
+        .chat-message.received { align-self: flex-start; background: rgba(255,255,255,0.6); border-bottom-left-radius: 4px; }
+        .chat-message.system { align-self: center; background: rgba(0,0,0,0.04); color: #6b7a8a; font-size: 0.8rem; padding: 4px 12px; border-radius: 12px; max-width: 90%; }
+        .chat-input { display: flex; gap: 8px; padding: 10px 16px; border-top: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.1); }
+        .chat-input textarea { flex: 1; padding: 6px 12px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.4); resize: none; font-family: inherit; font-size: 0.95rem; height: 40px; }
+        .chat-input button { align-self: flex-end; height: 40px; }
+        .empty-state { color: #999; text-align: center; padding: 40px 0; font-size: 0.95rem; }
         .btn-sm { padding: 3px 12px; font-size: 0.8rem; }
         .btn-primary { background: #1a3c6e; color: #fff; border: none; padding: 6px 18px; border-radius: 30px; cursor: pointer; }
         .btn-primary:hover { background: #2a5a8e; }
         .btn-secondary { background: rgba(0,0,0,0.06); color: #1a2332; border: 1px solid rgba(0,0,0,0.06); padding: 6px 18px; border-radius: 30px; cursor: pointer; }
         .avatar-sm { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+        .sidebar-nav a { display: flex; align-items: center; padding: 8px 16px; color: #1a2332; text-decoration: none; border-radius: 8px; margin: 0 8px; gap: 8px; }
+        .sidebar-nav a:hover { background: rgba(26,60,110,0.06); }
+        .sidebar-nav a.active { background: rgba(26,60,110,0.1); color: #1a3c6e; font-weight: 500; }
+        @media (max-width: 768px) {
+            .contact-list { width: 100%; min-width: unset; max-height: 150px; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.06); }
+            .chat-container { flex-direction: column; }
+        }
     </style>
 </head>
 <body>
@@ -228,7 +65,6 @@
 
         <main class="main-content" style="padding:16px 20px;">
             <div class="chat-container">
-                <!-- 左侧联系人列表 -->
                 <div class="contact-list">
                     <div class="header">联系人</div>
                     <div class="search-area">
@@ -238,14 +74,9 @@
                     <div class="contacts" id="contacts">加载中...</div>
                 </div>
 
-                <!-- 右侧聊天窗口 -->
                 <div class="chat-window">
-                    <div class="chat-header" id="chatHeader">
-                        <span>选择联系人开始聊天</span>
-                    </div>
-                    <div class="chat-messages" id="chatMessages">
-                        <div class="empty-state">暂无消息</div>
-                    </div>
+                    <div class="chat-header" id="chatHeader"><span>选择联系人开始聊天</span></div>
+                    <div class="chat-messages" id="chatMessages"><div class="empty-state">暂无消息</div></div>
                     <div class="chat-input" id="chatInput" style="display:none;">
                         <textarea id="msgContent" rows="1" placeholder="输入消息..." maxlength="500"></textarea>
                         <button id="sendBtn" class="btn-primary btn-sm">发送</button>
@@ -261,18 +92,13 @@
         let allMessages = [];
         let currentUser = null;
 
-        // ---- 获取当前用户 ----
         async function getCurrentUser() {
             try {
                 const res = await fetch('/api/user', { credentials: 'include' });
-                if (res.status === 200) {
-                    const data = await res.json();
-                    currentUser = data.user;
-                }
+                if (res.status === 200) { const data = await res.json(); currentUser = data.user; }
             } catch (e) {}
         }
 
-        // ---- 加载联系人 ----
         async function loadContacts() {
             const container = document.getElementById('contacts');
             container.innerHTML = '加载中...';
@@ -291,9 +117,7 @@
                 }
 
                 const map = {};
-                // 从消息中提取联系人
                 msgs.forEach(m => {
-                    // 确定对方是谁
                     let contactUid;
                     if (m.fromUid === currentUser?.uid) {
                         contactUid = m.toUid;
@@ -310,13 +134,9 @@
                         if (!m.read) map[contactUid].unread = true;
                     }
                 });
-                // 添加已保存联系人
                 savedContacts.forEach(uid => {
-                    if (!map[uid]) {
-                        map[uid] = { uid, lastMsg: '暂无消息', lastTime: 0, unread: false };
-                    }
+                    if (!map[uid]) map[uid] = { uid, lastMsg: '暂无消息', lastTime: 0, unread: false };
                 });
-                // 确保 admin 存在（如果不是当前用户）
                 if (currentUser?.uid !== 'admin' && !map['admin']) {
                     map['admin'] = { uid: 'admin', lastMsg: '管理员', lastTime: 0, unread: false };
                 }
@@ -364,7 +184,6 @@
             });
         }
 
-        // ---- 选择联系人 ----
         async function selectContact(uid) {
             currentContact = uid;
             renderContacts();
@@ -377,14 +196,11 @@
                 const data = await res.json();
                 const msgs = Array.isArray(data.messages) ? data.messages : [];
 
-                // 关键修复：过滤出与当前联系人的所有消息（包括自己发送的）
                 const filtered = msgs.filter(m => {
-                    // 发送者和接收者中，一个等于当前用户，另一个等于选中的联系人（或 admin）
                     const fromMe = m.fromUid === currentUser?.uid;
                     const toMe = m.toUid === currentUser?.uid;
                     const fromContact = m.fromUid === uid;
                     const toContact = m.toUid === uid;
-                    // 如果当前用户是 admin，则需要特殊处理，但逻辑类似
                     return (fromMe && toContact) || (toMe && fromContact) ||
                            (m.fromUid === 'admin' && m.toUid === currentUser?.uid) ||
                            (m.toUid === 'admin' && m.fromUid === currentUser?.uid);
@@ -396,7 +212,7 @@
 
                 document.getElementById('chatInput').style.display = 'flex';
 
-                // 标记已读
+                // 自动标记已读（去掉手动标记按钮）
                 for (let m of filtered) {
                     if (!m.read && m.fromUid === uid) {
                         await fetch('/api/readMessage', {
@@ -438,7 +254,6 @@
             container.scrollTop = container.scrollHeight;
         }
 
-        // ---- 发送消息 ----
         document.getElementById('sendBtn').addEventListener('click', async function() {
             const content = document.getElementById('msgContent').value.trim();
             if (!content || !currentContact) return;
@@ -457,7 +272,6 @@
             } catch (err) { alert('网络错误'); }
         });
 
-        // ---- 搜索用户 ----
         document.getElementById('searchInput').addEventListener('input', function() {
             const q = this.value.trim();
             const container = document.getElementById('searchResults');
@@ -504,7 +318,6 @@
                 .catch(err => console.error(err));
         });
 
-        // ---- 未读小红点 ----
         async function updateBadge() {
             try {
                 const res = await fetch('/api/inbox', { credentials: 'include' });
@@ -520,7 +333,6 @@
             } catch (e) {}
         }
 
-        // ---- 初始化 ----
         (async function init() {
             await getCurrentUser();
             loadContacts();

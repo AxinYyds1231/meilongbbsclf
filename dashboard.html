@@ -25,6 +25,30 @@
             border-radius: 50%;
             object-fit: cover;
         }
+        .profile-card .avatar-upload {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: center;
+        }
+        .profile-card .avatar-upload input[type="file"] {
+            font-size: 0.75rem;
+            max-width: 120px;
+        }
+        .profile-card .avatar-upload .btn-upload {
+            background: rgba(26,60,110,0.1);
+            border: 1px solid rgba(26,60,110,0.15);
+            padding: 2px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            color: #1a3c6e;
+            transition: 0.2s;
+        }
+        .profile-card .avatar-upload .btn-upload:hover {
+            background: #1a3c6e;
+            color: #fff;
+        }
         .profile-card .info { flex: 1; }
         .profile-card .info h2 { margin:0; font-size:1.2rem; }
         .profile-card .info .level { font-size:0.9rem; color:#b8860b; }
@@ -58,6 +82,10 @@
             <h1 class="page-title">👤 我的账户</h1>
             <div id="userInfo" class="profile-card">
                 <img id="avatarImg" class="avatar" src="" alt="头像">
+                <div class="avatar-upload">
+                    <input type="file" id="avatarInput" accept="image/*">
+                    <button id="uploadAvatarBtn" class="btn-upload">📷 上传头像</button>
+                </div>
                 <div class="info">
                     <h2 id="userName">用户</h2>
                     <span class="level" id="levelBadge">🌱 新手</span>
@@ -126,6 +154,30 @@
                 document.getElementById('userInfo').innerHTML = '<div style="color:red;">加载失败</div>';
             }
         }
+
+        // ---- 头像上传 ----
+        document.getElementById('uploadAvatarBtn')?.addEventListener('click', async function() {
+            const fileInput = document.getElementById('avatarInput');
+            if (!fileInput.files.length) { alert('请先选择图片'); return; }
+            const fd = new FormData();
+            fd.append('avatar', fileInput.files[0]);
+            try {
+                const res = await fetch('/api/uploadAvatar', {
+                    method: 'POST',
+                    credentials: 'include',
+                    body: fd
+                });
+                const result = await res.json();
+                if (result.success) {
+                    document.getElementById('avatarImg').src = result.avatar;
+                    alert('✅ 头像更新成功！');
+                } else {
+                    alert(result.error || '上传失败');
+                }
+            } catch (err) {
+                alert('网络错误，请重试');
+            }
+        });
 
         // ---- 保存简介 ----
         document.getElementById('saveBioBtn').addEventListener('click', async function() {
