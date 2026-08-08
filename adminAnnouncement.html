@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>公告管理</title>
-	<link rel="icon" href="/favicon.png" type="image/png">
     <link rel="stylesheet" href="/style.css">
     <style>
         .app-wrapper { max-width: 1400px; }
@@ -83,7 +82,7 @@
                 <a href="/adminCategories.html">📂 分类管理</a>
                 <a href="/adminSensitive.html">🛡️ 敏感词</a>
                 <a href="/adminAnnouncement.html" class="active">📢 公告</a>
-				<a href="/adminMessages.html">📩 消息管理</a>
+                <a href="/adminMessages.html">📩 消息管理</a>
             </nav>
             <div style="padding:16px; margin-top:auto; border-top:1px solid rgba(0,0,0,0.04);">
                 <button onclick="location.href='/adminLogin.html'" class="btn-secondary btn-sm" style="width:100%;">🚪 退出管理</button>
@@ -106,9 +105,12 @@
             <input type="hidden" id="editId">
             <input type="text" id="editTitle" placeholder="标题">
             <textarea id="editContent" rows="4" placeholder="内容"></textarea>
-            <div style="display:flex; gap:12px; margin-top:6px;">
+            <div style="display:flex; gap:12px; margin-top:6px; flex-wrap:wrap;">
                 <label><input type="checkbox" id="editPinned"> 置顶</label>
-                <label style="flex:1;">过期时间（时间戳）：<input type="number" id="editExpires" placeholder="可选" style="width:100%;"></label>
+                <label style="flex:1; display:flex; align-items:center; gap:6px;">
+                    <span>过期时间：</span>
+                    <input type="datetime-local" id="editExpires" style="flex:1; padding:4px 8px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.5);">
+                </label>
             </div>
             <div class="modal-actions">
                 <button id="saveBtn" class="btn-primary">保存</button>
@@ -144,10 +146,11 @@
             let html = '';
             currentAnnouncements.forEach(a => {
                 const time = new Date(a.createdAt).toLocaleString('zh-CN');
+                const expires = a.expiresAt ? new Date(a.expiresAt).toLocaleString('zh-CN') : '永不过期';
                 html += `
                     <div class="ann-item">
                         <div class="ann-title">${a.isPinned ? '📌 ' : ''}${a.title}</div>
-                        <div class="ann-meta">${time} ${a.expiresAt ? `· 过期: ${new Date(a.expiresAt).toLocaleString()}` : ''}</div>
+                        <div class="ann-meta">${time} · 过期: ${expires}</div>
                         <div style="margin:4px 0;">${a.content}</div>
                         <div class="ann-actions">
                             <button class="edit-btn" data-id="${a.id}">编辑</button>
@@ -184,10 +187,25 @@
             document.getElementById('editTitle').value = ann ? ann.title : '';
             document.getElementById('editContent').value = ann ? ann.content : '';
             document.getElementById('editPinned').checked = ann ? ann.isPinned : false;
-            document.getElementById('editExpires').value = ann && ann.expiresAt ? ann.expiresAt : '';
+
+            // 处理过期时间
+            const expiresInput = document.getElementById('editExpires');
+            if (ann && ann.expiresAt) {
+                const date = new Date(ann.expiresAt);
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                expiresInput.value = `${year}-${month}-${day}T${hours}:${minutes}`;
+            } else {
+                expiresInput.value = '';
+            }
+
             document.getElementById('modalTitle').textContent = ann ? '编辑公告' : '新建公告';
             document.getElementById('editModal').style.display = 'flex';
         }
+
         function closeModal() { document.getElementById('editModal').style.display = 'none'; }
         document.getElementById('editModal').addEventListener('click', function(e) {
             if (e.target === this) closeModal();
@@ -200,8 +218,14 @@
             const title = document.getElementById('editTitle').value.trim();
             const content = document.getElementById('editContent').value.trim();
             const isPinned = document.getElementById('editPinned').checked;
-            const expiresAt = parseInt(document.getElementById('editExpires').value) || null;
+            const expiresValue = document.getElementById('editExpires').value;
+            let expiresAt = null;
+            if (expiresValue) {
+                expiresAt = new Date(expiresValue).getTime(); // 转为毫秒时间戳
+            }
+
             if (!title || !content) { alert('标题和内容不能为空'); return; }
+
             const fd = new FormData();
             fd.append('title', title);
             fd.append('content', content);
