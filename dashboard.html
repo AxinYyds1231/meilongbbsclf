@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>个人中心</title>
-	<link rel="icon" href="/favicon.png" type="image/png">
     <link rel="stylesheet" href="/style.css">
     <style>
         .app-wrapper { max-width: 1400px; }
@@ -59,9 +58,24 @@
         .profile-card .bio-section textarea { width:100%; padding:6px 10px; border-radius:12px; border:1px solid rgba(0,0,0,0.06); background:rgba(255,255,255,0.5); }
         .list-item { background:rgba(255,255,255,0.3); backdrop-filter:blur(4px); border:1px solid rgba(255,255,255,0.5); padding:10px 14px; border-radius:12px; margin-bottom:6px; cursor:pointer; transition:0.15s; }
         .list-item:hover { background:rgba(255,255,255,0.6); }
-        .sidebar-nav a { display:flex; align-items:center; padding:8px 16px; color:#1a2332; text-decoration:none; border-radius:8px; margin:0 8px; gap:8px; }
-        .sidebar-nav a:hover { background:rgba(26,60,110,0.06); }
-        .sidebar-nav a.active { background:rgba(26,60,110,0.1); color:#1a3c6e; font-weight:500; }
+        .sidebar-nav a {
+            display: flex;
+            align-items: center;
+            padding: 8px 16px;
+            color: #1a2332;
+            text-decoration: none;
+            border-radius: 8px;
+            margin: 0 8px;
+            gap: 8px;
+        }
+        .sidebar-nav a:hover { background: rgba(26,60,110,0.06); }
+        .sidebar-nav a.active { background: rgba(26,60,110,0.1); color: #1a3c6e; font-weight: 500; }
+        .btn-sm { padding: 3px 12px; font-size: 0.8rem; }
+        .btn-primary { background: #1a3c6e; color: #fff; border: none; padding: 6px 18px; border-radius: 30px; cursor: pointer; }
+        .btn-primary:hover { background: #2a5a8e; }
+        .btn-secondary { background: rgba(0,0,0,0.06); color: #1a2332; border: 1px solid rgba(0,0,0,0.06); padding: 6px 18px; border-radius: 30px; cursor: pointer; }
+        .btn-danger { background: rgba(217,83,79,0.12); color: #d9534f; border: 1px solid rgba(217,83,79,0.15); padding: 6px 18px; border-radius: 30px; cursor: pointer; }
+        .btn-danger:hover { background: #d9534f; color: #fff; }
     </style>
 </head>
 <body>

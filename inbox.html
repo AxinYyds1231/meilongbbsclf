@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>私信</title>
-	<link rel="icon" href="/favicon.png" type="image/png">
     <link rel="stylesheet" href="/style.css">
     <style>
         .app-wrapper { max-width: 1400px; }
@@ -22,7 +21,6 @@
         .contact-item .info { flex: 1; overflow: hidden; }
         .contact-item .info .name { font-weight: 500; font-size: 0.95rem; }
         .contact-item .info .last-msg { font-size: 0.8rem; color: #6b7a8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .contact-item .unread-badge { background: #d9534f; color: #fff; border-radius: 50%; padding: 0px 6px; font-size: 0.7rem; min-width: 18px; text-align: center; line-height: 18px; }
 
         .chat-window { flex: 1; display: flex; flex-direction: column; background: rgba(255,255,255,0.1); }
         .chat-window .chat-header { padding: 10px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.15); font-weight: 500; display: flex; align-items: center; gap: 8px; }
@@ -100,19 +98,17 @@
             } catch (e) {}
         }
 
-        // ---- 加载联系人（含头像） ----
+        // ---- 加载联系人 ----
         async function loadContacts() {
             const container = document.getElementById('contacts');
             container.innerHTML = '加载中...';
             try {
-                // 1. 获取消息
                 const inboxRes = await fetch('/api/inbox', { credentials: 'include' });
                 if (inboxRes.status === 401) { window.location.href = '/login.html'; return; }
                 if (!inboxRes.ok) throw new Error(`HTTP ${inboxRes.status}`);
                 const inboxData = await inboxRes.json();
                 const msgs = Array.isArray(inboxData.messages) ? inboxData.messages : [];
 
-                // 2. 获取联系人列表（包含头像）
                 const contactsRes = await fetch('/api/contacts', { credentials: 'include' });
                 let savedContacts = [];
                 if (contactsRes.ok) {
@@ -120,30 +116,30 @@
                     savedContacts = Array.isArray(contactsData.contacts) ? contactsData.contacts : [];
                 }
 
-                // 3. 构建联系人映射
+                // 构建联系人映射（只保留与当前用户有往来的）
                 const map = {};
-                // 先从消息中提取
                 msgs.forEach(m => {
+                    // 确定对方是谁：如果发送者是当前用户，则对方是接收者，否则发送者是对方
                     let contactUid;
                     if (m.fromUid === currentUser?.uid) {
                         contactUid = m.toUid;
                     } else {
                         contactUid = m.fromUid;
                     }
+                    // 忽略自己发给自己（无意义）
+                    if (contactUid === currentUser?.uid) return;
                     if (!map[contactUid]) {
                         map[contactUid] = {
                             uid: contactUid,
                             lastMsg: m.content,
                             lastTime: m.sentAt,
-                            unread: !m.read,
-                            avatar: '' // 暂为空
+                            avatar: ''
                         };
                     } else {
                         if (m.sentAt > map[contactUid].lastTime) {
                             map[contactUid].lastMsg = m.content;
                             map[contactUid].lastTime = m.sentAt;
                         }
-                        if (!m.read) map[contactUid].unread = true;
                     }
                 });
 
@@ -153,19 +149,22 @@
                     if (map[uid]) {
                         if (contact.avatar) map[uid].avatar = contact.avatar;
                     } else {
+                        // 如果联系人没有消息记录，也显示（但这种情况很少）
                         map[uid] = {
                             uid: contact.uid,
                             lastMsg: '暂无消息',
                             lastTime: 0,
-                            unread: false,
                             avatar: contact.avatar || ''
                         };
                     }
                 });
 
-                // 添加 admin（特殊账号）
-                if (currentUser?.uid !== 'admin' && !map['admin']) {
-                    map['admin'] = { uid: 'admin', lastMsg: '管理员', lastTime: 0, unread: false, avatar: '' };
+                // 确保 admin 存在（如果当前用户不是 admin 且有消息记录）
+                if (currentUser?.uid !== 'admin' && map['admin']) {
+                    // 已存在
+                } else if (currentUser?.uid !== 'admin') {
+                    // 主动添加 admin 联系人（即使没有消息记录，方便用户联系管理员）
+                    map['admin'] = { uid: 'admin', lastMsg: '点击联系管理员', lastTime: 0, avatar: '' };
                 }
 
                 allContacts = Object.values(map).sort((a, b) => b.lastTime - a.lastTime);
@@ -191,7 +190,6 @@
             let html = '';
             allContacts.forEach(c => {
                 const active = currentContact === c.uid ? 'active' : '';
-                const unread = c.unread ? `<span class="unread-badge">●</span>` : '';
                 const displayName = c.uid === 'admin' ? '🔔 管理员' : c.uid;
                 html += `
                     <div class="contact-item ${active}" data-uid="${c.uid}">
@@ -200,7 +198,6 @@
                             <div class="name">${displayName}</div>
                             <div class="last-msg">${c.lastMsg}</div>
                         </div>
-                        ${unread}
                     </div>
                 `;
             });
@@ -225,14 +222,10 @@
                 const data = await res.json();
                 const msgs = Array.isArray(data.messages) ? data.messages : [];
 
+                // 修复：只保留双方为当前用户和选中联系人的消息
                 const filtered = msgs.filter(m => {
-                    const fromMe = m.fromUid === currentUser?.uid;
-                    const toMe = m.toUid === currentUser?.uid;
-                    const fromContact = m.fromUid === uid;
-                    const toContact = m.toUid === uid;
-                    return (fromMe && toContact) || (toMe && fromContact) ||
-                           (m.fromUid === 'admin' && m.toUid === currentUser?.uid) ||
-                           (m.toUid === 'admin' && m.fromUid === currentUser?.uid);
+                    const participants = [m.fromUid, m.toUid];
+                    return participants.includes(currentUser?.uid) && participants.includes(uid);
                 });
 
                 filtered.sort((a, b) => a.sentAt - b.sentAt);
@@ -240,18 +233,6 @@
                 renderMessages();
 
                 document.getElementById('chatInput').style.display = 'flex';
-
-                // 自动标记已读
-                for (let m of filtered) {
-                    if (!m.read && m.fromUid === uid) {
-                        await fetch('/api/readMessage', {
-                            method: 'POST',
-                            credentials: 'include',
-                            body: new FormData().append('msgId', m.id)
-                        });
-                    }
-                }
-                updateBadge();
             } catch (err) {
                 console.error(err);
                 document.getElementById('chatMessages').innerHTML = '<div style="color:red;">加载消息失败</div>';
@@ -349,22 +330,7 @@
                 .catch(err => console.error(err));
         });
 
-        // ---- 未读小红点 ----
-        async function updateBadge() {
-            try {
-                const res = await fetch('/api/inbox', { credentials: 'include' });
-                if (res.status === 200) {
-                    const data = await res.json();
-                    const unread = Array.isArray(data.messages) ? data.messages.filter(m => !m.read).length : 0;
-                    const badge = document.querySelector('.sidebar-nav .badge');
-                    if (badge) {
-                        if (unread > 0) { badge.textContent = unread; badge.style.display = 'inline-block'; }
-                        else { badge.style.display = 'none'; }
-                    }
-                }
-            } catch (e) {}
-        }
-
+        // ---- 初始化 ----
         (async function init() {
             await getCurrentUser();
             loadContacts();
