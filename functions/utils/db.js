@@ -52,6 +52,13 @@ export function createDb(kv) {
         await updateUser(uid, { points: newPoints });
         return newPoints;
     }
+    async function updateLastActive(uid) {
+        const user = await findUserByUid(uid);
+        if (!user) return null;
+        const now = Date.now();
+        await updateUser(uid, { lastActive: now });
+        return now;
+    }
 
     // ---- 验证（同步） ----
     function isValidUID(uid) {
@@ -264,8 +271,7 @@ export function createDb(kv) {
             toUid,
             content,
             type,
-            sentAt: Date.now(),
-            read: false
+            sentAt: Date.now()
         };
         msgs.push(msg);
         await saveMessages(msgs);
@@ -274,12 +280,6 @@ export function createDb(kv) {
     async function getInbox(uid) {
         const msgs = await getMessages();
         return msgs.filter(m => m.toUid === uid).sort((a, b) => a.sentAt - b.sentAt);
-    }
-    async function markMessageRead(msgId) {
-        const msgs = await getMessages();
-        const msg = msgs.find(m => m.id === msgId);
-        if (msg) { msg.read = true; await saveMessages(msgs); return true; }
-        return false;
     }
     async function deleteMessage(msgId, uid) {
         const msgs = await getMessages();
@@ -441,13 +441,9 @@ export function createDb(kv) {
         return anns.filter(a => !a.expiresAt || a.expiresAt > now).sort((a,b) => b.isPinned - a.isPinned);
     }
 
-    // ==================== 管理员密码（新增） ====================
-    async function getAdminPasswordHash() {
-        return await getData(ADMIN_PASSWORD_KEY) || null;
-    }
-    async function setAdminPasswordHash(hash) {
-        await setData(ADMIN_PASSWORD_KEY, hash);
-    }
+    // ---- 管理员密码 ----
+    async function getAdminPasswordHash() { return await getData(ADMIN_PASSWORD_KEY) || null; }
+    async function setAdminPasswordHash(hash) { await setData(ADMIN_PASSWORD_KEY, hash); }
 
     // ---- 导出 ----
     return {
@@ -457,6 +453,7 @@ export function createDb(kv) {
         updateUser,
         deleteUser,
         addPoints,
+        updateLastActive,
         isValidUID,
         isValidPassword,
         isValidGrade,
@@ -483,7 +480,6 @@ export function createDb(kv) {
         saveMessages,
         sendMessage,
         getInbox,
-        markMessageRead,
         deleteMessage,
         getAdminMessages,
         getContacts,
@@ -505,7 +501,7 @@ export function createDb(kv) {
         updateAnnouncement,
         deleteAnnouncement,
         getActiveAnnouncements,
-        getAdminPasswordHash,   // 确保这里暴露
-        setAdminPasswordHash    // 确保这里暴露
+        getAdminPasswordHash,
+        setAdminPasswordHash
     };
 }

@@ -4,39 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>注册 - 梅陇中学论坛</title>
-	<link rel="icon" href="/favicon.png" type="image/png">
     <link rel="stylesheet" href="/style.css">
     <style>
-        .hint {
+        .form-hint {
             font-size: 0.85rem;
             color: #6b7a8a;
             margin-top: 2px;
         }
-        .hint strong {
-            color: #1a3c6e;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.3);
-            backdrop-filter: blur(8px);
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
-        }
-        .modal-content {
-            background: rgba(255,255,255,0.85);
-            backdrop-filter: blur(20px);
-            padding: 28px 32px;
-            border-radius: 28px;
-            max-width: 400px;
-            width: 90%;
-            border: 1px solid rgba(255,255,255,0.6);
-            text-align: center;
-        }
-        .modal-content h3 { margin-bottom: 12px; }
-        .modal-content .btn-primary { margin-top: 12px; }
     </style>
 </head>
 <body>
@@ -53,20 +27,17 @@
         <div id="success" class="success" style="display:none;"></div>
 
         <form id="registerForm">
-            <!-- UID -->
             <div class="form-group">
                 <label>UID <span style="font-weight:400; color:#6b7a8a;">（格式：ml/ms + 年份 + 班级 + 学号）</span></label>
                 <input type="text" id="uid" placeholder="如 ml20300101" required>
-                <div class="hint">示例：<strong>ml</strong>（梅陇总校）或 <strong>ms</strong>（梅陇实验）+ <strong>2030</strong>（毕业年份）+ <strong>01</strong>（班级）+ <strong>01</strong>（学号）</div>
+                <div class="form-hint">示例：<strong>ml</strong>（梅陇总校）或 <strong>ms</strong>（梅陇实验）+ <strong>2030</strong>（毕业年份）+ <strong>01</strong>（班级）+ <strong>01</strong>（学号）</div>
             </div>
 
-            <!-- 姓名 -->
             <div class="form-group">
                 <label>姓名</label>
                 <input type="text" id="name" placeholder="真实姓名" required>
             </div>
 
-            <!-- 性别 -->
             <div class="form-group">
                 <label>性别</label>
                 <select id="gender" required>
@@ -76,7 +47,6 @@
                 </select>
             </div>
 
-            <!-- 年级 -->
             <div class="form-group">
                 <label>年级</label>
                 <select id="grade" required>
@@ -88,7 +58,6 @@
                 </select>
             </div>
 
-            <!-- 班级 -->
             <div class="form-group">
                 <label>班级</label>
                 <select id="class" required>
@@ -103,14 +72,23 @@
                 </select>
             </div>
 
-            <!-- 密码 -->
+            <div class="form-group">
+                <label>手机号 <span style="font-weight:400; color:#6b7a8a;">（可选）</span></label>
+                <input type="tel" id="phone" placeholder="如 13800138000">
+            </div>
+
+            <div class="form-group">
+                <label>邮箱 <span style="font-weight:400; color:#6b7a8a;">（可选）</span></label>
+                <input type="email" id="email" placeholder="如 example@mail.com">
+            </div>
+            <div class="form-hint" style="margin-bottom:12px;">※ 手机号和邮箱至少填写一个</div>
+
             <div class="form-group">
                 <label>密码 <span style="font-weight:400; color:#6b7a8a;">（至少8位，含大小写字母和数字）</span></label>
                 <input type="password" id="password" placeholder="如 Test123456" required>
-                <div class="hint">必须包含大小写字母和数字，长度 ≥ 8 位</div>
+                <div class="form-hint">必须包含大小写字母和数字，长度 ≥ 8 位</div>
             </div>
 
-            <!-- 确认密码 -->
             <div class="form-group">
                 <label>确认密码</label>
                 <input type="password" id="confirmPassword" placeholder="再次输入密码" required>
@@ -122,17 +100,7 @@
         <p style="text-align:center; margin-top:16px;">已有账号？<a href="/login.html">去登录</a></p>
     </div>
 
-    <!-- 成功弹窗（注册成功后的提示） -->
-    <div id="successModal" class="modal">
-        <div class="modal-content">
-            <h3>✅ 注册成功！</h3>
-            <p id="successMessage">即将跳转到登录页...</p>
-            <button onclick="closeSuccessModal()" class="btn-primary">立即登录</button>
-        </div>
-    </div>
-
     <script>
-        // 注册表单提交
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
@@ -141,6 +109,8 @@
             const gender = document.getElementById('gender').value;
             const grade = document.getElementById('grade').value;
             const cls = document.getElementById('class').value;
+            const phone = document.getElementById('phone').value.trim();
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
 
@@ -151,7 +121,22 @@
 
             // 前端校验
             if (!uid || !name || !gender || !grade || !cls || !password || !confirmPassword) {
-                errorEl.textContent = '请填写所有字段';
+                errorEl.textContent = '请填写所有必填字段';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (!phone && !email) {
+                errorEl.textContent = '请至少填写手机号或邮箱';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (phone && !/^[\d\-+]{7,15}$/.test(phone)) {
+                errorEl.textContent = '手机号格式不正确';
+                errorEl.style.display = 'block';
+                return;
+            }
+            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                errorEl.textContent = '邮箱格式不正确';
                 errorEl.style.display = 'block';
                 return;
             }
@@ -171,13 +156,14 @@
                 return;
             }
 
-            // 发送请求
             const fd = new FormData();
             fd.append('uid', uid);
             fd.append('name', name);
             fd.append('gender', gender);
             fd.append('grade', grade);
             fd.append('class', cls);
+            fd.append('phone', phone);
+            fd.append('email', email);
             fd.append('password', password);
             fd.append('confirmPassword', confirmPassword);
 
@@ -189,13 +175,11 @@
                 });
                 const result = await res.json();
                 if (result.success) {
-                    // 显示成功弹窗
-                    document.getElementById('successMessage').textContent = '账号 ' + uid + ' 注册成功！即将跳转...';
-                    document.getElementById('successModal').style.display = 'flex';
-                    // 3秒后自动跳转
+                    successEl.textContent = '✅ 注册成功！即将跳转到登录页...';
+                    successEl.style.display = 'block';
                     setTimeout(() => {
                         window.location.href = '/login.html';
-                    }, 3000);
+                    }, 2000);
                 } else {
                     errorEl.textContent = result.error || '注册失败';
                     errorEl.style.display = 'block';
@@ -203,37 +187,6 @@
             } catch (err) {
                 errorEl.textContent = '网络错误，请重试';
                 errorEl.style.display = 'block';
-            }
-        });
-
-        // 关闭成功弹窗
-        function closeSuccessModal() {
-            document.getElementById('successModal').style.display = 'none';
-            window.location.href = '/login.html';
-        }
-        document.getElementById('successModal').addEventListener('click', function(e) {
-            if (e.target === this) closeSuccessModal();
-        });
-
-        // 密码强度实时提示（可选）
-        document.getElementById('password').addEventListener('input', function() {
-            const val = this.value;
-            const hint = this.nextElementSibling;
-            if (val.length === 0) {
-                hint.innerHTML = '必须包含大小写字母和数字，长度 ≥ 8 位';
-                hint.style.color = '#6b7a8a';
-                return;
-            }
-            const hasUpper = /[A-Z]/.test(val);
-            const hasLower = /[a-z]/.test(val);
-            const hasDigit = /\d/.test(val);
-            const hasLength = val.length >= 8;
-            if (hasUpper && hasLower && hasDigit && hasLength) {
-                hint.innerHTML = '✅ 密码强度合格';
-                hint.style.color = '#5cb85c';
-            } else {
-                hint.innerHTML = '❌ 需要包含大小写字母和数字，且长度≥8';
-                hint.style.color = '#d9534f';
             }
         });
     </script>

@@ -1,6 +1,14 @@
 // functions/api/login.js
 import { createDb } from '../utils/db.js';
 
+async function hashPassword(password) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(password);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
 function utf8ToBase64(str) {
     const bytes = new TextEncoder().encode(str);
     let binary = '';
@@ -8,15 +16,6 @@ function utf8ToBase64(str) {
         binary += String.fromCharCode(bytes[i]);
     }
     return btoa(binary);
-}
-
-// SHA-256 哈希函数（和 register 保持一致）
-async function hashPassword(password) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
 const CORS_HEADERS = {
@@ -41,6 +40,22 @@ export async function onRequest(context) {
         const formData = await request.formData();
         const uid = formData.get('uid');
         const password = formData.get('password');
+        const captchaId = formData.get('captchaId');
+        const captchaInput = formData.get('captcha');
+
+        // 验证验证码
+        if (!captchaId || !captchaInput) {
+            return new Response(JSON.stringify({ error: '请输入验证码' }), { status: 400, headers: CORS_HEADERS });
+        }
+        const storedCode = await env.USER_DATA.get(captchaId);
+        if (!storedCode) {
+            return new Response(JSON.stringify({ error: '验证码已过期，请刷新' }), { status: 400, headers: CORS_HEADERS });
+        }
+        if (storedCode !== captchaInput) {
+            return new Response(JSON.stringify({ error: '验证码错误' }), { status: 400, headers: CORS_HEADERS });
+        }
+        // 验证通过后删除该验证码（一次性）
+        await env.USER_DATA.delete(captchaId);
 
         if (!uid || !password) {
             return new Response(JSON.stringify({ error: '请填写完整信息' }), { status: 400, headers: CORS_HEADERS });
@@ -51,7 +66,6 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ error: '账号或密码错误' }), { status: 401, headers: CORS_HEADERS });
         }
 
-        // 哈希用户输入的密码，然后比对
         const hashedInput = await hashPassword(password);
         if (user.password !== hashedInput) {
             return new Response(JSON.stringify({ error: '账号或密码错误' }), { status: 401, headers: CORS_HEADERS });
@@ -60,6 +74,9 @@ export async function onRequest(context) {
         const sessionData = JSON.stringify({ uid: user.uid, name: user.name });
         const encoded = utf8ToBase64(sessionData);
         const cookie = `session=${encoded}; Path=/; HttpOnly; Max-Age=86400; SameSite=Lax`;
+
+        // 更新最后活跃时间
+        await db.updateLastActive(uid);
 
         return new Response(JSON.stringify({ success: true, user: { uid: user.uid, name: user.name } }), {
             status: 200,
