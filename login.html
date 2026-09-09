@@ -5,45 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>梅陇中学论坛 - 登录</title>
     <link rel="stylesheet" href="/style.css">
-    <style>
-        .captcha-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .captcha-row input {
-            flex: 1;
-        }
-        .captcha-row .captcha-code {
-            font-size: 1.5rem;
-            font-weight: bold;
-            letter-spacing: 4px;
-            background: rgba(255,255,255,0.3);
-            padding: 4px 12px;
-            border-radius: 8px;
-            user-select: none;
-            font-family: monospace;
-            color: #1a3c6e;
-            min-width: 80px;
-            text-align: center;
-            cursor: pointer;
-        }
-        .captcha-row .refresh-btn {
-            background: none;
-            border: 1px solid #ccc;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            cursor: pointer;
-            font-size: 1.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .captcha-row .refresh-btn:hover {
-            background: rgba(0,0,0,0.05);
-        }
-    </style>
 </head>
 <body>
     <div class="container" style="max-width: 420px; text-align: center;">
@@ -59,14 +20,6 @@
                 <label>密码</label>
                 <input type="password" id="password" placeholder="密码" required>
             </div>
-            <div class="form-group">
-                <label>验证码</label>
-                <div class="captcha-row">
-                    <input type="text" id="captcha" placeholder="四位数字" maxlength="4" required>
-                    <span class="captcha-code" id="captchaDisplay">****</span>
-                    <button type="button" class="refresh-btn" id="refreshCaptcha">⟳</button>
-                </div>
-            </div>
             <button type="submit" class="btn-primary" style="width:100%;">登录</button>
         </form>
         <p style="margin-top:16px;">还没有账号？<a href="/register.html">立即注册</a></p>
@@ -74,44 +27,15 @@
     </div>
 
     <script>
-        let currentCaptchaId = '';
-
-        // 获取验证码
-        async function fetchCaptcha() {
-            try {
-                const res = await fetch('/api/captcha');
-                const data = await res.json();
-                if (data.captchaId && data.code) {
-                    currentCaptchaId = data.captchaId;
-                    document.getElementById('captchaDisplay').textContent = data.code;
-                    document.getElementById('captcha').value = '';
-                    document.getElementById('captcha').focus();
-                } else {
-                    alert('获取验证码失败，请刷新页面');
-                }
-            } catch (err) {
-                alert('网络错误，无法获取验证码');
-            }
-        }
-
-        document.getElementById('refreshCaptcha').addEventListener('click', fetchCaptcha);
-
-        // 登录表单提交
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             const uid = document.getElementById('uid').value.trim();
             const password = document.getElementById('password').value.trim();
-            const captcha = document.getElementById('captcha').value.trim();
             const errorEl = document.getElementById('error');
             errorEl.style.display = 'none';
 
-            if (!uid || !password || !captcha) {
+            if (!uid || !password) {
                 errorEl.textContent = '请填写完整信息';
-                errorEl.style.display = 'block';
-                return;
-            }
-            if (captcha.length !== 4 || !/^\d{4}$/.test(captcha)) {
-                errorEl.textContent = '验证码为四位数字';
                 errorEl.style.display = 'block';
                 return;
             }
@@ -119,8 +43,6 @@
             const fd = new FormData();
             fd.append('uid', uid);
             fd.append('password', password);
-            fd.append('captchaId', currentCaptchaId);
-            fd.append('captcha', captcha);
 
             try {
                 const res = await fetch('/api/login', {
@@ -134,16 +56,12 @@
                 } else {
                     errorEl.textContent = result.error || '登录失败';
                     errorEl.style.display = 'block';
-                    fetchCaptcha(); // 刷新验证码
                 }
             } catch (err) {
                 errorEl.textContent = '网络错误，请重试';
                 errorEl.style.display = 'block';
             }
         });
-
-        // 页面加载时获取验证码
-        fetchCaptcha();
     </script>
 </body>
 </html>

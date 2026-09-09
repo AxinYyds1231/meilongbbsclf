@@ -1,0 +1,1356 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>我的起始页 · 一键三开</title>
+    <style>
+        /* ===== 全局变量 ===== */
+        :root {
+            --bg-primary: #0b1120;
+            --bg-secondary: rgba(255, 255, 255, 0.04);
+            --bg-card: rgba(255, 255, 255, 0.06);
+            --bg-card-hover: rgba(255, 255, 255, 0.12);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: rgba(255, 255, 255, 0.65);
+            --text-muted: rgba(255, 255, 255, 0.35);
+            --accent: #6c8cff;
+            --accent-hover: #5a7ae8;
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            --radius: 20px;
+            --radius-sm: 12px;
+            --radius-full: 60px;
+            --transition: 0.25s ease;
+            --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f0f2f5;
+            --bg-secondary: rgba(0, 0, 0, 0.02);
+            --bg-card: rgba(255, 255, 255, 0.8);
+            --bg-card-hover: rgba(255, 255, 255, 1);
+            --border-color: rgba(0, 0, 0, 0.08);
+            --text-primary: #1a1a2e;
+            --text-secondary: rgba(0, 0, 0, 0.65);
+            --text-muted: rgba(0, 0, 0, 0.35);
+            --shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            --accent: #4a6cf7;
+            --accent-hover: #3a5cd9;
+        }
+
+        /* ===== 基础 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: var(--font);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 24px;
+            transition: background var(--transition), color var(--transition);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--text-muted);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--text-secondary);
+        }
+        .app-container {
+            max-width: 1200px;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== 顶部栏 ===== */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 8px 0 24px;
+            flex-wrap: wrap;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+            user-select: none;
+        }
+        .logo-area span {
+            background: var(--accent);
+            color: #fff;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .header-actions button {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all var(--transition);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .header-actions button:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+        .header-actions .three-btn {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+        .header-actions .three-btn:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+        .header-actions .theme-btn {
+            padding: 8px 12px;
+            font-size: 16px;
+        }
+
+        /* ===== 搜索栏 ===== */
+        .search-section {
+            width: 100%;
+            margin-bottom: 32px;
+        }
+        .search-wrapper {
+            display: flex;
+            align-items: center;
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-full);
+            padding: 4px 4px 4px 20px;
+            transition: all var(--transition);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            max-width: 720px;
+            margin: 0 auto;
+        }
+        .search-wrapper:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 4px 30px rgba(108, 140, 255, 0.15);
+            transform: scale(1.01);
+        }
+        .search-wrapper .search-icon {
+            font-size: 18px;
+            color: var(--text-muted);
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        .search-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            font-size: 16px;
+            padding: 14px 0;
+            font-family: var(--font);
+            min-width: 0;
+        }
+        .search-wrapper input::placeholder {
+            color: var(--text-muted);
+        }
+        .search-wrapper .search-btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 12px 28px;
+            border-radius: var(--radius-full);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: var(--font);
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .search-wrapper .search-btn:hover {
+            background: var(--accent-hover);
+            transform: scale(1.02);
+        }
+
+        /* ===== 网站网格 ===== */
+        .sites-section {
+            flex: 1;
+            width: 100%;
+        }
+        .sites-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .sites-header h2 {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: 0.3px;
+        }
+        .sites-header .add-btn {
+            background: var(--bg-secondary);
+            border: 1px dashed var(--border-color);
+            color: var(--text-secondary);
+            padding: 6px 18px;
+            border-radius: var(--radius-full);
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .sites-header .add-btn:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+            border-color: var(--accent);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 16px;
+            width: 100%;
+        }
+        .grid.dragging {
+            opacity: 0.5;
+        }
+
+        /* ===== 站点卡片 ===== */
+        .site-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 20px 12px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            cursor: grab;
+            transition: all var(--transition);
+            backdrop-filter: blur(8px);
+            position: relative;
+            user-select: none;
+        }
+        .site-card:hover {
+            background: var(--bg-card-hover);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-3px);
+            box-shadow: var(--shadow);
+        }
+        .site-card .drag-handle {
+            position: absolute;
+            top: 6px;
+            left: 10px;
+            font-size: 12px;
+            color: var(--text-muted);
+            cursor: grab;
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+        .site-card:hover .drag-handle {
+            opacity: 1;
+        }
+        .site-card .card-icon {
+            font-size: 36px;
+            margin-bottom: 8px;
+            line-height: 1.2;
+            transition: transform var(--transition);
+        }
+        .site-card:hover .card-icon {
+            transform: scale(1.05);
+        }
+        .site-card .card-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            word-break: break-word;
+            line-height: 1.3;
+            max-width: 100%;
+        }
+        .site-card .card-url {
+            font-size: 10px;
+            color: var(--text-muted);
+            word-break: break-all;
+            margin-bottom: 10px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .site-card .card-actions {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            margin-top: auto;
+        }
+        .site-card .open-btn {
+            flex: 1;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 8px 12px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: var(--font);
+        }
+        .site-card .open-btn:hover {
+            background: var(--accent-hover);
+            transform: scale(1.02);
+        }
+        .site-card .card-tools {
+            display: flex;
+            gap: 4px;
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+        .site-card:hover .card-tools {
+            opacity: 1;
+        }
+        .site-card .card-tools button {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px 6px;
+            border-radius: 6px;
+            transition: all var(--transition);
+            line-height: 1;
+        }
+        .site-card .card-tools button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+        }
+        .site-card .card-tools .del-btn:hover {
+            color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.15);
+        }
+        .site-card .color-bar {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: var(--radius) var(--radius) 0 0;
+            transition: height var(--transition);
+        }
+        .site-card:hover .color-bar {
+            height: 4px;
+        }
+
+        .empty-state {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+        .empty-state .empty-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        /* ===== 底部 ===== */
+        .footer {
+            margin-top: 32px;
+            padding: 16px 0 8px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            border-top: 1px solid var(--border-color);
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+        .footer button {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 12px;
+            transition: color var(--transition);
+            font-family: var(--font);
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
+        .footer button:hover {
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+        .footer .sep {
+            color: var(--border-color);
+        }
+
+        /* ===== 模态框 ===== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease;
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .modal {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 32px 28px 28px;
+            max-width: 520px;
+            width: 100%;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+        .modal h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-primary);
+        }
+        .modal .modal-sub {
+            font-size: 14px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        .modal .form-group {
+            margin-bottom: 16px;
+        }
+        .modal .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        .modal .form-group input {
+            width: 100%;
+            padding: 12px 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 14px;
+            font-family: var(--font);
+            transition: border-color var(--transition);
+            outline: none;
+        }
+        .modal .form-group input:focus {
+            border-color: var(--accent);
+        }
+        .modal .form-group .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 6px;
+            margin-top: 6px;
+        }
+        .modal .form-group .icon-grid button {
+            background: var(--bg-secondary);
+            border: 2px solid transparent;
+            border-radius: var(--radius-sm);
+            padding: 8px 0;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .modal .form-group .icon-grid button:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-color);
+        }
+        .modal .form-group .icon-grid button.active {
+            border-color: var(--accent);
+            background: var(--bg-card-hover);
+        }
+        .modal .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+        .modal .modal-actions button {
+            padding: 10px 28px;
+            border-radius: var(--radius-full);
+            border: none;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: var(--font);
+        }
+        .modal .modal-actions .btn-cancel {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+        .modal .modal-actions .btn-cancel:hover {
+            background: var(--bg-card-hover);
+            color: var(--text-primary);
+        }
+        .modal .modal-actions .btn-confirm {
+            background: var(--accent);
+            color: #fff;
+        }
+        .modal .modal-actions .btn-confirm:hover {
+            background: var(--accent-hover);
+        }
+
+        /* ===== Toast ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 380px;
+            width: 100%;
+            pointer-events: none;
+        }
+        .toast {
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            padding: 14px 20px;
+            color: var(--text-primary);
+            font-size: 13px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(12px);
+            animation: slideUp 0.35s ease both;
+            pointer-events: all;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .toast.success {
+            border-left: 4px solid #4ade80;
+        }
+        .toast.error {
+            border-left: 4px solid #f87171;
+        }
+        .toast.warning {
+            border-left: 4px solid #fbbf24;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                gap: 12px;
+            }
+            .site-card {
+                padding: 16px 10px 12px;
+            }
+            .site-card .card-icon {
+                font-size: 28px;
+            }
+            .search-wrapper {
+                padding: 4px 4px 4px 16px;
+                border-radius: 30px;
+            }
+            .search-wrapper input {
+                font-size: 14px;
+                padding: 10px 0;
+            }
+            .search-wrapper .search-btn {
+                padding: 10px 18px;
+                font-size: 13px;
+            }
+            .modal {
+                padding: 24px 18px 20px;
+            }
+            .header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+            .header-actions {
+                justify-content: center;
+            }
+            .logo-area {
+                justify-content: center;
+            }
+            .sites-header h2 {
+                font-size: 14px;
+            }
+        }
+        @media (max-width: 480px) {
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+                gap: 10px;
+            }
+            .site-card .card-name {
+                font-size: 11px;
+            }
+            .site-card .open-btn {
+                font-size: 10px;
+                padding: 6px 8px;
+            }
+            .search-wrapper .search-btn {
+                padding: 8px 14px;
+                font-size: 12px;
+            }
+            .toast-container {
+                right: 16px;
+                left: 16px;
+                max-width: 100%;
+                bottom: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container" id="app">
+
+        <!-- 顶部栏 -->
+        <header class="header">
+            <div class="logo-area">
+                <span>🚀</span>
+                我的起始页
+            </div>
+            <div class="header-actions">
+                <button class="three-btn" id="threeBtn">⚡ 三连开</button>
+                <button class="theme-btn" id="themeToggle" title="切换主题">🌓</button>
+                <button id="resetBtn" title="重置为默认网站">🔄 重置</button>
+                <button id="exportBtn" title="导出配置">📤 导出</button>
+                <button id="importBtn" title="导入配置">📥 导入</button>
+                <input type="file" id="importFile" accept=".json" style="display:none" />
+            </div>
+        </header>
+
+        <!-- 搜索栏 -->
+        <section class="search-section">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="输入关键词搜索 (Bing)..." autofocus />
+                <button class="search-btn" id="searchBtn">搜索</button>
+            </div>
+        </section>
+
+        <!-- 网站网格 -->
+        <section class="sites-section">
+            <div class="sites-header">
+                <h2>📌 快捷站点</h2>
+                <button class="add-btn" id="addSiteBtn">＋ 添加站点</button>
+            </div>
+            <div class="grid" id="grid"></div>
+        </section>
+
+        <!-- 底部 -->
+        <footer class="footer">
+            <span>💡 点击卡片或「打开」按钮访问</span>
+            <span class="sep">·</span>
+            <span>拖拽卡片可排序</span>
+            <span class="sep">·</span>
+            <button id="configThreeBtn">⚙️ 自定义三连开</button>
+            <span class="sep">·</span>
+            <span>v2.0</span>
+        </footer>
+    </div>
+
+    <!-- 模态框：添加/编辑站点 -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <h3 id="modalTitle">添加站点</h3>
+            <p class="modal-sub" id="modalSub">输入站点信息，点击确认添加。</p>
+            <div class="form-group">
+                <label>站点名称</label>
+                <input type="text" id="siteName" placeholder="例如：Bilibili" />
+            </div>
+            <div class="form-group">
+                <label>网址 (URL)</label>
+                <input type="text" id="siteUrl" placeholder="https://www.bilibili.com/" />
+            </div>
+            <div class="form-group">
+                <label>图标 (Emoji)</label>
+                <div class="icon-grid" id="iconGrid"></div>
+                <input type="text" id="siteIcon" placeholder="或手动输入 Emoji" style="margin-top:8px;" />
+            </div>
+            <div class="form-group">
+                <label>颜色 (可选)</label>
+                <input type="color" id="siteColor" value="#6c8cff" style="padding:4px;height:44px;" />
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="modalCancel">取消</button>
+                <button class="btn-confirm" id="modalConfirm">确认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 模态框：自定义三连开 -->
+    <div class="modal-overlay" id="threeModalOverlay">
+        <div class="modal">
+            <h3>⚡ 自定义三连开</h3>
+            <p class="modal-sub">设置三个同时打开的网址，点击「三连开」按钮将同时打开它们。</p>
+            <div class="form-group">
+                <label>站点 1</label>
+                <input type="text" id="threeUrl1" placeholder="https://dash.cloudflare.com/" />
+            </div>
+            <div class="form-group">
+                <label>站点 2</label>
+                <input type="text" id="threeUrl2" placeholder="https://www.github.com/" />
+            </div>
+            <div class="form-group">
+                <label>站点 3</label>
+                <input type="text" id="threeUrl3" placeholder="https://chat.deepseek.com/" />
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="threeModalCancel">取消</button>
+                <button class="btn-confirm" id="threeModalConfirm">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 容器 -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            //  默认数据
+            // ============================================================
+            const DEFAULT_SITES = [
+                { id: '1', name: 'Meilong论坛', url: 'https://meilongbbs.pages.dev/', icon: '💬', color: '#4A90D9' },
+                { id: '2', name: '微信传输', url: 'https://filehelper.weixin.qq.com/', icon: '📁', color: '#07C160' },
+                { id: '3', name: 'Bilibili', url: 'https://www.bilibili.com/', icon: '🎬', color: '#FB7299' },
+                { id: '4', name: 'GitHub', url: 'https://www.github.com/', icon: '💻', color: '#24292E' },
+                { id: '5', name: 'Cloudflare', url: 'https://dash.cloudflare.com/', icon: '☁️', color: '#F38020' },
+                { id: '6', name: '豆包', url: 'https://www.doubao.com/', icon: '🫘', color: '#4F8CF7' },
+                { id: '7', name: 'DeepSeek', url: 'https://www.deepseek.com/', icon: '🤖', color: '#4F8CF7' },
+                { id: '8', name: '抖音', url: 'https://www.douyin.com/', icon: '🎵', color: '#1E1E1E' }
+            ];
+
+            const PRESET_ICONS = ['💬', '📁', '🎬', '💻', '☁️', '🫘', '🤖', '🎵', '🌐', '📧', '🛒', '📊', '🎮', '📷', '🎨', '🚀', '⚡',
+                '🔥', '💡', '🎯', '📌', '🧠', '📱', '🖥️', '⌨️', '🕹️', '🎧', '📚', '🏠', '🔗'
+            ];
+
+            const DEFAULT_THREE_URLS = [
+                'https://dash.cloudflare.com/',
+                'https://www.github.com/',
+                'https://chat.deepseek.com/'
+            ];
+
+            // ============================================================
+            //  状态
+            // ============================================================
+            let sites = [];
+            let editingId = null;
+            let dragSrcIndex = null;
+
+            // DOM 引用
+            const grid = document.getElementById('grid');
+            const searchInput = document.getElementById('searchInput');
+            const searchBtn = document.getElementById('searchBtn');
+            const addBtn = document.getElementById('addSiteBtn');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalSub = document.getElementById('modalSub');
+            const siteName = document.getElementById('siteName');
+            const siteUrl = document.getElementById('siteUrl');
+            const siteIcon = document.getElementById('siteIcon');
+            const siteColor = document.getElementById('siteColor');
+            const iconGrid = document.getElementById('iconGrid');
+            const modalConfirm = document.getElementById('modalConfirm');
+            const modalCancel = document.getElementById('modalCancel');
+            const themeToggle = document.getElementById('themeToggle');
+            const resetBtn = document.getElementById('resetBtn');
+            const exportBtn = document.getElementById('exportBtn');
+            const importBtn = document.getElementById('importBtn');
+            const importFile = document.getElementById('importFile');
+            const toastContainer = document.getElementById('toastContainer');
+
+            // 三连开相关
+            const threeBtn = document.getElementById('threeBtn');
+            const configThreeBtn = document.getElementById('configThreeBtn');
+            const threeModalOverlay = document.getElementById('threeModalOverlay');
+            const threeUrl1 = document.getElementById('threeUrl1');
+            const threeUrl2 = document.getElementById('threeUrl2');
+            const threeUrl3 = document.getElementById('threeUrl3');
+            const threeModalCancel = document.getElementById('threeModalCancel');
+            const threeModalConfirm = document.getElementById('threeModalConfirm');
+
+            // ============================================================
+            //  工具
+            // ============================================================
+            function genId() {
+                return Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+            }
+
+            function toast(msg, type = 'info') {
+                const el = document.createElement('div');
+                el.className = 'toast ' + type;
+                const iconMap = { success: '✅', error: '❌', warning: '⚠️', info: '💡' };
+                el.innerHTML = `<span>${iconMap[type] || '💡'}</span> ${msg}`;
+                toastContainer.appendChild(el);
+                setTimeout(() => {
+                    el.style.opacity = '0';
+                    el.style.transform = 'translateX(30px)';
+                    el.style.transition = 'all 0.3s ease';
+                    setTimeout(() => el.remove(), 400);
+                }, 3500);
+            }
+
+            function escapeHtml(str) {
+                if (!str) return '';
+                return str.replace(/[&<>"]/g, function(m) {
+                    if (m === '&') return '&amp;';
+                    if (m === '<') return '&lt;';
+                    if (m === '>') return '&gt;';
+                    if (m === '"') return '&quot;';
+                    return m;
+                });
+            }
+
+            // ============================================================
+            //  数据持久化
+            // ============================================================
+            function loadData() {
+                try {
+                    const raw = localStorage.getItem('my_home_sites');
+                    if (raw) {
+                        const parsed = JSON.parse(raw);
+                        if (Array.isArray(parsed) && parsed.length) {
+                            sites = parsed;
+                            return;
+                        }
+                    }
+                } catch (_) {}
+                sites = JSON.parse(JSON.stringify(DEFAULT_SITES));
+            }
+
+            function saveData() {
+                localStorage.setItem('my_home_sites', JSON.stringify(sites));
+            }
+
+            // 三连开数据
+            function getThreeUrls() {
+                try {
+                    const raw = localStorage.getItem('my_three_urls');
+                    if (raw) {
+                        const arr = JSON.parse(raw);
+                        if (Array.isArray(arr) && arr.length === 3) return arr;
+                    }
+                } catch (_) {}
+                return [...DEFAULT_THREE_URLS];
+            }
+
+            function setThreeUrls(urls) {
+                if (Array.isArray(urls) && urls.length === 3) {
+                    localStorage.setItem('my_three_urls', JSON.stringify(urls));
+                }
+            }
+
+            // ============================================================
+            //  渲染网格
+            // ============================================================
+            function render() {
+                if (!sites.length) {
+                    grid.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-icon">📭</div>
+                            <p>还没有站点，点击「＋ 添加站点」创建一个吧</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                sites.forEach((site, index) => {
+                    const color = site.color || '#6c8cff';
+                    html += `
+                        <div class="site-card" draggable="true" data-id="${site.id}" data-index="${index}">
+                            <div class="color-bar" style="background:${color};"></div>
+                            <span class="drag-handle">⠿</span>
+                            <div class="card-icon">${site.icon || '🌐'}</div>
+                            <div class="card-name">${escapeHtml(site.name)}</div>
+                            <div class="card-url">${escapeHtml(site.url)}</div>
+                            <div class="card-actions">
+                                <button class="open-btn" data-url="${escapeHtml(site.url)}">打开</button>
+                                <div class="card-tools">
+                                    <button class="edit-btn" data-id="${site.id}" title="编辑">✏️</button>
+                                    <button class="del-btn" data-id="${site.id}" title="删除">✕</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                grid.innerHTML = html;
+
+                // 打开按钮
+                grid.querySelectorAll('.open-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const url = btn.dataset.url;
+                        if (url) window.open(url, '_blank');
+                    });
+                });
+
+                // 卡片点击打开
+                grid.querySelectorAll('.site-card').forEach(card => {
+                    card.addEventListener('click', (e) => {
+                        if (e.target.closest('button')) return;
+                        const url = card.querySelector('.open-btn')?.dataset.url;
+                        if (url) window.open(url, '_blank');
+                    });
+                });
+
+                // 删除
+                grid.querySelectorAll('.del-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const id = btn.dataset.id;
+                        if (confirm('确定要删除这个站点吗？')) {
+                            sites = sites.filter(s => s.id !== id);
+                            saveData();
+                            render();
+                            toast('已删除站点', 'success');
+                        }
+                    });
+                });
+
+                // 编辑
+                grid.querySelectorAll('.edit-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        e.stopPropagation();
+                        const id = btn.dataset.id;
+                        const site = sites.find(s => s.id === id);
+                        if (site) openEditModal(site);
+                    });
+                });
+
+                // 拖拽
+                grid.querySelectorAll('.site-card').forEach(card => {
+                    card.addEventListener('dragstart', onDragStart);
+                    card.addEventListener('dragend', onDragEnd);
+                    card.addEventListener('dragover', onDragOver);
+                    card.addEventListener('drop', onDrop);
+                    card.addEventListener('dragenter', onDragEnter);
+                    card.addEventListener('dragleave', onDragLeave);
+                });
+            }
+
+            // ============================================================
+            //  拖拽排序
+            // ============================================================
+            function onDragStart(e) {
+                const card = e.target.closest('.site-card');
+                if (!card) return;
+                dragSrcIndex = parseInt(card.dataset.index);
+                card.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', card.dataset.id);
+            }
+
+            function onDragEnd(e) {
+                const card = e.target.closest('.site-card');
+                if (card) card.classList.remove('dragging');
+                grid.querySelectorAll('.site-card').forEach(c => c.classList.remove('drag-over'));
+                const placeholder = grid.querySelector('.drag-placeholder');
+                if (placeholder) placeholder.remove();
+            }
+
+            function onDragOver(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+            }
+
+            function onDragEnter(e) {
+                e.preventDefault();
+                const card = e.target.closest('.site-card');
+                if (card && card.dataset.index !== String(dragSrcIndex)) {
+                    card.classList.add('drag-over');
+                }
+            }
+
+            function onDragLeave(e) {
+                const card = e.target.closest('.site-card');
+                if (card) card.classList.remove('drag-over');
+            }
+
+            function onDrop(e) {
+                e.preventDefault();
+                const targetCard = e.target.closest('.site-card');
+                if (!targetCard) return;
+                const targetIndex = parseInt(targetCard.dataset.index);
+                if (dragSrcIndex === null || dragSrcIndex === targetIndex) {
+                    targetCard.classList.remove('drag-over');
+                    return;
+                }
+                const [moved] = sites.splice(dragSrcIndex, 1);
+                sites.splice(targetIndex, 0, moved);
+                saveData();
+                render();
+                toast('排序已更新', 'success');
+                dragSrcIndex = null;
+                targetCard.classList.remove('drag-over');
+            }
+
+            // ============================================================
+            //  模态框（站点）
+            // ============================================================
+            function openModal(title, sub, data, isEdit = false) {
+                modalTitle.textContent = title;
+                modalSub.textContent = sub;
+                siteName.value = data?.name || '';
+                siteUrl.value = data?.url || '';
+                siteIcon.value = data?.icon || '';
+                siteColor.value = data?.color || '#6c8cff';
+                editingId = data?.id || null;
+                iconGrid.querySelectorAll('button').forEach(btn => {
+                    btn.classList.toggle('active', btn.textContent === siteIcon.value);
+                });
+                modalOverlay.classList.add('active');
+                setTimeout(() => siteName.focus(), 100);
+            }
+
+            function closeModal() {
+                modalOverlay.classList.remove('active');
+                editingId = null;
+            }
+
+            function openAddModal() {
+                openModal('添加站点', '输入站点信息，点击确认添加。', null, false);
+            }
+
+            function openEditModal(site) {
+                openModal('编辑站点', '修改站点信息，点击确认保存。', site, true);
+            }
+
+            function renderIconGrid() {
+                iconGrid.innerHTML = '';
+                PRESET_ICONS.forEach(ic => {
+                    const btn = document.createElement('button');
+                    btn.textContent = ic;
+                    btn.type = 'button';
+                    btn.addEventListener('click', () => {
+                        iconGrid.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        siteIcon.value = ic;
+                    });
+                    iconGrid.appendChild(btn);
+                });
+            }
+
+            function handleModalConfirm() {
+                const name = siteName.value.trim();
+                const url = siteUrl.value.trim();
+                const icon = siteIcon.value.trim() || '🌐';
+                const color = siteColor.value || '#6c8cff';
+                if (!name) { toast('请输入站点名称', 'warning');
+                    siteName.focus(); return; }
+                if (!url) { toast('请输入网址', 'warning');
+                    siteUrl.focus(); return; }
+                try { new URL(url); } catch (_) { toast('请输入有效的网址 (包含 http:// 或 https://)', 'warning');
+                    siteUrl.focus(); return; }
+
+                if (editingId) {
+                    const idx = sites.findIndex(s => s.id === editingId);
+                    if (idx !== -1) {
+                        sites[idx] = { ...sites[idx], name, url, icon, color };
+                        saveData();
+                        render();
+                        toast('站点已更新', 'success');
+                    }
+                } else {
+                    sites.push({ id: genId(), name, url, icon, color });
+                    saveData();
+                    render();
+                    toast('站点已添加', 'success');
+                }
+                closeModal();
+            }
+
+            // ============================================================
+            //  三连开功能
+            // ============================================================
+            function openThreeSites() {
+                const urls = getThreeUrls();
+                let opened = 0;
+                urls.forEach((url, idx) => {
+                    try {
+                        const win = window.open(url, `_three_${idx}_${Date.now()}`);
+                        if (win) opened++;
+                    } catch (_) {}
+                });
+                if (opened === 3) {
+                    toast('已同时打开三个站点！', 'success');
+                } else if (opened > 0) {
+                    toast(`打开了 ${opened} 个，部分可能被拦截`, 'warning');
+                } else {
+                    toast('全部被拦截，请允许弹出窗口', 'error');
+                }
+            }
+
+            // 打开三连开配置模态框
+            function openThreeConfig() {
+                const urls = getThreeUrls();
+                threeUrl1.value = urls[0] || '';
+                threeUrl2.value = urls[1] || '';
+                threeUrl3.value = urls[2] || '';
+                threeModalOverlay.classList.add('active');
+                setTimeout(() => threeUrl1.focus(), 100);
+            }
+
+            function closeThreeConfig() {
+                threeModalOverlay.classList.remove('active');
+            }
+
+            function saveThreeConfig() {
+                const u1 = threeUrl1.value.trim();
+                const u2 = threeUrl2.value.trim();
+                const u3 = threeUrl3.value.trim();
+                if (!u1 || !u2 || !u3) {
+                    toast('请填写三个有效的网址', 'warning');
+                    return;
+                }
+                try {
+                    new URL(u1);
+                    new URL(u2);
+                    new URL(u3);
+                } catch (_) {
+                    toast('请确保所有网址格式正确 (包含 http:// 或 https://)', 'warning');
+                    return;
+                }
+                setThreeUrls([u1, u2, u3]);
+                closeThreeConfig();
+                toast('三连开网址已更新', 'success');
+            }
+
+            // ============================================================
+            //  搜索 (Bing)
+            // ============================================================
+            function doSearch() {
+                const q = searchInput.value.trim();
+                if (!q) { toast('请输入搜索关键词', 'warning'); return; }
+                window.open(`https://www.bing.com/search?q=${encodeURIComponent(q)}`, '_blank');
+            }
+
+            // ============================================================
+            //  导入 / 导出 / 重置
+            // ============================================================
+            function exportConfig() {
+                const data = JSON.stringify(sites, null, 2);
+                const blob = new Blob([data], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = `起始页配置_${new Date().toISOString().slice(0,10)}.json`;
+                a.click();
+                URL.revokeObjectURL(a.href);
+                toast('配置已导出', 'success');
+            }
+
+            function importConfig(file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const data = JSON.parse(e.target.result);
+                        if (Array.isArray(data) && data.length) {
+                            if (confirm(`将导入 ${data.length} 个站点，覆盖当前所有数据，确定吗？`)) {
+                                sites = data;
+                                saveData();
+                                render();
+                                toast('配置导入成功！', 'success');
+                            }
+                        } else {
+                            toast('无效的配置文件', 'error');
+                        }
+                    } catch (_) {
+                        toast('解析配置文件失败', 'error');
+                    }
+                };
+                reader.readAsText(file);
+                importFile.value = '';
+            }
+
+            function resetToDefault() {
+                if (confirm('重置将恢复默认站点列表，确定吗？')) {
+                    sites = JSON.parse(JSON.stringify(DEFAULT_SITES));
+                    saveData();
+                    render();
+                    toast('已重置为默认站点', 'success');
+                }
+            }
+
+            // ============================================================
+            //  主题切换
+            // ============================================================
+            function toggleTheme() {
+                const current = document.documentElement.getAttribute('data-theme');
+                const next = current === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', next === 'light' ? 'light' : '');
+                localStorage.setItem('my_home_theme', next);
+                themeToggle.textContent = next === 'light' ? '🌙' : '🌓';
+                toast(`已切换到${next === 'light' ? '亮色' : '暗色'}主题`, 'info');
+            }
+
+            function loadTheme() {
+                const saved = localStorage.getItem('my_home_theme');
+                if (saved === 'light') {
+                    document.documentElement.setAttribute('data-theme', 'light');
+                    themeToggle.textContent = '🌙';
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    themeToggle.textContent = '🌓';
+                }
+            }
+
+            // ============================================================
+            //  键盘快捷键
+            // ============================================================
+            function handleKeydown(e) {
+                if (e.ctrlKey && e.shiftKey && (e.key === 'a' || e.key === 'A')) {
+                    e.preventDefault();
+                    openAddModal();
+                }
+                if (e.key === 'Escape') {
+                    if (modalOverlay.classList.contains('active')) closeModal();
+                    if (threeModalOverlay.classList.contains('active')) closeThreeConfig();
+                }
+                if (e.target === searchInput && e.key === 'Enter') {
+                    e.preventDefault();
+                    doSearch();
+                }
+                // Ctrl+Shift+3 触发三连开
+                if (e.ctrlKey && e.shiftKey && (e.key === '3')) {
+                    e.preventDefault();
+                    openThreeSites();
+                }
+            }
+
+            // ============================================================
+            //  初始化
+            // ============================================================
+            function init() {
+                loadData();
+                loadTheme();
+                renderIconGrid();
+                render();
+
+                // 搜索
+                searchBtn.addEventListener('click', doSearch);
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') doSearch();
+                });
+
+                // 站点模态框
+                addBtn.addEventListener('click', openAddModal);
+                modalCancel.addEventListener('click', closeModal);
+                modalConfirm.addEventListener('click', handleModalConfirm);
+                modalOverlay.addEventListener('click', (e) => {
+                    if (e.target === modalOverlay) closeModal();
+                });
+
+                // 主题
+                themeToggle.addEventListener('click', toggleTheme);
+
+                // 重置 / 导出 / 导入
+                resetBtn.addEventListener('click', resetToDefault);
+                exportBtn.addEventListener('click', exportConfig);
+                importBtn.addEventListener('click', () => importFile.click());
+                importFile.addEventListener('change', (e) => {
+                    if (e.target.files.length) importConfig(e.target.files[0]);
+                });
+
+                // 三连开
+                threeBtn.addEventListener('click', openThreeSites);
+                configThreeBtn.addEventListener('click', openThreeConfig);
+                threeModalCancel.addEventListener('click', closeThreeConfig);
+                threeModalConfirm.addEventListener('click', saveThreeConfig);
+                threeModalOverlay.addEventListener('click', (e) => {
+                    if (e.target === threeModalOverlay) closeThreeConfig();
+                });
+
+                // 键盘
+                document.addEventListener('keydown', handleKeydown);
+
+                // 自动聚焦搜索
+                setTimeout(() => searchInput.focus(), 300);
+
+                console.log('🚀 起始页已加载，站点数:', sites.length);
+                console.log('🔗 三连开网址:', getThreeUrls());
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+        })();
+    </script>
+</body>
+</html>

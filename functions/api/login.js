@@ -40,22 +40,6 @@ export async function onRequest(context) {
         const formData = await request.formData();
         const uid = formData.get('uid');
         const password = formData.get('password');
-        const captchaId = formData.get('captchaId');
-        const captchaInput = formData.get('captcha');
-
-        // 验证验证码
-        if (!captchaId || !captchaInput) {
-            return new Response(JSON.stringify({ error: '请输入验证码' }), { status: 400, headers: CORS_HEADERS });
-        }
-        const storedCode = await env.USER_DATA.get(captchaId);
-        if (!storedCode) {
-            return new Response(JSON.stringify({ error: '验证码已过期，请刷新' }), { status: 400, headers: CORS_HEADERS });
-        }
-        if (storedCode !== captchaInput) {
-            return new Response(JSON.stringify({ error: '验证码错误' }), { status: 400, headers: CORS_HEADERS });
-        }
-        // 验证通过后删除该验证码（一次性）
-        await env.USER_DATA.delete(captchaId);
 
         if (!uid || !password) {
             return new Response(JSON.stringify({ error: '请填写完整信息' }), { status: 400, headers: CORS_HEADERS });
