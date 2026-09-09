@@ -3,33 +3,35 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>我的起始页 · 一键三开</title>
+    <title>我的起始页 · 26.9.a</title>
     <style>
-        /* ===== 全局变量 ===== */
+        /* ===== CSS Variables ===== */
         :root {
             --bg-primary: #0b1120;
-            --bg-secondary: rgba(255, 255, 255, 0.04);
-            --bg-card: rgba(255, 255, 255, 0.06);
-            --bg-card-hover: rgba(255, 255, 255, 0.12);
+            --bg-secondary: rgba(255, 255, 255, 0.05);
+            --bg-card: rgba(255, 255, 255, 0.07);
+            --bg-card-hover: rgba(255, 255, 255, 0.14);
             --border-color: rgba(255, 255, 255, 0.08);
             --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.65);
-            --text-muted: rgba(255, 255, 255, 0.35);
+            --text-secondary: rgba(255, 255, 255, 0.7);
+            --text-muted: rgba(255, 255, 255, 0.4);
             --accent: #6c8cff;
             --accent-hover: #5a7ae8;
             --shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
             --radius: 20px;
             --radius-sm: 12px;
             --radius-full: 60px;
-            --transition: 0.25s ease;
+            --transition: 0.3s ease;
             --font: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --bg-image: none;
+            --bg-overlay: rgba(0, 0, 0, 0.55);
         }
 
         [data-theme="light"] {
-            --bg-primary: #f0f2f5;
-            --bg-secondary: rgba(0, 0, 0, 0.02);
-            --bg-card: rgba(255, 255, 255, 0.8);
-            --bg-card-hover: rgba(255, 255, 255, 1);
+            --bg-primary: #eef0f3;
+            --bg-secondary: rgba(0, 0, 0, 0.03);
+            --bg-card: rgba(255, 255, 255, 0.75);
+            --bg-card-hover: rgba(255, 255, 255, 0.92);
             --border-color: rgba(0, 0, 0, 0.08);
             --text-primary: #1a1a2e;
             --text-secondary: rgba(0, 0, 0, 0.65);
@@ -37,9 +39,10 @@
             --shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
             --accent: #4a6cf7;
             --accent-hover: #3a5cd9;
+            --bg-overlay: rgba(255, 255, 255, 0.6);
         }
 
-        /* ===== 基础 ===== */
+        /* ===== Global ===== */
         * {
             margin: 0;
             padding: 0;
@@ -47,18 +50,43 @@
         }
         body {
             font-family: var(--font);
-            background: var(--bg-primary);
-            color: var(--text-primary);
             min-height: 100vh;
-            padding: 24px;
-            transition: background var(--transition), color var(--transition);
             display: flex;
             flex-direction: column;
             align-items: center;
+            padding: 20px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background var(--transition), color var(--transition);
+            background-image: var(--bg-image);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            position: relative;
         }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: var(--bg-overlay);
+            z-index: 0;
+            pointer-events: none;
+            transition: background var(--transition);
+        }
+        .app-container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            width: 100%;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ===== Scrollbar ===== */
         ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
+            width: 5px;
+            height: 5px;
         }
         ::-webkit-scrollbar-track {
             background: transparent;
@@ -70,21 +98,14 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--text-secondary);
         }
-        .app-container {
-            max-width: 1200px;
-            width: 100%;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
 
-        /* ===== 顶部栏 ===== */
+        /* ===== Header ===== */
         .header {
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 12px;
-            padding: 8px 0 24px;
+            padding: 6px 0 18px;
             flex-wrap: wrap;
         }
         .logo-area {
@@ -111,14 +132,14 @@
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-wrap: wrap;
         }
         .header-actions button {
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             color: var(--text-secondary);
-            padding: 8px 16px;
+            padding: 7px 14px;
             border-radius: var(--radius-full);
             cursor: pointer;
             font-size: 13px;
@@ -127,7 +148,7 @@
             backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             white-space: nowrap;
         }
         .header-actions button:hover {
@@ -145,14 +166,74 @@
             border-color: var(--accent-hover);
         }
         .header-actions .theme-btn {
-            padding: 8px 12px;
+            padding: 7px 12px;
             font-size: 16px;
         }
 
-        /* ===== 搜索栏 ===== */
+        /* ===== Clock Widget ===== */
+        .clock-section {
+            width: 100%;
+            text-align: center;
+            padding: 20px 0 14px;
+            margin-bottom: 10px;
+        }
+        .clock-widget {
+            display: inline-block;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 24px 48px 20px;
+            box-shadow: var(--shadow);
+            min-width: 280px;
+            transition: all var(--transition);
+        }
+        .clock-widget:hover {
+            transform: scale(1.01);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+        .clock-time {
+            font-size: 56px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--text-primary);
+            line-height: 1.1;
+            font-variant-numeric: tabular-nums;
+        }
+        .clock-date {
+            font-size: 17px;
+            color: var(--text-secondary);
+            margin-top: 6px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+        .clock-seconds {
+            font-size: 22px;
+            font-weight: 300;
+            color: var(--text-muted);
+            margin-left: 4px;
+        }
+        @media (max-width: 480px) {
+            .clock-widget {
+                padding: 18px 24px 16px;
+                min-width: auto;
+                width: 100%;
+            }
+            .clock-time {
+                font-size: 38px;
+            }
+            .clock-date {
+                font-size: 14px;
+            }
+            .clock-seconds {
+                font-size: 18px;
+            }
+        }
+
+        /* ===== Search ===== */
         .search-section {
             width: 100%;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
         }
         .search-wrapper {
             display: flex;
@@ -169,7 +250,7 @@
         }
         .search-wrapper:focus-within {
             border-color: var(--accent);
-            box-shadow: 0 4px 30px rgba(108, 140, 255, 0.15);
+            box-shadow: 0 4px 30px rgba(108, 140, 255, 0.2);
             transform: scale(1.01);
         }
         .search-wrapper .search-icon {
@@ -185,7 +266,7 @@
             outline: none;
             color: var(--text-primary);
             font-size: 16px;
-            padding: 14px 0;
+            padding: 13px 0;
             font-family: var(--font);
             min-width: 0;
         }
@@ -196,7 +277,7 @@
             background: var(--accent);
             color: #fff;
             border: none;
-            padding: 12px 28px;
+            padding: 11px 28px;
             border-radius: var(--radius-full);
             font-size: 14px;
             font-weight: 600;
@@ -213,7 +294,7 @@
             transform: scale(1.02);
         }
 
-        /* ===== 网站网格 ===== */
+        /* ===== Sites Grid ===== */
         .sites-section {
             flex: 1;
             width: 100%;
@@ -222,12 +303,12 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             flex-wrap: wrap;
             gap: 8px;
         }
         .sites-header h2 {
-            font-size: 16px;
+            font-size: 15px;
             font-weight: 500;
             color: var(--text-secondary);
             letter-spacing: 0.3px;
@@ -236,7 +317,7 @@
             background: var(--bg-secondary);
             border: 1px dashed var(--border-color);
             color: var(--text-secondary);
-            padding: 6px 18px;
+            padding: 5px 16px;
             border-radius: var(--radius-full);
             cursor: pointer;
             font-size: 13px;
@@ -255,19 +336,19 @@
         .grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-            gap: 16px;
+            gap: 14px;
             width: 100%;
         }
         .grid.dragging {
             opacity: 0.5;
         }
 
-        /* ===== 站点卡片 ===== */
+        /* ===== Site Card ===== */
         .site-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
             border-radius: var(--radius);
-            padding: 20px 12px 16px;
+            padding: 18px 10px 14px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -286,8 +367,8 @@
         }
         .site-card .drag-handle {
             position: absolute;
-            top: 6px;
-            left: 10px;
+            top: 5px;
+            left: 9px;
             font-size: 12px;
             color: var(--text-muted);
             cursor: grab;
@@ -298,8 +379,8 @@
             opacity: 1;
         }
         .site-card .card-icon {
-            font-size: 36px;
-            margin-bottom: 8px;
+            font-size: 32px;
+            margin-bottom: 6px;
             line-height: 1.2;
             transition: transform var(--transition);
         }
@@ -310,7 +391,7 @@
             font-size: 13px;
             font-weight: 600;
             color: var(--text-primary);
-            margin-bottom: 4px;
+            margin-bottom: 3px;
             word-break: break-word;
             line-height: 1.3;
             max-width: 100%;
@@ -319,7 +400,7 @@
             font-size: 10px;
             color: var(--text-muted);
             word-break: break-all;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             max-width: 100%;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -328,7 +409,7 @@
         .site-card .card-actions {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
             width: 100%;
             margin-top: auto;
         }
@@ -337,7 +418,7 @@
             background: var(--accent);
             color: #fff;
             border: none;
-            padding: 8px 12px;
+            padding: 7px 10px;
             border-radius: var(--radius-sm);
             font-size: 12px;
             font-weight: 600;
@@ -351,7 +432,7 @@
         }
         .site-card .card-tools {
             display: flex;
-            gap: 4px;
+            gap: 3px;
             opacity: 0;
             transition: opacity var(--transition);
         }
@@ -363,14 +444,14 @@
             border: none;
             color: var(--text-muted);
             cursor: pointer;
-            font-size: 14px;
-            padding: 4px 6px;
+            font-size: 13px;
+            padding: 3px 5px;
             border-radius: 6px;
             transition: all var(--transition);
             line-height: 1;
         }
         .site-card .card-tools button:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.08);
             color: var(--text-primary);
         }
         .site-card .card-tools .del-btn:hover {
@@ -393,25 +474,34 @@
         .empty-state {
             grid-column: 1 / -1;
             text-align: center;
-            padding: 60px 20px;
+            padding: 50px 20px;
             color: var(--text-muted);
         }
         .empty-state .empty-icon {
-            font-size: 48px;
-            margin-bottom: 12px;
+            font-size: 42px;
+            margin-bottom: 10px;
         }
 
-        /* ===== 底部 ===== */
+        /* ===== Footer ===== */
         .footer {
-            margin-top: 32px;
-            padding: 16px 0 8px;
+            margin-top: 28px;
+            padding: 14px 0 6px;
             display: flex;
             justify-content: center;
-            gap: 20px;
+            align-items: center;
+            gap: 16px;
             flex-wrap: wrap;
             border-top: 1px solid var(--border-color);
             color: var(--text-muted);
             font-size: 12px;
+        }
+        .footer .version {
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            padding: 2px 12px;
+            border-radius: 30px;
+            border: 1px solid var(--border-color);
         }
         .footer button {
             background: transparent;
@@ -432,11 +522,11 @@
             color: var(--border-color);
         }
 
-        /* ===== 模态框 ===== */
+        /* ===== Modals ===== */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.55);
             backdrop-filter: blur(8px);
             display: flex;
             align-items: center;
@@ -455,7 +545,7 @@
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
             border-radius: var(--radius);
-            padding: 32px 28px 28px;
+            padding: 28px 26px 26px;
             max-width: 520px;
             width: 100%;
             box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
@@ -465,27 +555,28 @@
         .modal h3 {
             font-size: 20px;
             font-weight: 600;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             color: var(--text-primary);
         }
         .modal .modal-sub {
             font-size: 14px;
             color: var(--text-secondary);
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
         .modal .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 14px;
         }
         .modal .form-group label {
             display: block;
             font-size: 13px;
             font-weight: 500;
             color: var(--text-secondary);
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
-        .modal .form-group input {
+        .modal .form-group input,
+        .modal .form-group select {
             width: 100%;
-            padding: 12px 14px;
+            padding: 11px 14px;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
@@ -501,15 +592,15 @@
         .modal .form-group .icon-grid {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
-            gap: 6px;
-            margin-top: 6px;
+            gap: 5px;
+            margin-top: 5px;
         }
         .modal .form-group .icon-grid button {
             background: var(--bg-secondary);
             border: 2px solid transparent;
             border-radius: var(--radius-sm);
-            padding: 8px 0;
-            font-size: 22px;
+            padding: 7px 0;
+            font-size: 20px;
             cursor: pointer;
             transition: all var(--transition);
         }
@@ -524,11 +615,11 @@
         .modal .modal-actions {
             display: flex;
             gap: 10px;
-            margin-top: 24px;
+            margin-top: 22px;
             justify-content: flex-end;
         }
         .modal .modal-actions button {
-            padding: 10px 28px;
+            padding: 9px 26px;
             border-radius: var(--radius-full);
             border: none;
             font-size: 14px;
@@ -554,15 +645,53 @@
             background: var(--accent-hover);
         }
 
+        /* ===== Background Picker ===== */
+        .bg-options {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .bg-options .bg-preset {
+            aspect-ratio: 16/10;
+            border-radius: var(--radius-sm);
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: all var(--transition);
+            background-size: cover;
+            background-position: center;
+            position: relative;
+        }
+        .bg-options .bg-preset:hover {
+            transform: scale(1.03);
+            border-color: var(--accent);
+        }
+        .bg-options .bg-preset.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(108, 140, 255, 0.25);
+        }
+        .bg-options .bg-preset .bg-label {
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            font-size: 10px;
+            padding: 1px 10px;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
         /* ===== Toast ===== */
         .toast-container {
             position: fixed;
-            bottom: 30px;
-            right: 30px;
+            bottom: 28px;
+            right: 28px;
             z-index: 9999;
             display: flex;
             flex-direction: column;
-            gap: 10px;
+            gap: 8px;
             max-width: 380px;
             width: 100%;
             pointer-events: none;
@@ -571,7 +700,7 @@
             background: var(--bg-primary);
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
-            padding: 14px 20px;
+            padding: 12px 18px;
             color: var(--text-primary);
             font-size: 13px;
             box-shadow: var(--shadow);
@@ -602,23 +731,23 @@
             }
         }
 
-        /* ===== 响应式 ===== */
+        /* ===== Responsive ===== */
         @media (max-width: 768px) {
             body {
-                padding: 16px;
+                padding: 14px;
             }
             .grid {
-                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-                gap: 12px;
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 10px;
             }
             .site-card {
-                padding: 16px 10px 12px;
+                padding: 14px 8px 12px;
             }
             .site-card .card-icon {
-                font-size: 28px;
+                font-size: 26px;
             }
             .search-wrapper {
-                padding: 4px 4px 4px 16px;
+                padding: 4px 4px 4px 14px;
                 border-radius: 30px;
             }
             .search-wrapper input {
@@ -626,16 +755,16 @@
                 padding: 10px 0;
             }
             .search-wrapper .search-btn {
-                padding: 10px 18px;
+                padding: 9px 16px;
                 font-size: 13px;
             }
             .modal {
-                padding: 24px 18px 20px;
+                padding: 22px 16px 18px;
             }
             .header {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 12px;
+                gap: 10px;
             }
             .header-actions {
                 justify-content: center;
@@ -643,31 +772,50 @@
             .logo-area {
                 justify-content: center;
             }
-            .sites-header h2 {
-                font-size: 14px;
+            .clock-widget {
+                padding: 16px 20px 14px;
+            }
+            .clock-time {
+                font-size: 38px;
+            }
+            .bg-options {
+                grid-template-columns: repeat(3, 1fr);
             }
         }
         @media (max-width: 480px) {
             .grid {
-                grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-                gap: 10px;
+                grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+                gap: 8px;
             }
             .site-card .card-name {
                 font-size: 11px;
             }
             .site-card .open-btn {
                 font-size: 10px;
-                padding: 6px 8px;
+                padding: 5px 6px;
             }
             .search-wrapper .search-btn {
-                padding: 8px 14px;
+                padding: 7px 12px;
                 font-size: 12px;
             }
             .toast-container {
-                right: 16px;
-                left: 16px;
+                right: 12px;
+                left: 12px;
                 max-width: 100%;
-                bottom: 16px;
+                bottom: 12px;
+            }
+            .clock-time {
+                font-size: 30px;
+            }
+            .clock-seconds {
+                font-size: 16px;
+            }
+            .bg-options {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .header-actions button {
+                font-size: 11px;
+                padding: 5px 10px;
             }
         }
     </style>
@@ -675,23 +823,35 @@
 <body>
     <div class="app-container" id="app">
 
-        <!-- 顶部栏 -->
+        <!-- ===== Header ===== -->
         <header class="header">
             <div class="logo-area">
                 <span>🚀</span>
-                我的起始页
+                起始页 <span style="font-size:13px;font-weight:400;color:var(--text-muted);margin-left:4px;">v26.9.a</span>
             </div>
             <div class="header-actions">
                 <button class="three-btn" id="threeBtn">⚡ 三连开</button>
                 <button class="theme-btn" id="themeToggle" title="切换主题">🌓</button>
-                <button id="resetBtn" title="重置为默认网站">🔄 重置</button>
+                <button id="bgBtn" title="自定义背景">🖼️ 背景</button>
+                <button id="resetBtn" title="重置为默认">🔄 重置</button>
                 <button id="exportBtn" title="导出配置">📤 导出</button>
                 <button id="importBtn" title="导入配置">📥 导入</button>
                 <input type="file" id="importFile" accept=".json" style="display:none" />
             </div>
         </header>
 
-        <!-- 搜索栏 -->
+        <!-- ===== Clock Widget ===== -->
+        <section class="clock-section">
+            <div class="clock-widget">
+                <div class="clock-time" id="clockTime">
+                    <span id="hours">00</span>:<span id="minutes">00</span>
+                    <span class="clock-seconds" id="seconds">00</span>
+                </div>
+                <div class="clock-date" id="clockDate">----年--月--日 星期-</div>
+            </div>
+        </section>
+
+        <!-- ===== Search ===== -->
         <section class="search-section">
             <div class="search-wrapper">
                 <span class="search-icon">🔍</span>
@@ -700,7 +860,7 @@
             </div>
         </section>
 
-        <!-- 网站网格 -->
+        <!-- ===== Sites Grid ===== -->
         <section class="sites-section">
             <div class="sites-header">
                 <h2>📌 快捷站点</h2>
@@ -709,7 +869,7 @@
             <div class="grid" id="grid"></div>
         </section>
 
-        <!-- 底部 -->
+        <!-- ===== Footer ===== -->
         <footer class="footer">
             <span>💡 点击卡片或「打开」按钮访问</span>
             <span class="sep">·</span>
@@ -717,11 +877,11 @@
             <span class="sep">·</span>
             <button id="configThreeBtn">⚙️ 自定义三连开</button>
             <span class="sep">·</span>
-            <span>v2.0</span>
+            <span class="version">v26.9.a</span>
         </footer>
     </div>
 
-    <!-- 模态框：添加/编辑站点 -->
+    <!-- ===== Modal: 添加/编辑站点 ===== -->
     <div class="modal-overlay" id="modalOverlay">
         <div class="modal">
             <h3 id="modalTitle">添加站点</h3>
@@ -737,11 +897,11 @@
             <div class="form-group">
                 <label>图标 (Emoji)</label>
                 <div class="icon-grid" id="iconGrid"></div>
-                <input type="text" id="siteIcon" placeholder="或手动输入 Emoji" style="margin-top:8px;" />
+                <input type="text" id="siteIcon" placeholder="或手动输入 Emoji" style="margin-top:6px;" />
             </div>
             <div class="form-group">
                 <label>颜色 (可选)</label>
-                <input type="color" id="siteColor" value="#6c8cff" style="padding:4px;height:44px;" />
+                <input type="color" id="siteColor" value="#6c8cff" style="padding:4px;height:42px;" />
             </div>
             <div class="modal-actions">
                 <button class="btn-cancel" id="modalCancel">取消</button>
@@ -750,7 +910,7 @@
         </div>
     </div>
 
-    <!-- 模态框：自定义三连开 -->
+    <!-- ===== Modal: 三连开配置 ===== -->
     <div class="modal-overlay" id="threeModalOverlay">
         <div class="modal">
             <h3>⚡ 自定义三连开</h3>
@@ -774,12 +934,44 @@
         </div>
     </div>
 
-    <!-- Toast 容器 -->
+    <!-- ===== Modal: 背景设置 ===== -->
+    <div class="modal-overlay" id="bgModalOverlay">
+        <div class="modal">
+            <h3>🖼️ 自定义背景</h3>
+            <p class="modal-sub">选择预设背景或上传自定义图片。</p>
+            <div class="form-group">
+                <label>预设背景</label>
+                <div class="bg-options" id="bgOptions">
+                    <!-- 由 JS 生成 -->
+                </div>
+            </div>
+            <div class="form-group">
+                <label>上传自定义图片</label>
+                <input type="file" id="bgUpload" accept="image/*" style="padding:8px;background:var(--bg-secondary);border-radius:var(--radius-sm);border:1px solid var(--border-color);width:100%;color:var(--text-primary);" />
+            </div>
+            <div class="form-group" style="margin-bottom:0;">
+                <label>或输入图片 URL</label>
+                <input type="text" id="bgUrlInput" placeholder="https://example.com/background.jpg" />
+            </div>
+            <div class="modal-actions">
+                <button class="btn-cancel" id="bgModalCancel">取消</button>
+                <button class="btn-confirm" id="bgModalConfirm">应用</button>
+                <button class="btn-cancel" id="bgResetBtn" style="margin-right:auto;">重置默认</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== Toast Container ===== -->
     <div class="toast-container" id="toastContainer"></div>
 
     <script>
         (function() {
             'use strict';
+
+            // ============================================================
+            //  版本
+            // ============================================================
+            const VERSION = '26.9.a';
 
             // ============================================================
             //  默认数据
@@ -805,6 +997,16 @@
                 'https://chat.deepseek.com/'
             ];
 
+            // ===== 预设背景 (使用免费图片占位) =====
+            const PRESET_BGS = [
+                { name: '深海', url: 'https://images.unsplash.com/photo-1541701494587-cb58502866ab?w=1200&q=80' },
+                { name: '森林', url: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=1200&q=80' },
+                { name: '极光', url: 'https://images.unsplash.com/photo-1531366936337-7c912a4589a7?w=1200&q=80' },
+                { name: '城市', url: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=1200&q=80' },
+                { name: '星空', url: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=1200&q=80' },
+                { name: '日落', url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1200&q=80' },
+            ];
+
             // ============================================================
             //  状态
             // ============================================================
@@ -812,7 +1014,7 @@
             let editingId = null;
             let dragSrcIndex = null;
 
-            // DOM 引用
+            // DOM
             const grid = document.getElementById('grid');
             const searchInput = document.getElementById('searchInput');
             const searchBtn = document.getElementById('searchBtn');
@@ -834,7 +1036,7 @@
             const importFile = document.getElementById('importFile');
             const toastContainer = document.getElementById('toastContainer');
 
-            // 三连开相关
+            // 三连开
             const threeBtn = document.getElementById('threeBtn');
             const configThreeBtn = document.getElementById('configThreeBtn');
             const threeModalOverlay = document.getElementById('threeModalOverlay');
@@ -843,6 +1045,22 @@
             const threeUrl3 = document.getElementById('threeUrl3');
             const threeModalCancel = document.getElementById('threeModalCancel');
             const threeModalConfirm = document.getElementById('threeModalConfirm');
+
+            // 背景
+            const bgBtn = document.getElementById('bgBtn');
+            const bgModalOverlay = document.getElementById('bgModalOverlay');
+            const bgOptions = document.getElementById('bgOptions');
+            const bgUpload = document.getElementById('bgUpload');
+            const bgUrlInput = document.getElementById('bgUrlInput');
+            const bgModalCancel = document.getElementById('bgModalCancel');
+            const bgModalConfirm = document.getElementById('bgModalConfirm');
+            const bgResetBtn = document.getElementById('bgResetBtn');
+
+            // 时钟
+            const hoursEl = document.getElementById('hours');
+            const minutesEl = document.getElementById('minutes');
+            const secondsEl = document.getElementById('seconds');
+            const dateEl = document.getElementById('clockDate');
 
             // ============================================================
             //  工具
@@ -854,8 +1072,8 @@
             function toast(msg, type = 'info') {
                 const el = document.createElement('div');
                 el.className = 'toast ' + type;
-                const iconMap = { success: '✅', error: '❌', warning: '⚠️', info: '💡' };
-                el.innerHTML = `<span>${iconMap[type] || '💡'}</span> ${msg}`;
+                const map = { success: '✅', error: '❌', warning: '⚠️', info: '💡' };
+                el.innerHTML = `<span>${map[type] || '💡'}</span> ${msg}`;
                 toastContainer.appendChild(el);
                 setTimeout(() => {
                     el.style.opacity = '0';
@@ -877,11 +1095,32 @@
             }
 
             // ============================================================
+            //  时钟
+            // ============================================================
+            function updateClock() {
+                const now = new Date();
+                const h = String(now.getHours()).padStart(2, '0');
+                const m = String(now.getMinutes()).padStart(2, '0');
+                const s = String(now.getSeconds()).padStart(2, '0');
+                hoursEl.textContent = h;
+                minutesEl.textContent = m;
+                secondsEl.textContent = s;
+
+                const days = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+                const y = now.getFullYear();
+                const mo = String(now.getMonth() + 1).padStart(2, '0');
+                const d = String(now.getDate()).padStart(2, '0');
+                dateEl.textContent = `${y}年${mo}月${d}日 ${days[now.getDay()]}`;
+            }
+            setInterval(updateClock, 200);
+            updateClock();
+
+            // ============================================================
             //  数据持久化
             // ============================================================
             function loadData() {
                 try {
-                    const raw = localStorage.getItem('my_home_sites');
+                    const raw = localStorage.getItem('my_home_sites_v26');
                     if (raw) {
                         const parsed = JSON.parse(raw);
                         if (Array.isArray(parsed) && parsed.length) {
@@ -894,13 +1133,12 @@
             }
 
             function saveData() {
-                localStorage.setItem('my_home_sites', JSON.stringify(sites));
+                localStorage.setItem('my_home_sites_v26', JSON.stringify(sites));
             }
 
-            // 三连开数据
             function getThreeUrls() {
                 try {
-                    const raw = localStorage.getItem('my_three_urls');
+                    const raw = localStorage.getItem('my_three_urls_v26');
                     if (raw) {
                         const arr = JSON.parse(raw);
                         if (Array.isArray(arr) && arr.length === 3) return arr;
@@ -911,7 +1149,63 @@
 
             function setThreeUrls(urls) {
                 if (Array.isArray(urls) && urls.length === 3) {
-                    localStorage.setItem('my_three_urls', JSON.stringify(urls));
+                    localStorage.setItem('my_three_urls_v26', JSON.stringify(urls));
+                }
+            }
+
+            // ============================================================
+            //  背景管理
+            // ============================================================
+            function getBg() {
+                try {
+                    const raw = localStorage.getItem('my_bg_v26');
+                    if (raw) return raw;
+                } catch (_) {}
+                return '';
+            }
+
+            function setBg(url) {
+                if (url) {
+                    localStorage.setItem('my_bg_v26', url);
+                    document.body.style.setProperty('--bg-image', `url("${url}")`);
+                } else {
+                    localStorage.removeItem('my_bg_v26');
+                    document.body.style.setProperty('--bg-image', 'none');
+                }
+            }
+
+            function loadBg() {
+                const url = getBg();
+                if (url) {
+                    document.body.style.setProperty('--bg-image', `url("${url}")`);
+                } else {
+                    document.body.style.setProperty('--bg-image', 'none');
+                }
+            }
+
+            // 渲染背景预设
+            function renderBgOptions() {
+                bgOptions.innerHTML = '';
+                PRESET_BGS.forEach((bg, idx) => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-preset';
+                    div.style.backgroundImage = `url("${bg.url}")`;
+                    div.dataset.url = bg.url;
+                    div.innerHTML = `<span class="bg-label">${bg.name}</span>`;
+                    div.addEventListener('click', () => {
+                        bgOptions.querySelectorAll('.bg-preset').forEach(el => el.classList.remove('active'));
+                        div.classList.add('active');
+                        bgUrlInput.value = bg.url;
+                    });
+                    bgOptions.appendChild(div);
+                });
+                // 高亮当前
+                const current = getBg();
+                if (current) {
+                    bgOptions.querySelectorAll('.bg-preset').forEach(el => {
+                        if (el.dataset.url === current) el.classList.add('active');
+                    });
+                    bgUrlInput.value = current;
                 }
             }
 
@@ -951,7 +1245,7 @@
                 });
                 grid.innerHTML = html;
 
-                // 打开按钮
+                // 打开
                 grid.querySelectorAll('.open-btn').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         e.stopPropagation();
@@ -960,7 +1254,7 @@
                     });
                 });
 
-                // 卡片点击打开
+                // 卡片点击
                 grid.querySelectorAll('.site-card').forEach(card => {
                     card.addEventListener('click', (e) => {
                         if (e.target.closest('button')) return;
@@ -1005,7 +1299,7 @@
             }
 
             // ============================================================
-            //  拖拽排序
+            //  拖拽
             // ============================================================
             function onDragStart(e) {
                 const card = e.target.closest('.site-card');
@@ -1061,9 +1355,9 @@
             }
 
             // ============================================================
-            //  模态框（站点）
+            //  模态框 (站点)
             // ============================================================
-            function openModal(title, sub, data, isEdit = false) {
+            function openModal(title, sub, data) {
                 modalTitle.textContent = title;
                 modalSub.textContent = sub;
                 siteName.value = data?.name || '';
@@ -1084,11 +1378,11 @@
             }
 
             function openAddModal() {
-                openModal('添加站点', '输入站点信息，点击确认添加。', null, false);
+                openModal('添加站点', '输入站点信息，点击确认添加。', null);
             }
 
             function openEditModal(site) {
-                openModal('编辑站点', '修改站点信息，点击确认保存。', site, true);
+                openModal('编辑站点', '修改站点信息，点击确认保存。', site);
             }
 
             function renderIconGrid() {
@@ -1136,7 +1430,7 @@
             }
 
             // ============================================================
-            //  三连开功能
+            //  三连开
             // ============================================================
             function openThreeSites() {
                 const urls = getThreeUrls();
@@ -1147,16 +1441,11 @@
                         if (win) opened++;
                     } catch (_) {}
                 });
-                if (opened === 3) {
-                    toast('已同时打开三个站点！', 'success');
-                } else if (opened > 0) {
-                    toast(`打开了 ${opened} 个，部分可能被拦截`, 'warning');
-                } else {
-                    toast('全部被拦截，请允许弹出窗口', 'error');
-                }
+                if (opened === 3) toast('已同时打开三个站点！', 'success');
+                else if (opened > 0) toast(`打开了 ${opened} 个，部分可能被拦截`, 'warning');
+                else toast('全部被拦截，请允许弹出窗口', 'error');
             }
 
-            // 打开三连开配置模态框
             function openThreeConfig() {
                 const urls = getThreeUrls();
                 threeUrl1.value = urls[0] || '';
@@ -1174,25 +1463,18 @@
                 const u1 = threeUrl1.value.trim();
                 const u2 = threeUrl2.value.trim();
                 const u3 = threeUrl3.value.trim();
-                if (!u1 || !u2 || !u3) {
-                    toast('请填写三个有效的网址', 'warning');
-                    return;
-                }
-                try {
-                    new URL(u1);
+                if (!u1 || !u2 || !u3) { toast('请填写三个有效的网址', 'warning'); return; }
+                try { new URL(u1);
                     new URL(u2);
-                    new URL(u3);
-                } catch (_) {
-                    toast('请确保所有网址格式正确 (包含 http:// 或 https://)', 'warning');
-                    return;
-                }
+                    new URL(u3); } catch (_) { toast('请确保所有网址格式正确 (包含 http:// 或 https://)',
+                    'warning'); return; }
                 setThreeUrls([u1, u2, u3]);
                 closeThreeConfig();
                 toast('三连开网址已更新', 'success');
             }
 
             // ============================================================
-            //  搜索 (Bing)
+            //  搜索
             // ============================================================
             function doSearch() {
                 const q = searchInput.value.trim();
@@ -1247,19 +1529,19 @@
             }
 
             // ============================================================
-            //  主题切换
+            //  主题
             // ============================================================
             function toggleTheme() {
                 const current = document.documentElement.getAttribute('data-theme');
                 const next = current === 'light' ? 'dark' : 'light';
                 document.documentElement.setAttribute('data-theme', next === 'light' ? 'light' : '');
-                localStorage.setItem('my_home_theme', next);
+                localStorage.setItem('my_home_theme_v26', next);
                 themeToggle.textContent = next === 'light' ? '🌙' : '🌓';
                 toast(`已切换到${next === 'light' ? '亮色' : '暗色'}主题`, 'info');
             }
 
             function loadTheme() {
-                const saved = localStorage.getItem('my_home_theme');
+                const saved = localStorage.getItem('my_home_theme_v26');
                 if (saved === 'light') {
                     document.documentElement.setAttribute('data-theme', 'light');
                     themeToggle.textContent = '🌙';
@@ -1267,6 +1549,44 @@
                     document.documentElement.removeAttribute('data-theme');
                     themeToggle.textContent = '🌓';
                 }
+            }
+
+            // ============================================================
+            //  背景模态框
+            // ============================================================
+            function openBgModal() {
+                bgUrlInput.value = getBg();
+                bgOptions.querySelectorAll('.bg-preset').forEach(el => {
+                    el.classList.toggle('active', el.dataset.url === bgUrlInput.value);
+                });
+                bgModalOverlay.classList.add('active');
+            }
+
+            function closeBgModal() {
+                bgModalOverlay.classList.remove('active');
+            }
+
+            function applyBg() {
+                const url = bgUrlInput.value.trim();
+                if (url) {
+                    setBg(url);
+                    toast('背景已更新', 'success');
+                } else {
+                    setBg('');
+                    toast('已清除背景', 'info');
+                }
+                closeBgModal();
+                // 刷新预设高亮
+                renderBgOptions();
+            }
+
+            function resetBg() {
+                setBg('');
+                bgUrlInput.value = '';
+                bgOptions.querySelectorAll('.bg-preset').forEach(el => el.classList.remove('active'));
+                toast('已重置背景', 'info');
+                closeBgModal();
+                renderBgOptions();
             }
 
             // ============================================================
@@ -1280,13 +1600,13 @@
                 if (e.key === 'Escape') {
                     if (modalOverlay.classList.contains('active')) closeModal();
                     if (threeModalOverlay.classList.contains('active')) closeThreeConfig();
+                    if (bgModalOverlay.classList.contains('active')) closeBgModal();
                 }
                 if (e.target === searchInput && e.key === 'Enter') {
                     e.preventDefault();
                     doSearch();
                 }
-                // Ctrl+Shift+3 触发三连开
-                if (e.ctrlKey && e.shiftKey && (e.key === '3')) {
+                if (e.ctrlKey && e.shiftKey && e.key === '3') {
                     e.preventDefault();
                     openThreeSites();
                 }
@@ -1298,7 +1618,9 @@
             function init() {
                 loadData();
                 loadTheme();
+                loadBg();
                 renderIconGrid();
+                renderBgOptions();
                 render();
 
                 // 搜索
@@ -1335,13 +1657,35 @@
                     if (e.target === threeModalOverlay) closeThreeConfig();
                 });
 
+                // 背景
+                bgBtn.addEventListener('click', openBgModal);
+                bgModalCancel.addEventListener('click', closeBgModal);
+                bgModalConfirm.addEventListener('click', applyBg);
+                bgResetBtn.addEventListener('click', resetBg);
+                bgModalOverlay.addEventListener('click', (e) => {
+                    if (e.target === bgModalOverlay) closeBgModal();
+                });
+                bgUpload.addEventListener('change', (e) => {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            bgUrlInput.value = ev.target.result;
+                            // 清除预设高亮
+                            bgOptions.querySelectorAll('.bg-preset').forEach(el => el.classList.remove('active'));
+                            toast('图片已加载，点击「应用」生效', 'info');
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+
                 // 键盘
                 document.addEventListener('keydown', handleKeydown);
 
                 // 自动聚焦搜索
-                setTimeout(() => searchInput.focus(), 300);
+                setTimeout(() => searchInput.focus(), 400);
 
-                console.log('🚀 起始页已加载，站点数:', sites.length);
+                console.log(`🚀 起始页 v${VERSION} 已加载，站点数:`, sites.length);
                 console.log('🔗 三连开网址:', getThreeUrls());
             }
 
