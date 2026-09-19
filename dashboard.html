@@ -51,7 +51,6 @@
         }
         .profile-card .info { flex: 1; }
         .profile-card .info h2 { margin:0; font-size:1.2rem; }
-        .profile-card .info .level { font-size:0.9rem; color:#b8860b; }
         .profile-card .info .meta { font-size:0.9rem; color:#4a5a6a; }
         .profile-card .actions { margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; }
         .profile-card .bio-section { margin-top:12px; }
@@ -103,12 +102,10 @@
                 </div>
                 <div class="info">
                     <h2 id="userName">用户</h2>
-                    <span class="level" id="levelBadge">🌱 新手</span>
                     <div class="meta">
                         <span id="userUid">UID: -</span>
                         <span id="userGrade">年级: -</span>
                         <span id="userClass">班级: -</span>
-                        <span id="userPoints">积分: 0</span>
                     </div>
                     <div class="actions">
                         <button class="btn-primary btn-sm" onclick="location.href='/updateUser.html'">✏️ 修改信息</button>
@@ -130,7 +127,6 @@
     </div>
 
     <script>
-        // ---- 加载个人信息 ----
         async function loadDashboard() {
             try {
                 const res = await fetch('/api/user', { credentials: 'include' });
@@ -144,14 +140,11 @@
 
                 document.getElementById('avatarImg').src = u.avatar || '';
                 document.getElementById('userName').textContent = u.name;
-                document.getElementById('levelBadge').textContent = `${u.levelIcon} ${u.level}`;
                 document.getElementById('userUid').textContent = `UID: ${u.uid}`;
                 document.getElementById('userGrade').textContent = `年级: ${u.grade}`;
                 document.getElementById('userClass').textContent = `班级: ${u.class}`;
-                document.getElementById('userPoints').textContent = `积分: ${u.points}`;
                 document.getElementById('bioText').value = u.bio || '';
 
-                // 我的帖子
                 const postsRes = await fetch('/api/posts');
                 const postsData = await postsRes.json();
                 const myPosts = postsData.posts.filter(p => p.authorName === u.name);
@@ -170,18 +163,13 @@
             }
         }
 
-        // ---- 头像上传 ----
         document.getElementById('uploadAvatarBtn')?.addEventListener('click', async function() {
             const fileInput = document.getElementById('avatarInput');
             if (!fileInput.files.length) { alert('请先选择图片'); return; }
             const fd = new FormData();
             fd.append('avatar', fileInput.files[0]);
             try {
-                const res = await fetch('/api/uploadAvatar', {
-                    method: 'POST',
-                    credentials: 'include',
-                    body: fd
-                });
+                const res = await fetch('/api/uploadAvatar', { method: 'POST', credentials: 'include', body: fd });
                 const result = await res.json();
                 if (result.success) {
                     document.getElementById('avatarImg').src = result.avatar;
@@ -189,12 +177,9 @@
                 } else {
                     alert(result.error || '上传失败');
                 }
-            } catch (err) {
-                alert('网络错误，请重试');
-            }
+            } catch (err) { alert('网络错误，请重试'); }
         });
 
-        // ---- 保存简介 ----
         document.getElementById('saveBioBtn').addEventListener('click', async function() {
             const bio = document.getElementById('bioText').value.trim();
             const fd = new FormData();
@@ -207,13 +192,11 @@
             } catch (err) { alert('网络错误'); }
         });
 
-        // ---- 退出 ----
         document.getElementById('logoutBtn').addEventListener('click', async function() {
             await fetch('/api/logout', { credentials: 'include' });
             window.location.href = '/login.html';
         });
 
-        // ---- 注销 ----
         document.getElementById('deleteAccountBtn').addEventListener('click', async function() {
             const pwd = prompt('请输入密码确认注销：');
             if (!pwd) return;

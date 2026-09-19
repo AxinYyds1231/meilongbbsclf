@@ -68,20 +68,9 @@
                     <option value="7">7班</option><option value="8">8班</option>
                     <option value="9">9班</option><option value="10">10班</option>
                     <option value="11">11班</option><option value="12">12班</option>
-                    <option value="13">13班</option>
+                    <option value="13">13班</option><option value="14">14班</option>
                 </select>
             </div>
-
-            <div class="form-group">
-                <label>手机号 <span style="font-weight:400; color:#6b7a8a;">（可选）</span></label>
-                <input type="tel" id="phone" placeholder="如 13800138000">
-            </div>
-
-            <div class="form-group">
-                <label>邮箱 <span style="font-weight:400; color:#6b7a8a;">（可选）</span></label>
-                <input type="email" id="email" placeholder="如 example@mail.com">
-            </div>
-            <div class="form-hint" style="margin-bottom:12px;">※ 手机号和邮箱至少填写一个</div>
 
             <div class="form-group">
                 <label>密码 <span style="font-weight:400; color:#6b7a8a;">（至少8位，含大小写字母和数字）</span></label>
@@ -109,8 +98,6 @@
             const gender = document.getElementById('gender').value;
             const grade = document.getElementById('grade').value;
             const cls = document.getElementById('class').value;
-            const phone = document.getElementById('phone').value.trim();
-            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const confirmPassword = document.getElementById('confirmPassword').value;
 
@@ -119,24 +106,8 @@
             errorEl.style.display = 'none';
             successEl.style.display = 'none';
 
-            // 前端校验
             if (!uid || !name || !gender || !grade || !cls || !password || !confirmPassword) {
                 errorEl.textContent = '请填写所有必填字段';
-                errorEl.style.display = 'block';
-                return;
-            }
-            if (!phone && !email) {
-                errorEl.textContent = '请至少填写手机号或邮箱';
-                errorEl.style.display = 'block';
-                return;
-            }
-            if (phone && !/^[\d\-+]{7,15}$/.test(phone)) {
-                errorEl.textContent = '手机号格式不正确';
-                errorEl.style.display = 'block';
-                return;
-            }
-            if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                errorEl.textContent = '邮箱格式不正确';
                 errorEl.style.display = 'block';
                 return;
             }
@@ -162,8 +133,6 @@
             fd.append('gender', gender);
             fd.append('grade', grade);
             fd.append('class', cls);
-            fd.append('phone', phone);
-            fd.append('email', email);
             fd.append('password', password);
             fd.append('confirmPassword', confirmPassword);
 

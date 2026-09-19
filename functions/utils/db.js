@@ -6,7 +6,6 @@ export function createDb(kv) {
     const CATEGORIES_KEY = 'categories';
     const MESSAGES_KEY = 'messages';
     const ADMIN_PASSWORD_KEY = 'admin_password_hash';
-    const CHECKIN_PREFIX = 'checkin_';
     const FAVORITES_KEY = 'favorites';
     const SENSITIVE_KEY = 'sensitive_words';
     const STATS_KEY = 'stats';
@@ -45,13 +44,6 @@ export function createDb(kv) {
         await saveUsers(users);
         return true;
     }
-    async function addPoints(uid, points) {
-        const user = await findUserByUid(uid);
-        if (!user) return null;
-        const newPoints = (user.points || 0) + points;
-        await updateUser(uid, { points: newPoints });
-        return newPoints;
-    }
     async function updateLastActive(uid) {
         const user = await findUserByUid(uid);
         if (!user) return null;
@@ -67,7 +59,7 @@ export function createDb(kv) {
         const year = parseInt(uid.substring(2, 6));
         const cls = parseInt(uid.substring(6, 8));
         const num = parseInt(uid.substring(8, 10));
-        return year >= 2024 && year <= 2040 && cls >= 1 && cls <= 12 && num >= 1 && num <= 99;
+        return year >= 2024 && year <= 2040 && cls >= 1 && cls <= 14 && num >= 1 && num <= 99;
     }
     function isValidPassword(pwd) {
         return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(pwd);
@@ -81,7 +73,7 @@ export function createDb(kv) {
     }
     function isValidClass(cls) {
         const num = parseInt(cls);
-        return num >= 1 && num <= 13;
+        return num >= 1 && num <= 14;
     }
 
     // ---- 分类（树形） ----
@@ -322,37 +314,6 @@ export function createDb(kv) {
         return users.filter(u => u.uid.includes(keyword) || u.name.includes(keyword)).slice(0, 20);
     }
 
-    // ---- 签到 ----
-    async function getCheckinData(uid) {
-        const key = CHECKIN_PREFIX + uid;
-        return await getData(key) || null;
-    }
-    async function setCheckinData(uid, data) {
-        const key = CHECKIN_PREFIX + uid;
-        await setData(key, data);
-    }
-    async function getTodayCheckinStatus(uid) {
-        const data = await getCheckinData(uid);
-        if (!data) return { checked: false, streak: 0, lastDate: null };
-        const today = new Date().toISOString().slice(0, 10);
-        return { checked: data.lastDate === today, streak: data.streak || 0, lastDate: data.lastDate };
-    }
-    async function doCheckin(uid) {
-        const today = new Date().toISOString().slice(0, 10);
-        const status = await getTodayCheckinStatus(uid);
-        if (status.checked) return { success: false, message: '今日已签到', streak: status.streak };
-        let streak = status.streak || 0;
-        const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
-        const yesterdayStr = yesterday.toISOString().slice(0, 10);
-        if (status.lastDate === yesterdayStr) streak += 1;
-        else streak = 1;
-        await setCheckinData(uid, { lastDate: today, streak });
-        let pointsEarned = 5;
-        if (streak % 7 === 0) pointsEarned += 10;
-        await addPoints(uid, pointsEarned);
-        return { success: true, message: `签到成功！获得 ${pointsEarned} 积分`, streak, pointsEarned };
-    }
-
     // ---- 收藏 ----
     async function getFavorites(uid) {
         const data = await getData(FAVORITES_KEY) || {};
@@ -452,7 +413,6 @@ export function createDb(kv) {
         findUserByUid,
         updateUser,
         deleteUser,
-        addPoints,
         updateLastActive,
         isValidUID,
         isValidPassword,
@@ -486,8 +446,6 @@ export function createDb(kv) {
         addContact,
         removeContact,
         searchUsers,
-        getTodayCheckinStatus,
-        doCheckin,
         getFavorites,
         toggleFavorite,
         getSensitiveWords,

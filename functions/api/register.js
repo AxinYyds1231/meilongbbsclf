@@ -36,21 +36,6 @@ export async function onRequest(context) {
         const confirmPassword = formData.get('confirmPassword');
         const grade = formData.get('grade');
         const cls = formData.get('class');
-        const phone = formData.get('phone') || '';
-        const email = formData.get('email') || '';
-
-        // 校验联系方式至少一个
-        if (!phone && !email) {
-            return new Response(JSON.stringify({ error: '请至少填写手机号或邮箱' }), { status: 400, headers: CORS_HEADERS });
-        }
-
-        // 简单格式校验
-        if (phone && !/^[\d\-+]{7,15}$/.test(phone)) {
-            return new Response(JSON.stringify({ error: '手机号格式不正确' }), { status: 400, headers: CORS_HEADERS });
-        }
-        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            return new Response(JSON.stringify({ error: '邮箱格式不正确' }), { status: 400, headers: CORS_HEADERS });
-        }
 
         if (!uid || !name || !gender || !password || !confirmPassword || !grade || !cls) {
             return new Response(JSON.stringify({ error: '请填写所有必填字段' }), { status: 400, headers: CORS_HEADERS });
@@ -68,7 +53,7 @@ export async function onRequest(context) {
             return new Response(JSON.stringify({ error: '年级必须是6~9' }), { status: 400, headers: CORS_HEADERS });
         }
         if (!db.isValidClass(cls)) {
-            return new Response(JSON.stringify({ error: '班级必须是1~13' }), { status: 400, headers: CORS_HEADERS });
+            return new Response(JSON.stringify({ error: '班级必须是1~14' }), { status: 400, headers: CORS_HEADERS });
         }
 
         const existing = await db.findUserByUid(uid);
@@ -86,12 +71,9 @@ export async function onRequest(context) {
             password: hashedPassword,
             grade: parseInt(grade),
             class: parseInt(cls),
-            points: 0,
             avatar: '',
             bio: '',
             avatarBanned: false,
-            phone: phone,
-            email: email,
             lastActive: null
         });
         await db.saveUsers(users);
