@@ -110,6 +110,14 @@
             border-color: #1a3c6e;
             background: rgba(255,255,255,0.8);
         }
+        .pin-badge {
+            background: #d9534f;
+            color: #fff;
+            font-size: 0.7rem;
+            padding: 1px 6px;
+            border-radius: 8px;
+            margin-right: 6px;
+        }
     </style>
 </head>
 <body>
@@ -138,7 +146,6 @@
                     <button id="createBtn" class="btn-primary btn-sm" style="display:none;">➕ 发帖</button>
                     <button id="logoutBtn" class="btn-secondary btn-sm" style="display:none;">退出</button>
                 </div>
-                <!-- 搜索框 -->
                 <div class="search-area">
                     <input type="text" id="searchInput" placeholder="搜索帖子...">
                     <button id="searchBtn" class="btn-primary btn-sm">🔍</button>
@@ -150,19 +157,15 @@
     </div>
 
     <script>
-        // ---- 状态 ----
         let currentCategoryId = 0;
         let categoriesTree = [];
 
-        // ---- DOM引用 ----
         const treeContainer = document.getElementById('categoryTree');
         const postListEl = document.getElementById('postList');
         const pageTitle = document.getElementById('pageTitle');
 
-        // ---- 辅助 ----
         function formatTime(ts) { return new Date(ts).toLocaleString('zh-CN'); }
 
-        // ---- 加载公告 ----
         async function loadAnnouncements() {
             try {
                 const res = await fetch('/api/announcement');
@@ -179,7 +182,6 @@
             } catch (e) {}
         }
 
-        // ---- 加载分类树 ----
         async function loadCategories() {
             try {
                 const res = await fetch('/api/categories');
@@ -264,7 +266,6 @@
             return null;
         }
 
-        // ---- 加载帖子 ----
         async function loadPosts(categoryId = 0) {
             try {
                 const url = categoryId ? `/api/posts?category=${categoryId}` : '/api/posts';
@@ -285,7 +286,10 @@
             posts.forEach(p => {
                 html += `
                     <div class="post-item" onclick="location.href='/post.html?id=${p.id}'">
-                        <div class="post-title">${p.title}</div>
+                        <div class="post-title">
+                            ${p.pinned ? '<span class="pin-badge">📌 置顶</span>' : ''}
+                            ${p.title}
+                        </div>
                         <div class="post-meta">
                             <span>📂 ${p.categoryName || '未分类'}</span>
                             <span>✍️ <a href="/profile.html?uid=${p.authorUid}" onclick="event.stopPropagation();">${p.authorName}</a></span>
@@ -293,7 +297,6 @@
                             <span>💬 ${p.replyCount}</span>
                             <span>👍 ${p.likesCount}</span>
                             <span>👎 ${p.dislikesCount}</span>
-                            <span>👁️ ${p.views || 0}</span>
                         </div>
                     </div>
                 `;
@@ -301,7 +304,7 @@
             postListEl.innerHTML = html;
         }
 
-        // ---- 搜索 ----
+        // 搜索
         document.getElementById('searchBtn')?.addEventListener('click', async function() {
             const q = document.getElementById('searchInput').value.trim();
             if (!q) {
@@ -319,12 +322,9 @@
         });
 
         document.getElementById('searchInput')?.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter') {
-                document.getElementById('searchBtn').click();
-            }
+            if (e.key === 'Enter') document.getElementById('searchBtn').click();
         });
 
-        // ---- 用户状态 ----
         async function checkLogin() {
             try {
                 const res = await fetch('/api/user', { credentials: 'include' });
@@ -337,7 +337,6 @@
             } catch (e) {}
         }
 
-        // ---- 退出 ----
         document.getElementById('logoutBtn')?.addEventListener('click', async function() {
             await fetch('/api/logout', { credentials: 'include' });
             window.location.href = '/login.html';
@@ -346,7 +345,6 @@
             window.location.href = '/createPost.html';
         });
 
-        // ---- 启动 ----
         checkLogin();
         loadAnnouncements();
         loadCategories();

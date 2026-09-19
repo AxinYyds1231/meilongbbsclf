@@ -33,9 +33,6 @@ export async function onRequest(context) {
         return new Response(JSON.stringify({ error: '帖子已删除', deleteReason: post.deleteReason }), { status: 410, headers: CORS_HEADERS });
     }
 
-    // 增加浏览量
-    await db.incrementPostViews(id);
-
     const author = await db.findUserByUid(post.authorUid);
     const cat = post.categoryId ? await db.getCategoryById(post.categoryId) : null;
 
@@ -45,7 +42,6 @@ export async function onRequest(context) {
         categoryName: cat?.name || '未分类',
         likesCount: post.likes.length,
         dislikesCount: post.dislikes.length,
-        views: (post.views || 0) + 1,
         replies: post.replies.map(r => ({
             ...r,
             likesCount: r.likes.length,

@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>帖子管理</title>
-	<link rel="icon" href="/favicon.png" type="image/png">
     <link rel="stylesheet" href="/style.css">
     <style>
         .app-wrapper { max-width: 1400px; }
@@ -14,7 +13,7 @@
             align-items: center;
             background: rgba(255,255,255,0.3);
             backdrop-filter: blur(4px);
-            padding: 8px 14px;
+            padding: 10px 14px;
             border-radius: 10px;
             margin-bottom: 6px;
             border: 1px solid rgba(255,255,255,0.4);
@@ -22,16 +21,31 @@
         .post-item .info { flex: 1; }
         .post-item .title { font-weight: 500; color: #1a2332; }
         .post-item .meta { font-size: 0.8rem; color: #6b7a8a; }
-        .post-item .actions button { margin-left: 4px; }
-        .delete-btn {
-            background: rgba(217,83,79,0.1);
-            color: #d9534f;
+        .post-item .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+        .pin-btn, .delete-btn {
             border: none;
             padding: 2px 12px;
             border-radius: 12px;
             cursor: pointer;
+            font-size: 0.8rem;
+            transition: 0.15s;
         }
-        .delete-btn:hover { background: #d9534f; color: #fff; }
+        .pin-btn {
+            background: rgba(255,193,7,0.15);
+            color: #d39e00;
+        }
+        .pin-btn:hover {
+            background: #ffc107;
+            color: #fff;
+        }
+        .delete-btn {
+            background: rgba(217,83,79,0.1);
+            color: #d9534f;
+        }
+        .delete-btn:hover {
+            background: #d9534f;
+            color: #fff;
+        }
         .admin-menu a {
             display: flex;
             align-items: center;
@@ -57,7 +71,7 @@
                 <a href="/adminCategories.html">📂 分类管理</a>
                 <a href="/adminSensitive.html">🛡️ 敏感词</a>
                 <a href="/adminAnnouncement.html">📢 公告</a>
-				<a href="/adminMessages.html">📩 消息管理</a>
+                <a href="/adminMessages.html">📩 消息管理</a>
             </nav>
             <div style="padding:16px; margin-top:auto; border-top:1px solid rgba(0,0,0,0.04);">
                 <button onclick="location.href='/adminLogin.html'" class="btn-secondary btn-sm" style="width:100%;">🚪 退出管理</button>
@@ -86,10 +100,15 @@
                     html += `
                         <div class="post-item">
                             <div class="info">
-                                <div class="title"><a href="/post.html?id=${p.id}" target="_blank">${p.title}</a></div>
+                                <div class="title">
+                                    ${p.pinned ? '📌 ' : ''}<a href="/post.html?id=${p.id}" target="_blank">${p.title}</a>
+                                </div>
                                 <div class="meta">✍️ ${p.authorName} · 🕒 ${time} · 💬 ${p.replyCount}</div>
                             </div>
                             <div class="actions">
+                                <button class="pin-btn" data-id="${p.id}" data-pinned="${p.pinned}">
+                                    ${p.pinned ? '取消置顶' : '置顶'}
+                                </button>
                                 <button class="delete-btn" data-id="${p.id}">删除</button>
                             </div>
                         </div>
@@ -97,6 +116,26 @@
                 });
                 container.innerHTML = html;
 
+                // 绑定置顶按钮
+                document.querySelectorAll('.pin-btn').forEach(btn => {
+                    btn.addEventListener('click', async function() {
+                        const postId = this.dataset.id;
+                        const fd = new FormData();
+                        fd.append('postId', postId);
+                        try {
+                            const res = await fetch('/api/adminTogglePin', { method: 'POST', credentials: 'include', body: fd });
+                            const result = await res.json();
+                            if (result.success) {
+                                alert(result.pinned ? '已置顶' : '已取消置顶');
+                                loadPosts();
+                            } else {
+                                alert(result.error || '操作失败');
+                            }
+                        } catch (err) { alert('网络错误'); }
+                    });
+                });
+
+                // 绑定删除按钮
                 document.querySelectorAll('.delete-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const id = this.dataset.id;

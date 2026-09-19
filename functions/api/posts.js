@@ -28,6 +28,13 @@ export async function onRequest(context) {
         posts = posts.filter(p => p.categoryId === categoryId);
     }
 
+    // 置顶帖排前面，然后按时间倒序
+    posts.sort((a, b) => {
+        if (a.pinned && !b.pinned) return -1;
+        if (!a.pinned && b.pinned) return 1;
+        return b.createdAt - a.createdAt;
+    });
+
     const result = await Promise.all(posts.map(async p => {
         const author = await db.findUserByUid(p.authorUid);
         const cat = p.categoryId ? await db.getCategoryById(p.categoryId) : null;
@@ -41,7 +48,8 @@ export async function onRequest(context) {
             createdAt: p.createdAt,
             replyCount: p.replies.length,
             likesCount: p.likes.length,
-            dislikesCount: p.dislikes.length
+            dislikesCount: p.dislikes.length,
+            pinned: p.pinned || false
         };
     }));
 

@@ -12,7 +12,6 @@ export function createDb(kv) {
     const ANNOUNCEMENT_KEY = 'announcements';
     const CONTACTS_KEY = 'contacts';
 
-    // ---- 通用 ----
     async function getData(key) {
         if (!kv) return null;
         const value = await kv.get(key, 'json');
@@ -47,12 +46,10 @@ export function createDb(kv) {
     async function updateLastActive(uid) {
         const user = await findUserByUid(uid);
         if (!user) return null;
-        const now = Date.now();
-        await updateUser(uid, { lastActive: now });
-        return now;
+        await updateUser(uid, { lastActive: Date.now() });
+        return Date.now();
     }
 
-    // ---- 验证（同步） ----
     function isValidUID(uid) {
         const regex = /^(ml|ms)\d{4}\d{2}\d{2}$/;
         if (!regex.test(uid)) return false;
@@ -76,7 +73,7 @@ export function createDb(kv) {
         return num >= 1 && num <= 14;
     }
 
-    // ---- 分类（树形） ----
+    // ---- 分类 ----
     async function getCategories() { return (await getData(CATEGORIES_KEY)) || []; }
     async function saveCategories(cats) { await setData(CATEGORIES_KEY, cats); }
     async function getCategoryById(id) {
@@ -104,8 +101,7 @@ export function createDb(kv) {
     }
     async function deleteCategory(id) {
         let cats = await getCategories();
-        const hasChildren = cats.some(c => c.parentId === id);
-        if (hasChildren) throw new Error('该分类下存在子分类，请先删除子分类');
+        if (cats.some(c => c.parentId === id)) throw new Error('该分类下存在子分类，请先删除子分类');
         cats = cats.filter(c => c.id !== id);
         await saveCategories(cats);
         return true;
@@ -160,7 +156,7 @@ export function createDb(kv) {
             deletedBy: null,
             likes: [],
             dislikes: [],
-            views: 0
+            pinned: false
         };
         posts.unshift(post);
         await setData(POSTS_KEY, posts);
@@ -186,13 +182,13 @@ export function createDb(kv) {
         await setData(POSTS_KEY, posts);
         return true;
     }
-    async function incrementPostViews(postId) {
+    async function togglePin(postId) {
         const posts = await getPosts();
         const post = posts.find(p => p.id === postId);
-        if (!post) return false;
-        post.views = (post.views || 0) + 1;
+        if (!post) return null;
+        post.pinned = !post.pinned;
         await setData(POSTS_KEY, posts);
-        return post.views;
+        return post.pinned;
     }
     async function toggleLike(postId, uid, type) {
         const posts = await getPosts();
@@ -227,7 +223,6 @@ export function createDb(kv) {
         await setData(POSTS_KEY, posts);
         return reply;
     }
-    // 搜索帖子
     async function searchPosts(keyword) {
         const posts = await getPosts();
         const lowerKeyword = keyword.toLowerCase();
@@ -246,12 +241,9 @@ export function createDb(kv) {
         const reply = {
             id: post.replies.length + 1,
             parentId: parentId || 0,
-            uid,
-            name,
-            content,
+            uid, name, content,
             createdAt: Date.now(),
-            likes: [],
-            dislikes: []
+            likes: [], dislikes: []
         };
         post.replies.push(reply);
         await setData(POSTS_KEY, posts);
@@ -278,10 +270,7 @@ export function createDb(kv) {
         const msgs = await getMessages();
         const msg = {
             id: msgs.length ? Math.max(...msgs.map(m => m.id)) + 1 : 1,
-            fromUid,
-            toUid,
-            content,
-            type,
+            fromUid, toUid, content, type,
             sentAt: Date.now()
         };
         msgs.push(msg);
@@ -425,62 +414,18 @@ export function createDb(kv) {
     async function getAdminPasswordHash() { return await getData(ADMIN_PASSWORD_KEY) || null; }
     async function setAdminPasswordHash(hash) { await setData(ADMIN_PASSWORD_KEY, hash); }
 
-    // ---- 导出 ----
     return {
-        getUsers,
-        saveUsers,
-        findUserByUid,
-        updateUser,
-        deleteUser,
-        updateLastActive,
-        isValidUID,
-        isValidPassword,
-        isValidGrade,
-        isValidClass,
-        getCategories,
-        saveCategories,
-        getCategoryById,
-        createCategory,
-        updateCategory,
-        deleteCategory,
-        getCategoryTree,
-        getChildrenIds,
-        getPosts,
-        savePosts,
-        getPostById,
-        createPost,
-        addReply,
-        deletePostById,
-        incrementPostViews,
-        toggleLike,
-        toggleReplyLike,
-        searchPosts,
-        addTreeReply,
-        getTreeReplies,
-        getMessages,
-        saveMessages,
-        sendMessage,
-        getInbox,
-        deleteMessage,
-        getAdminMessages,
-        getContacts,
-        addContact,
-        removeContact,
-        searchUsers,
-        getFavorites,
-        toggleFavorite,
-        getSensitiveWords,
-        addSensitiveWord,
-        removeSensitiveWord,
-        filterSensitive,
-        getStats,
-        incrementStats,
-        getAnnouncements,
-        addAnnouncement,
-        updateAnnouncement,
-        deleteAnnouncement,
-        getActiveAnnouncements,
-        getAdminPasswordHash,
-        setAdminPasswordHash
+        getUsers, saveUsers, findUserByUid, updateUser, deleteUser, updateLastActive,
+        isValidUID, isValidPassword, isValidGrade, isValidClass,
+        getCategories, saveCategories, getCategoryById, createCategory, updateCategory, deleteCategory, getCategoryTree, getChildrenIds,
+        getPosts, savePosts, getPostById, createPost, addReply, deletePostById, togglePin,
+        toggleLike, toggleReplyLike, searchPosts, addTreeReply, getTreeReplies,
+        getMessages, saveMessages, sendMessage, getInbox, deleteMessage, getAdminMessages,
+        getContacts, addContact, removeContact, searchUsers,
+        getFavorites, toggleFavorite,
+        getSensitiveWords, addSensitiveWord, removeSensitiveWord, filterSensitive,
+        getStats, incrementStats,
+        getAnnouncements, addAnnouncement, updateAnnouncement, deleteAnnouncement, getActiveAnnouncements,
+        getAdminPasswordHash, setAdminPasswordHash
     };
 }
