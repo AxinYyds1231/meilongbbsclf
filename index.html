@@ -91,7 +91,25 @@
         .btn-secondary { background: rgba(0,0,0,0.06); color: #1a2332; border: 1px solid rgba(0,0,0,0.06); padding: 6px 18px; border-radius: 30px; cursor: pointer; }
         .btn-secondary:hover { background: rgba(0,0,0,0.1); }
         .sidebar-header h2 { font-size: 1.1rem; margin: 0; }
-        .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .search-area {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+        }
+        .search-area input {
+            padding: 5px 12px;
+            border-radius: 20px;
+            border: 1px solid rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.5);
+            font-size: 0.85rem;
+            width: 160px;
+        }
+        .search-area input:focus {
+            outline: none;
+            border-color: #1a3c6e;
+            background: rgba(255,255,255,0.8);
+        }
     </style>
 </head>
 <body>
@@ -113,12 +131,17 @@
 
         <!-- 右侧主内容 -->
         <main class="main-content">
-            <div class="header-actions" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
                 <span id="pageTitle" style="font-size:1.2rem; font-weight:600; color:#1a2332;">📚 全部帖子</span>
                 <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <span id="userInfo" style="font-size:0.9rem; color:#4a5a6a;"></span>
                     <button id="createBtn" class="btn-primary btn-sm" style="display:none;">➕ 发帖</button>
                     <button id="logoutBtn" class="btn-secondary btn-sm" style="display:none;">退出</button>
+                </div>
+                <!-- 搜索框 -->
+                <div class="search-area">
+                    <input type="text" id="searchInput" placeholder="搜索帖子...">
+                    <button id="searchBtn" class="btn-primary btn-sm">🔍</button>
                 </div>
             </div>
             <div id="announcementBar"></div>
@@ -174,7 +197,6 @@
                 return;
             }
             let html = '';
-            // 全部
             html += `
                 <div class="tree-node">
                     <div class="node-label ${currentCategoryId === 0 ? 'active' : ''}" data-id="0">
@@ -205,7 +227,6 @@
             html += buildNodes(nodes, 0);
             treeContainer.innerHTML = html;
 
-            // 绑定事件
             treeContainer.querySelectorAll('.node-label').forEach(el => {
                 el.addEventListener('click', function(e) {
                     if (e.target.classList.contains('toggle')) {
@@ -272,12 +293,36 @@
                             <span>💬 ${p.replyCount}</span>
                             <span>👍 ${p.likesCount}</span>
                             <span>👎 ${p.dislikesCount}</span>
+                            <span>👁️ ${p.views || 0}</span>
                         </div>
                     </div>
                 `;
             });
             postListEl.innerHTML = html;
         }
+
+        // ---- 搜索 ----
+        document.getElementById('searchBtn')?.addEventListener('click', async function() {
+            const q = document.getElementById('searchInput').value.trim();
+            if (!q) {
+                setActiveCategory(currentCategoryId);
+                return;
+            }
+            try {
+                const res = await fetch(`/api/searchPosts?q=${encodeURIComponent(q)}`);
+                const data = await res.json();
+                renderPosts(data.posts || []);
+                pageTitle.textContent = `🔍 搜索：${q}`;
+            } catch (err) {
+                postListEl.innerHTML = '<div style="color:red;">搜索失败</div>';
+            }
+        });
+
+        document.getElementById('searchInput')?.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('searchBtn').click();
+            }
+        });
 
         // ---- 用户状态 ----
         async function checkLogin() {

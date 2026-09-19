@@ -159,7 +159,8 @@ export function createDb(kv) {
             deleteReason: null,
             deletedBy: null,
             likes: [],
-            dislikes: []
+            dislikes: [],
+            views: 0
         };
         posts.unshift(post);
         await setData(POSTS_KEY, posts);
@@ -184,6 +185,14 @@ export function createDb(kv) {
         post.deletedBy = adminUid;
         await setData(POSTS_KEY, posts);
         return true;
+    }
+    async function incrementPostViews(postId) {
+        const posts = await getPosts();
+        const post = posts.find(p => p.id === postId);
+        if (!post) return false;
+        post.views = (post.views || 0) + 1;
+        await setData(POSTS_KEY, posts);
+        return post.views;
     }
     async function toggleLike(postId, uid, type) {
         const posts = await getPosts();
@@ -217,6 +226,16 @@ export function createDb(kv) {
         }
         await setData(POSTS_KEY, posts);
         return reply;
+    }
+    // 搜索帖子
+    async function searchPosts(keyword) {
+        const posts = await getPosts();
+        const lowerKeyword = keyword.toLowerCase();
+        return posts.filter(p => 
+            !p.deleted &&
+            (p.title.toLowerCase().includes(lowerKeyword) || 
+             p.content.toLowerCase().includes(lowerKeyword))
+        );
     }
 
     // ---- 树形回复 ----
@@ -432,8 +451,10 @@ export function createDb(kv) {
         createPost,
         addReply,
         deletePostById,
+        incrementPostViews,
         toggleLike,
         toggleReplyLike,
+        searchPosts,
         addTreeReply,
         getTreeReplies,
         getMessages,
