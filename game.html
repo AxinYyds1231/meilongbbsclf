@@ -3,113 +3,159 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-<title>霓虹跑酷 · NEON RUN</title>
+<title>霓虹跑酷 · 梅陇论坛</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
   html,body{
-    width:100%;height:100%;overflow:hidden;background:#04040a;
+    width:100%;height:100%;overflow:hidden;background:#e8ecf1;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
-    color:#e8f6ff;user-select:none;touch-action:manipulation;
+    color:#1a2332;user-select:none;touch-action:manipulation;
+    background-image:radial-gradient(circle at 20% 30%, rgba(26, 60, 110, 0.06), transparent 50%),
+                     radial-gradient(circle at 80% 70%, rgba(26, 60, 110, 0.04), transparent 50%);
   }
-  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
-        background:radial-gradient(ellipse at 50% 40%,#0b0b22 0%,#04040a 70%);}
+  #wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;}
   #stage{
     position:relative;
-    width:min(100vw,177.78vh);
-    height:min(56.25vw,100vh);
+    width:min(100%,1400px);
+    height:min(calc(100vh - 40px), calc(min(100%,1400px) * 0.5625));
+    border-radius:24px;
     overflow:hidden;
-    box-shadow:0 0 80px rgba(55,245,208,.14),0 0 200px rgba(124,108,255,.10);
+    box-shadow:0 10px 40px rgba(0,0,0,0.10), 0 4px 12px rgba(0,0,0,0.05);
+    border:1px solid rgba(255,255,255,0.6);
+    background:#04040a;
   }
   canvas{display:block;width:100%;height:100%;}
 
+  /* 论坛风格遮罩 */
   .overlay{
     position:absolute;inset:0;z-index:5;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:.7em;padding:1.6em 1.2em;overflow-y:auto;
-    background:radial-gradient(ellipse at center,rgba(12,12,32,.78),rgba(4,4,10,.96));
-    backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+    gap:1em;padding:2em 1.4em;overflow-y:auto;
+    background:rgba(240,244,250,0.72);
+    backdrop-filter:blur(14px) saturate(180%);
+    -webkit-backdrop-filter:blur(14px) saturate(180%);
     animation:fadeIn .28s ease;
   }
   @keyframes fadeIn{from{opacity:0}to{opacity:1}}
   .hidden{display:none!important;}
 
   .title{
-    font-size:3.2em;font-weight:900;letter-spacing:.06em;line-height:1.1;
-    background:linear-gradient(100deg,#37f5d0,#7c6cff 45%,#ff4fa3);
+    font-size:2.6em;font-weight:800;letter-spacing:.02em;line-height:1.2;
+    background:linear-gradient(135deg,#1a3c6e,#2a5a8e);
     -webkit-background-clip:text;background-clip:text;color:transparent;
-    filter:drop-shadow(0 0 .35em rgba(55,245,208,.45));
     text-align:center;
   }
-  .title.small{font-size:2.1em;}
-  .sub{font-size:.85em;letter-spacing:.45em;color:#5ce0c8;opacity:.75;text-transform:uppercase;}
-  .hint{font-size:.95em;color:#9fb4cc;text-align:center;line-height:1.7;margin-top:.2em;}
-  .hint b{color:#5ce0c8;font-weight:700;}
+  .title.small{font-size:2em;}
+  .sub{font-size:.85em;letter-spacing:.35em;color:#6b7a8a;opacity:.9;text-transform:uppercase;}
+
+  .hint{
+    font-size:.95em;color:#4a5a6a;text-align:center;line-height:1.9;
+    background:rgba(255,255,255,0.55);
+    padding:14px 24px;border-radius:16px;
+    border:1px solid rgba(255,255,255,0.6);
+    max-width:520px;
+  }
+  .hint b{color:#1a3c6e;font-weight:700;}
 
   .btn{
-    font-family:inherit;font-size:1.15em;font-weight:800;letter-spacing:.05em;
-    padding:.62em 2.2em;border-radius:.6em;border:2px solid #37f5d0;
-    background:linear-gradient(180deg,rgba(55,245,208,.22),rgba(55,245,208,.06));
-    color:#c9fff4;cursor:pointer;transition:.18s;
-    box-shadow:0 0 18px rgba(55,245,208,.28),inset 0 0 18px rgba(55,245,208,.10);
-    text-shadow:0 0 12px rgba(55,245,208,.6);
+    font-family:inherit;font-size:1.05em;font-weight:600;letter-spacing:.02em;
+    padding:.7em 2.4em;border-radius:30px;border:none;
+    background:#1a3c6e;color:#fff;cursor:pointer;transition:.2s;
+    box-shadow:0 2px 8px rgba(26,60,110,0.2);
   }
-  .btn:hover{background:rgba(55,245,208,.30);box-shadow:0 0 30px rgba(55,245,208,.55);transform:translateY(-1px);}
+  .btn:hover{background:#2a5a8e;transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,60,110,0.3);}
   .btn:active{transform:translateY(1px) scale(.98);}
-  .btn.small{font-size:.9em;padding:.5em 1.3em;border-color:#7c6cff;
-    background:linear-gradient(180deg,rgba(124,108,255,.25),rgba(124,108,255,.06));
-    color:#ddd6ff;box-shadow:0 0 16px rgba(124,108,255,.3);}
-  .btn.small:hover{background:rgba(124,108,255,.35);}
-  .btn.ghost{border-color:rgba(160,190,220,.35);background:transparent;color:#9fb4cc;
-    box-shadow:none;text-shadow:none;font-size:.95em;padding:.5em 1.6em;}
-  .btn.ghost:hover{background:rgba(255,255,255,.06);box-shadow:none;}
 
-  .save-row{display:flex;gap:.5em;align-items:center;margin-top:.2em;flex-wrap:wrap;justify-content:center;}
+  .btn.small{
+    font-size:.9em;padding:.5em 1.6em;
+    background:#1a3c6e;color:#fff;
+  }
+  .btn.small:hover{background:#2a5a8e;}
+
+  .btn.ghost{
+    background:rgba(0,0,0,0.05);color:#1a2332;
+    border:1px solid rgba(0,0,0,0.06);
+    box-shadow:none;font-size:.95em;padding:.55em 1.8em;
+  }
+  .btn.ghost:hover{background:rgba(0,0,0,0.09);transform:none;box-shadow:none;}
+
+  .user-tag{
+    font-size:.9em;color:#1a3c6e;letter-spacing:.02em;
+    padding:.4em 1.1em;border-radius:1.2em;
+    background:rgba(255,255,255,0.6);
+    border:1px solid rgba(26,60,110,0.15);
+    font-weight:500;
+  }
 
   .score-big{
-    font-size:3.4em;font-weight:900;line-height:1;
-    color:#fff;text-shadow:0 0 24px rgba(55,245,208,.8),0 0 60px rgba(55,245,208,.35);
+    font-size:3.6em;font-weight:900;line-height:1;
+    color:#1a3c6e;
     font-variant-numeric:tabular-nums;
+    text-shadow:0 4px 20px rgba(26,60,110,0.15);
   }
-  .newrec{font-size:.9em;color:#ffd166;letter-spacing:.15em;font-weight:700;
-    animation:pulse 1s infinite alternate;}
+  .newrec{
+    font-size:.9em;color:#b8860b;letter-spacing:.15em;font-weight:700;
+    animation:pulse 1s infinite alternate;
+  }
   @keyframes pulse{from{opacity:.55}to{opacity:1}}
 
   .board{
-    width:min(24em,100%);margin-top:.5em;
-    background:rgba(8,10,26,.72);border:1px solid rgba(124,108,255,.28);
-    border-radius:.7em;padding:.8em .9em;
+    width:min(26em,100%);margin-top:.5em;
+    background:rgba(255,255,255,0.6);
+    border:1px solid rgba(255,255,255,0.8);
+    border-radius:16px;padding:1em 1.1em;
+    box-shadow:0 4px 16px rgba(0,0,0,0.04);
   }
-  .board-title{font-size:.85em;letter-spacing:.12em;color:#8f8cff;margin-bottom:.55em;font-weight:700;}
-  .lb{list-style:none;display:flex;flex-direction:column;gap:.28em;max-height:12em;overflow-y:auto;}
-  .lb::-webkit-scrollbar{width:4px}
-  .lb::-webkit-scrollbar-thumb{background:rgba(124,108,255,.5);border-radius:2px}
+  .board-title{
+    font-size:.88em;letter-spacing:.12em;color:#1a3c6e;
+    margin-bottom:.7em;font-weight:700;
+  }
+  .lb{list-style:none;display:flex;flex-direction:column;gap:.3em;max-height:13em;overflow-y:auto;}
+  .lb::-webkit-scrollbar{width:5px}
+  .lb::-webkit-scrollbar-thumb{background:rgba(26,60,110,0.25);border-radius:3px}
   .lb-item{
     display:flex;align-items:center;gap:.6em;font-size:.92em;
-    padding:.28em .5em;border-radius:.4em;color:#b9cbe0;
+    padding:.35em .6em;border-radius:10px;color:#4a5a6a;
+    transition:background .15s;
   }
-  .lb-item.me{background:linear-gradient(90deg,rgba(55,245,208,.22),rgba(55,245,208,.02));
-    color:#d8fff7;box-shadow:inset 0 0 0 1px rgba(55,245,208,.45);}
-  .lb-rank{width:1.8em;text-align:center;flex:none;font-weight:700;color:#7c6cff;}
-  .lb-item.me .lb-rank{color:#37f5d0;}
+  .lb-item:hover{background:rgba(255,255,255,0.5);}
+  .lb-item.me{
+    background:linear-gradient(90deg,rgba(26,60,110,0.12),rgba(26,60,110,0.02));
+    color:#1a3c6e;font-weight:500;
+    box-shadow:inset 0 0 0 1px rgba(26,60,110,0.2);
+  }
+  .lb-rank{width:1.8em;text-align:center;flex:none;font-weight:700;color:#8b9aab;}
+  .lb-item.me .lb-rank{color:#1a3c6e;}
   .lb-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .lb-score{font-weight:800;font-variant-numeric:tabular-nums;color:#ffd166;}
-  .lb-empty{font-size:.85rem;color:#66788f;text-align:center;padding:.6em;list-style:none;}
+  .lb-score{font-weight:800;font-variant-numeric:tabular-nums;color:#1a3c6e;}
+  .lb-empty{font-size:.88rem;color:#8b9aab;text-align:center;padding:1em;list-style:none;}
 
-  .divider{width:min(24em,100%);height:1px;background:linear-gradient(90deg,transparent,rgba(124,108,255,.4),transparent);margin:.25em 0;}
+  .save-row{display:flex;gap:.5em;align-items:center;margin-top:.2em;flex-wrap:wrap;justify-content:center;}
 
-  .user-tag{
-    font-size:.85em;color:#5ce0c8;letter-spacing:.05em;
-    padding:.3em .9em;border-radius:1em;
-    background:rgba(55,245,208,.08);border:1px solid rgba(55,245,208,.25);
-  }
   .back-link{
-    position:absolute;top:.8em;left:.8em;z-index:6;
-    font-size:.9em;color:#8fa8c0;text-decoration:none;
-    padding:.3em .9em;border-radius:1em;
-    background:rgba(8,10,26,.7);border:1px solid rgba(124,108,255,.3);
-    transition:.18s;
+    position:absolute;top:1em;left:1em;z-index:6;
+    font-size:.92em;color:#1a3c6e;text-decoration:none;font-weight:500;
+    padding:.45em 1.2em;border-radius:30px;
+    background:rgba(255,255,255,0.7);
+    backdrop-filter:blur(8px);
+    border:1px solid rgba(255,255,255,0.8);
+    transition:.2s;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
   }
-  .back-link:hover{color:#37f5d0;border-color:rgba(55,245,208,.5);}
+  .back-link:hover{background:#1a3c6e;color:#fff;border-color:#1a3c6e;}
+
+  @media (max-width:640px){
+    #wrap{padding:8px;}
+    #stage{border-radius:16px;height:min(calc(100vh - 16px), calc(min(100%,1400px) * 0.5625));}
+    .title{font-size:1.9em;}
+    .title.small{font-size:1.5em;}
+    .score-big{font-size:2.6em;}
+    .hint{font-size:.85em;padding:10px 16px;}
+    .btn{font-size:.95em;padding:.6em 1.8em;}
+    .back-link{top:.6em;left:.6em;font-size:.82em;padding:.35em .9em;}
+    .overlay{gap:.7em;padding:1.2em .9em;}
+    .board{padding:.8em .9em;}
+  }
 </style>
 </head>
 <body>
@@ -123,10 +169,10 @@
     <!-- 主菜单 -->
     <div id="menu" class="overlay">
       <div class="title">霓虹跑酷</div>
-      <div class="sub">NEON&nbsp;RUN</div>
+      <div class="sub">NEON RUN</div>
       <div id="menuUserTag" class="user-tag hidden"></div>
       <div class="hint">
-        <b>空格</b> / <b>↑</b> / <b>点击屏幕</b> 跳跃 &nbsp;·&nbsp; 空中可再跳一次<br>
+        <b>空格</b> / <b>↑</b> / <b>点击屏幕</b> 跳跃 · 空中可再跳一次<br>
         躲开红色障碍，跑得越远分越高
       </div>
       <button class="btn" id="btnStart">开 始 游 戏</button>
@@ -138,7 +184,7 @@
 
     <!-- 结算 -->
     <div id="gameover" class="overlay hidden">
-      <div class="title small">游 戏 结 束</div>
+      <div class="title small">游戏结束</div>
       <div class="score-big" id="finalScore">0</div>
       <div class="sub" id="finalTip">SCORE</div>
       <div id="userLine" class="user-tag hidden"></div>
@@ -184,19 +230,18 @@ const userLine  = document.getElementById('userLine');
 const menuUserTag = document.getElementById('menuUserTag');
 
 /* ---------- 当前用户 ---------- */
-let currentUser = null;   // { uid, name }
+let currentUser = null;
 
 async function fetchCurrentUser(){
   try{
     const res = await fetch('/api/user', { credentials: 'include' });
     if(res.status === 200){
       const data = await res.json();
-      currentUser = data.user; // { uid, name }
-      // 显示在菜单
+      currentUser = data.user;
       menuUserTag.textContent = '👤 ' + currentUser.name;
       menuUserTag.classList.remove('hidden');
     }
-  }catch(e){ /* 未登录 */ }
+  }catch(e){}
 }
 
 /* ---------- 自适应 ---------- */
@@ -212,8 +257,8 @@ window.addEventListener('resize', fit);
 window.addEventListener('orientationchange', () => setTimeout(fit, 120));
 fit();
 
-/* ---------- 排行榜（本地存储） ---------- */
-const LB_KEY   = 'neon_parkour_lb_v1';
+/* ---------- 排行榜 ---------- */
+const LB_KEY = 'neon_parkour_lb_v1';
 
 function getLB(){
   try{
@@ -484,17 +529,15 @@ function gameOver(){
   const lb = getLB();
   const isNew = !lb.length || score > lb[0].score;
   finalTipEl.textContent = isNew ? '★ 新纪录 ★' : 'SCORE';
-  finalTipEl.style.color = isNew ? '#ffd166' : '#5ce0c8';
+  finalTipEl.style.color = isNew ? '#b8860b' : '#6b7a8a';
 
-  // 显示当前账号（若已登录）
   if(currentUser){
     userLine.textContent = '👤 ' + currentUser.name;
     userLine.classList.remove('hidden');
     saveRow.classList.remove('hidden');
   } else {
-    // 未登录，隐藏保存按钮，提示登录
     userLine.textContent = '未登录，无法保存成绩';
-    userLine.style.color = '#ff8fa3';
+    userLine.style.color = '#d9534f';
     userLine.classList.remove('hidden');
     saveRow.classList.add('hidden');
   }
@@ -506,7 +549,7 @@ function gameOver(){
   }, 420);
 }
 
-/* ---------- 渲染 ---------- */
+/* ---------- 渲染（游戏画面保持霓虹风格不变） ---------- */
 function drawSky(){
   const g = ctx.createLinearGradient(0, 0, 0, GROUND_Y);
   g.addColorStop(0,    '#07071a');
@@ -834,7 +877,6 @@ document.getElementById('btnSave').addEventListener('click', () => {
   if(!currentUser) return;
   submitted = true;
 
-  // 直接用当前登录账号的姓名
   const name = currentUser.name || '无名跑者';
 
   const { rank } = addScore(name, score);

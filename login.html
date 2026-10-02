@@ -3,27 +3,159 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>梅陇中学论坛 - 登录</title>
+    <title>登录 - 梅陇中学论坛</title>
     <link rel="stylesheet" href="/style.css">
+    <style>
+        .auth-wrap {
+            display: flex;
+            max-width: 900px;
+            width: 100%;
+            margin: 40px auto;
+            background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            border-radius: 28px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+            border: 1px solid rgba(255,255,255,0.6);
+            overflow: hidden;
+        }
+        .auth-left {
+            flex: 1;
+            padding: 48px 40px;
+            background: linear-gradient(135deg, rgba(26,60,110,0.08), rgba(124,108,255,0.06));
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-right: 1px solid rgba(0,0,0,0.04);
+        }
+        .auth-left h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1a3c6e, #2a5a8e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 12px;
+        }
+        .auth-left .sub {
+            font-size: 0.95rem;
+            color: #6b7a8a;
+            line-height: 1.8;
+            margin-bottom: 24px;
+        }
+        .auth-left .feature {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+            color: #4a5a6a;
+            font-size: 0.9rem;
+        }
+        .auth-left .feature span:first-child {
+            font-size: 1.1rem;
+        }
+        .auth-right {
+            flex: 1;
+            padding: 48px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .auth-right h2 {
+            font-size: 1.4rem;
+            margin-bottom: 20px;
+            color: #1a2332;
+            text-align: center;
+        }
+        .auth-right .form-group { margin-bottom: 16px; }
+        .auth-right .form-group label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #1a2332;
+            font-size: 0.9rem;
+        }
+        .auth-right .form-group input {
+            width: 100%;
+            padding: 10px 14px;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 14px;
+            background: rgba(255,255,255,0.6);
+            font-family: inherit;
+            font-size: 0.95rem;
+            transition: 0.2s;
+        }
+        .auth-right .form-group input:focus {
+            outline: none;
+            border-color: #1a3c6e;
+            background: rgba(255,255,255,0.9);
+        }
+        .auth-right .btn-primary {
+            width: 100%;
+            padding: 10px;
+            border-radius: 30px;
+            font-size: 1rem;
+            margin-top: 6px;
+        }
+        .auth-right .links {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.9rem;
+            color: #6b7a8a;
+        }
+        .auth-right .links a {
+            color: #1a3c6e;
+            margin: 0 6px;
+        }
+        .auth-right .error {
+            background: rgba(217,83,79,0.12);
+            padding: 10px 14px;
+            border-radius: 12px;
+            color: #d9534f;
+            margin-bottom: 14px;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 640px) {
+            .auth-wrap { flex-direction: column; margin: 16px; border-radius: 20px; }
+            .auth-left { padding: 32px 24px; border-right: none; border-bottom: 1px solid rgba(0,0,0,0.04); }
+            .auth-left h1 { font-size: 1.5rem; }
+            .auth-right { padding: 32px 24px; }
+        }
+    </style>
 </head>
 <body>
-    <div class="container" style="max-width: 420px; text-align: center;">
-        <h1>🔐 梅陇中学论坛</h1>
-        <h2 style="margin-bottom: 16px;">用户登录</h2>
-        <div id="error" class="error" style="display:none;"></div>
-        <form id="loginForm">
-            <div class="form-group">
-                <label>UID</label>
-                <input type="text" id="uid" placeholder="如 ml20300101" required>
+    <div class="auth-wrap">
+        <!-- 左侧品牌区 -->
+        <div class="auth-left">
+            <h1>📚 梅陇中学论坛</h1>
+            <p class="sub">一个属于梅陇学子的在线交流社区，分享学习、生活与兴趣。</p>
+            <div class="feature"><span>💬</span><span>发帖讨论、楼中楼回复</span></div>
+            <div class="feature"><span>📩</span><span>私信交流、@提及提醒</span></div>
+            <div class="feature"><span>📂</span><span>多级分类，内容清晰</span></div>
+            <div class="feature"><span>🎮</span><span>休闲游戏，轻松一刻</span></div>
+        </div>
+
+        <!-- 右侧表单区 -->
+        <div class="auth-right">
+            <h2>🔐 用户登录</h2>
+            <div id="error" class="error" style="display:none;"></div>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>UID</label>
+                    <input type="text" id="uid" placeholder="如 ml20300101" required>
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="password" placeholder="请输入密码" required>
+                </div>
+                <button type="submit" class="btn-primary">登录</button>
+            </form>
+            <div class="links">
+                还没有账号？<a href="/register.html">立即注册</a>
+                ·
+                <a href="/adminLogin.html">管理员登录</a>
             </div>
-            <div class="form-group">
-                <label>密码</label>
-                <input type="password" id="password" placeholder="密码" required>
-            </div>
-            <button type="submit" class="btn-primary" style="width:100%;">登录</button>
-        </form>
-        <p style="margin-top:16px;">还没有账号？<a href="/register.html">立即注册</a></p>
-        <p><a href="/adminLogin.html">管理员登录</a></p>
+        </div>
     </div>
 
     <script>
