@@ -129,6 +129,7 @@
                 <a href="/index.html" class="active">🏠 首页</a>
                 <a href="/dashboard.html">👤 个人中心</a>
                 <a href="/inbox.html">📩 私信</a>
+                <a href="/game.html">🎮 霓虹跑酷</a>
                 <a href="/adminLogin.html">🔑 管理</a>
             </nav>
             <div class="sidebar-header" style="border-top:1px solid rgba(0,0,0,0.04); padding-top:12px; margin-top:8px;">
@@ -304,7 +305,6 @@
             postListEl.innerHTML = html;
         }
 
-        // 搜索
         document.getElementById('searchBtn')?.addEventListener('click', async function() {
             const q = document.getElementById('searchInput').value.trim();
             if (!q) {
