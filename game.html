@@ -31,12 +31,66 @@
   }
   canvas{display:block;width:100%;height:100%;}
 
-  /* 论坛风格遮罩 */
+  /* ---------- HUD（右上角分数） ---------- */
+  .hud{
+    position:absolute;
+    top:14px;
+    right:20px;
+    z-index:4;
+    text-align:right;
+    pointer-events:none;
+    transition:opacity .2s;
+  }
+  .hud-mode{
+    font-size:.78rem;
+    color:rgba(26,60,110,0.55);
+    letter-spacing:.06em;
+    margin-bottom:2px;
+    font-weight:500;
+  }
+  .hud-score-label{
+    font-size:.65rem;
+    color:rgba(26,60,110,0.45);
+    letter-spacing:.25em;
+    font-weight:700;
+  }
+  .hud-score{
+    font-size:2.2rem;
+    font-weight:900;
+    color:#1a3c6e;
+    line-height:1;
+    font-variant-numeric:tabular-nums;
+    text-shadow:0 2px 10px rgba(255,255,255,0.9);
+  }
+  .hud-progress-wrap{margin-top:6px;}
+  .hud-progress-bar{
+    width:130px;
+    height:5px;
+    background:rgba(26,60,110,0.12);
+    border-radius:3px;
+    overflow:hidden;
+    margin-left:auto;
+  }
+  .hud-progress-fill{
+    height:100%;
+    background:linear-gradient(90deg, #4a7bb5, #1a3c6e);
+    border-radius:3px;
+    transition:width .18s;
+    width:0%;
+  }
+  .hud-progress-text{
+    font-size:.7rem;
+    color:rgba(26,60,110,0.55);
+    margin-top:3px;
+    font-variant-numeric:tabular-nums;
+  }
+
+  /* ---------- 遮罩 ---------- */
   .overlay{
     position:absolute;inset:0;z-index:5;
     display:flex;flex-direction:column;align-items:center;justify-content:center;
-    gap:1em;padding:2em 1.4em;overflow-y:auto;
-    background:rgba(240,244,250,0.78);
+    gap:.8em;padding:1.6em 1.2em;overflow-y:auto;
+    background:rgba(240,244,250,0.80);
     backdrop-filter:blur(14px) saturate(180%);
     -webkit-backdrop-filter:blur(14px) saturate(180%);
     animation:fadeIn .28s ease;
@@ -45,85 +99,121 @@
   .hidden{display:none!important;}
 
   .title{
-    font-size:2.4em;font-weight:800;letter-spacing:.02em;line-height:1.2;
+    font-size:2.2em;font-weight:800;letter-spacing:.02em;line-height:1.2;
     background:linear-gradient(135deg,#1a3c6e,#2a5a8e);
     -webkit-background-clip:text;background-clip:text;color:transparent;
     text-align:center;
   }
-  .title.small{font-size:1.9em;}
-  .sub{font-size:.85em;letter-spacing:.35em;color:#6b7a8a;opacity:.9;text-transform:uppercase;}
+  .title.small{font-size:1.8em;}
+  .sub{font-size:.8em;letter-spacing:.35em;color:#6b7a8a;opacity:.9;text-transform:uppercase;}
 
   .hint{
-    font-size:.95em;color:#4a5a6a;text-align:center;line-height:1.9;
+    font-size:.85em;color:#4a5a6a;text-align:center;line-height:1.7;
     background:rgba(255,255,255,0.55);
-    padding:14px 24px;border-radius:16px;
+    padding:10px 20px;border-radius:14px;
     border:1px solid rgba(255,255,255,0.6);
-    max-width:520px;
+    max-width:480px;
   }
   .hint b{color:#1a3c6e;font-weight:700;}
 
   .btn{
-    font-family:inherit;font-size:1.05em;font-weight:600;letter-spacing:.02em;
-    padding:.7em 2.4em;border-radius:30px;border:none;
+    font-family:inherit;font-size:1em;font-weight:600;letter-spacing:.02em;
+    padding:.65em 2.2em;border-radius:30px;border:none;
     background:#1a3c6e;color:#fff;cursor:pointer;transition:.2s;
     box-shadow:0 2px 8px rgba(26,60,110,0.2);
   }
   .btn:hover{background:#2a5a8e;transform:translateY(-1px);box-shadow:0 4px 14px rgba(26,60,110,0.3);}
   .btn:active{transform:translateY(1px) scale(.98);}
-
-  .btn.small{
-    font-size:.9em;padding:.5em 1.6em;
-    background:#1a3c6e;color:#fff;
-  }
-  .btn.small:hover{background:#2a5a8e;}
-
+  .btn.small{font-size:.88em;padding:.5em 1.5em;}
   .btn.ghost{
     background:rgba(0,0,0,0.05);color:#1a2332;
     border:1px solid rgba(0,0,0,0.06);
-    box-shadow:none;font-size:.95em;padding:.55em 1.8em;
+    box-shadow:none;font-size:.9em;padding:.5em 1.6em;
   }
   .btn.ghost:hover{background:rgba(0,0,0,0.09);transform:none;box-shadow:none;}
 
   .user-tag{
-    font-size:.9em;color:#1a3c6e;letter-spacing:.02em;
-    padding:.4em 1.1em;border-radius:1.2em;
+    font-size:.88em;color:#1a3c6e;
+    padding:.35em 1em;border-radius:1.2em;
     background:rgba(255,255,255,0.6);
     border:1px solid rgba(26,60,110,0.15);
     font-weight:500;
   }
 
+  /* ---------- 模式网格 ---------- */
+  .mode-grid{
+    display:grid;
+    grid-template-columns:repeat(2, 1fr);
+    gap:10px;
+    width:min(560px, 100%);
+    margin-top:4px;
+  }
+  .mode-card{
+    background:rgba(255,255,255,0.72);
+    border:1px solid rgba(255,255,255,0.9);
+    border-radius:14px;
+    padding:12px 14px;
+    text-align:left;
+    cursor:pointer;
+    font-family:inherit;
+    color:#1a2332;
+    transition:.18s;
+    box-shadow:0 2px 8px rgba(0,0,0,0.04);
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
+  .mode-card:hover:not(.locked){
+    background:#fff;
+    transform:translateY(-2px);
+    box-shadow:0 6px 18px rgba(0,0,0,0.09);
+  }
+  .mode-card.locked{
+    opacity:0.5;
+    cursor:not-allowed;
+    filter:grayscale(0.6);
+  }
+  .mode-card[data-mode="endless"]{
+    grid-column:span 2;
+    background:linear-gradient(135deg, rgba(26,60,110,0.10), rgba(74,123,181,0.05));
+  }
+  .mode-icon{font-size:1.3em;}
+  .mode-name{font-size:.98em;font-weight:700;color:#1a3c6e;}
+  .mode-desc{font-size:.78em;color:#6b7a8a;}
+  .mode-status{
+    font-size:.78em;color:#2a5a8e;font-weight:600;margin-top:2px;
+  }
+  .mode-card.locked .mode-status{color:#8b9aab;}
+  .mode-best{font-size:.75em;color:#8b9aab;}
+
+  /* ---------- 结算 ---------- */
   .score-big{
-    font-size:3.2em;font-weight:900;line-height:1;
+    font-size:3em;font-weight:900;line-height:1;
     color:#1a3c6e;
     font-variant-numeric:tabular-nums;
     text-shadow:0 4px 20px rgba(26,60,110,0.15);
   }
-  .newrec{
-    font-size:.9em;color:#b8860b;letter-spacing:.15em;font-weight:700;
-    animation:pulse 1s infinite alternate;
-  }
-  @keyframes pulse{from{opacity:.55}to{opacity:1}}
+  .save-row{display:flex;gap:.5em;align-items:center;flex-wrap:wrap;justify-content:center;}
+  .btn-row{display:flex;gap:.6em;flex-wrap:wrap;justify-content:center;}
 
   .board{
-    width:min(26em,100%);margin-top:.5em;
+    width:min(24em,100%);
     background:rgba(255,255,255,0.6);
     border:1px solid rgba(255,255,255,0.8);
-    border-radius:16px;padding:1em 1.1em;
+    border-radius:16px;padding:.9em 1em;
     box-shadow:0 4px 16px rgba(0,0,0,0.04);
   }
   .board-title{
-    font-size:.88em;letter-spacing:.12em;color:#1a3c6e;
-    margin-bottom:.7em;font-weight:700;
+    font-size:.85em;letter-spacing:.1em;color:#1a3c6e;
+    margin-bottom:.6em;font-weight:700;
   }
-  .lb{list-style:none;display:flex;flex-direction:column;gap:.3em;max-height:13em;overflow-y:auto;}
+  .lb{list-style:none;display:flex;flex-direction:column;gap:.28em;max-height:12em;overflow-y:auto;}
   .lb::-webkit-scrollbar{width:5px}
   .lb::-webkit-scrollbar-thumb{background:rgba(26,60,110,0.25);border-radius:3px}
   .lb-item{
-    display:flex;align-items:center;gap:.6em;font-size:.92em;
-    padding:.35em .6em;border-radius:10px;color:#4a5a6a;
-    transition:background .15s;
+    display:flex;align-items:center;gap:.6em;font-size:.9em;
+    padding:.32em .55em;border-radius:10px;color:#4a5a6a;
   }
-  .lb-item:hover{background:rgba(255,255,255,0.5);}
   .lb-item.me{
     background:linear-gradient(90deg,rgba(26,60,110,0.12),rgba(26,60,110,0.02));
     color:#1a3c6e;font-weight:500;
@@ -133,14 +223,12 @@
   .lb-item.me .lb-rank{color:#1a3c6e;}
   .lb-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .lb-score{font-weight:800;font-variant-numeric:tabular-nums;color:#1a3c6e;}
-  .lb-empty{font-size:.88rem;color:#8b9aab;text-align:center;padding:1em;list-style:none;}
-
-  .save-row{display:flex;gap:.5em;align-items:center;margin-top:.2em;flex-wrap:wrap;justify-content:center;}
+  .lb-empty{font-size:.85rem;color:#8b9aab;text-align:center;padding:1em;list-style:none;}
 
   .back-link{
     position:absolute;top:1em;left:1em;z-index:6;
-    font-size:.92em;color:#1a3c6e;text-decoration:none;font-weight:500;
-    padding:.45em 1.2em;border-radius:30px;
+    font-size:.88em;color:#1a3c6e;text-decoration:none;font-weight:500;
+    padding:.42em 1.1em;border-radius:30px;
     background:rgba(255,255,255,0.8);
     backdrop-filter:blur(8px);
     border:1px solid rgba(255,255,255,0.9);
@@ -151,15 +239,19 @@
 
   @media (max-width:640px){
     #wrap{padding:8px;}
-    #stage{border-radius:16px; width: min(100%, calc((100vh - 16px) * 1.6));}
-    .title{font-size:1.7em;}
-    .title.small{font-size:1.4em;}
-    .score-big{font-size:2.4em;}
-    .hint{font-size:.82em;padding:10px 16px;}
-    .btn{font-size:.92em;padding:.6em 1.8em;}
-    .back-link{top:.6em;left:.6em;font-size:.8em;padding:.35em .9em;}
-    .overlay{gap:.7em;padding:1.2em .9em;}
-    .board{padding:.8em .9em;}
+    #stage{border-radius:16px;}
+    .title{font-size:1.6em;}
+    .title.small{font-size:1.3em;}
+    .score-big{font-size:2.2em;}
+    .hint{font-size:.78em;padding:8px 14px;}
+    .btn{font-size:.9em;padding:.55em 1.6em;}
+    .back-link{top:.6em;left:.6em;font-size:.78em;padding:.3em .8em;}
+    .overlay{gap:.6em;padding:1em .9em;}
+    .hud-score{font-size:1.6rem;}
+    .hud-progress-bar{width:90px;}
+    .mode-grid{grid-template-columns:1fr;gap:8px;}
+    .mode-card[data-mode="endless"]{grid-column:span 1;}
+    .board{padding:.7em .8em;}
   }
 </style>
 </head>
@@ -170,34 +262,47 @@
 
     <a href="/index.html" class="back-link">← 返回论坛</a>
 
+    <!-- HUD（右上角） -->
+    <div id="hud" class="hud hidden">
+      <div class="hud-mode" id="hudMode">无尽模式</div>
+      <div class="hud-score-label">SCORE</div>
+      <div class="hud-score" id="hudScore">0000</div>
+      <div class="hud-progress-wrap" id="hudProgressWrap" style="display:none;">
+        <div class="hud-progress-bar"><div class="hud-progress-fill" id="hudProgressFill"></div></div>
+        <div class="hud-progress-text" id="hudProgressText">0 / 0</div>
+      </div>
+    </div>
+
     <!-- 主菜单 -->
     <div id="menu" class="overlay">
       <div class="title">跑酷小游戏</div>
       <div class="sub">MINI RUN</div>
       <div id="menuUserTag" class="user-tag hidden"></div>
       <div class="hint">
-        <b>空格</b> / <b>↑</b> / <b>点击屏幕</b> 跳跃 · 空中可再跳一次<br>
-        躲开红色障碍，跑得越远分越高
+        <b>空格</b> / <b>↑</b> / <b>点击屏幕</b> 跳跃 · 空中可再跳一次
       </div>
-      <button class="btn" id="btnStart">开 始 游 戏</button>
-      <div class="board">
-        <div class="board-title">🏆 排行榜 TOP 10</div>
+      <div class="mode-grid" id="modeGrid"></div>
+      <div class="board" style="margin-top:6px;">
+        <div class="board-title">🏆 无尽模式排行榜 TOP 5</div>
         <ol class="lb" id="lbMenu"></ol>
       </div>
     </div>
 
     <!-- 结算 -->
     <div id="gameover" class="overlay hidden">
-      <div class="title small">游戏结束</div>
+      <div class="title small" id="overTitle">游戏结束</div>
       <div class="score-big" id="finalScore">0</div>
       <div class="sub" id="finalTip">SCORE</div>
       <div id="userLine" class="user-tag hidden"></div>
       <div class="save-row" id="saveRow">
         <button class="btn small" id="btnSave">保存成绩</button>
       </div>
-      <button class="btn" id="btnRestart">再 来 一 局</button>
-      <button class="btn ghost" id="btnMenu">返回首页</button>
-      <div class="board">
+      <div class="btn-row">
+        <button class="btn" id="btnRestart">再 来 一 局</button>
+        <button class="btn small" id="btnNext" style="display:none;">下 一 关</button>
+      </div>
+      <button class="btn ghost" id="btnMenu">返回菜单</button>
+      <div class="board" id="overBoard">
         <div class="board-title">🏆 排行榜 TOP 5</div>
         <ol class="lb" id="lbOver"></ol>
       </div>
@@ -207,17 +312,75 @@
 
 <script>
 /* ============================================================
-   跑酷小游戏 （论坛浅色风格版）
+   跑酷小游戏 · 关卡 + 无尽模式
    ============================================================ */
 
-/* ---------- 常量 ---------- */
+/* ---------- 画布尺寸 ---------- */
 const W = 960, H = 600;
 const GROUND_Y   = 480;
 const GRAVITY    = 2400;
 const JUMP_V     = -820;
-const BASE_SPEED = 420;
-const MAX_SPEED  = 950;
 const FONT = '"PingFang SC","Microsoft YaHei",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif';
+
+/* ---------- 关卡配置 ---------- */
+const LEVELS = {
+  endless: {
+    id: 'endless',
+    name: '无尽模式',
+    icon: '♾️',
+    desc: '挑战极限，越远越好',
+    target: 0,
+    baseSpeed: 420,
+    maxSpeed: 950,
+    spawnBase: 1.45,
+    spawnDiff: 0.60
+  },
+  level1: {
+    id: 'level1',
+    name: '第 1 关 · 新手村',
+    icon: '🌱',
+    desc: '轻松起步，熟悉操作',
+    target: 500,
+    baseSpeed: 340,
+    maxSpeed: 520,
+    spawnBase: 1.95,
+    spawnDiff: 0.30
+  },
+  level2: {
+    id: 'level2',
+    name: '第 2 关 · 进阶之路',
+    icon: '🌿',
+    desc: '渐入佳境',
+    target: 1200,
+    baseSpeed: 380,
+    maxSpeed: 640,
+    spawnBase: 1.65,
+    spawnDiff: 0.45
+  },
+  level3: {
+    id: 'level3',
+    name: '第 3 关 · 疾风挑战',
+    icon: '🔥',
+    desc: '速度与激情',
+    target: 2200,
+    baseSpeed: 440,
+    maxSpeed: 780,
+    spawnBase: 1.35,
+    spawnDiff: 0.55
+  },
+  level4: {
+    id: 'level4',
+    name: '第 4 关 · 极限冲刺',
+    icon: '⚡',
+    desc: '只有强者能通过',
+    target: 3500,
+    baseSpeed: 500,
+    maxSpeed: 900,
+    spawnBase: 1.10,
+    spawnDiff: 0.65
+  }
+};
+const LEVEL_ORDER = ['level1', 'level2', 'level3', 'level4'];
 
 /* ---------- DOM ---------- */
 const stage     = document.getElementById('stage');
@@ -225,6 +388,7 @@ const cvs       = document.getElementById('canvas');
 const ctx       = cvs.getContext('2d');
 const menuEl    = document.getElementById('menu');
 const overEl    = document.getElementById('gameover');
+const hudEl     = document.getElementById('hud');
 const lbMenuEl  = document.getElementById('lbMenu');
 const lbOverEl  = document.getElementById('lbOver');
 const finalScEl = document.getElementById('finalScore');
@@ -232,6 +396,7 @@ const finalTipEl= document.getElementById('finalTip');
 const saveRow   = document.getElementById('saveRow');
 const userLine  = document.getElementById('userLine');
 const menuUserTag = document.getElementById('menuUserTag');
+const modeGridEl = document.getElementById('modeGrid');
 
 /* ---------- 当前用户 ---------- */
 let currentUser = null;
@@ -261,7 +426,7 @@ window.addEventListener('resize', fit);
 window.addEventListener('orientationchange', () => setTimeout(fit, 120));
 fit();
 
-/* ---------- 排行榜 ---------- */
+/* ---------- 排行榜（无尽模式） ---------- */
 const LB_KEY = 'minirun_lb_v1';
 
 function getLB(){
@@ -299,6 +464,87 @@ function renderLB(el, limit, highlightRank){
       <span class="lb-score">${it.score}</span>
     </li>`;
   }).join('');
+}
+
+/* ---------- 关卡进度 ---------- */
+const PROG_KEY = 'minirun_progress_v1';
+
+function getProgress(){
+  try{
+    const raw = localStorage.getItem(PROG_KEY);
+    return raw ? JSON.parse(raw) : {};
+  }catch(e){ return {}; }
+}
+function saveProgress(p){
+  try{ localStorage.setItem(PROG_KEY, JSON.stringify(p)); }catch(e){}
+}
+function setLevelResult(levelId, score, cleared){
+  const p = getProgress();
+  const cur = p[levelId] || { best: 0, cleared: false };
+  p[levelId] = {
+    best: Math.max(cur.best, score),
+    cleared: cur.cleared || cleared
+  };
+  saveProgress(p);
+}
+function isLevelUnlocked(levelId){
+  if(levelId === 'endless' || levelId === 'level1') return true;
+  const idx = LEVEL_ORDER.indexOf(levelId);
+  if(idx <= 0) return true;
+  const prev = LEVEL_ORDER[idx - 1];
+  const p = getProgress();
+  return p[prev] && p[prev].cleared;
+}
+
+/* ---------- 渲染模式网格 ---------- */
+function renderModeGrid(){
+  const progress = getProgress();
+  const lb = getLB();
+  const bestEndless = lb.length ? lb[0].score : 0;
+
+  let html = `
+    <button class="mode-card" data-mode="endless">
+      <div class="mode-icon">♾️</div>
+      <div class="mode-name">无尽模式</div>
+      <div class="mode-desc">挑战极限，越远越好</div>
+      <div class="mode-status">${bestEndless > 0 ? '最佳：' + bestEndless + ' 分' : '还没有记录'}</div>
+    </button>
+  `;
+
+  LEVEL_ORDER.forEach(id => {
+    const lv = LEVELS[id];
+    const unlocked = isLevelUnlocked(id);
+    const prog = progress[id] || { best: 0, cleared: false };
+    let status;
+    if(!unlocked){
+      status = '🔒 未解锁';
+    } else if(prog.cleared){
+      status = '✅ 已通关';
+    } else {
+      status = `🎯 目标 ${lv.target} 分`;
+    }
+    const bestText = (unlocked && prog.best > 0) ? `最佳：${prog.best} 分` : '';
+
+    html += `
+      <button class="mode-card ${unlocked ? '' : 'locked'}" data-mode="${id}" ${unlocked ? '' : 'disabled'}>
+        <div class="mode-icon">${lv.icon}</div>
+        <div class="mode-name">${lv.name}</div>
+        <div class="mode-desc">${lv.desc}</div>
+        <div class="mode-status">${status}</div>
+        ${bestText ? `<div class="mode-best">${bestText}</div>` : ''}
+      </button>
+    `;
+  });
+
+  modeGridEl.innerHTML = html;
+
+  modeGridEl.querySelectorAll('.mode-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const mode = card.dataset.mode;
+      if(!isLevelUnlocked(mode)) return;
+      startGame(mode);
+    });
+  });
 }
 
 /* ---------- 音效 ---------- */
@@ -339,7 +585,7 @@ function rand(i){
 }
 function clamp(v, a, b){ return v < a ? a : (v > b ? b : v); }
 
-/* ---------- 云朵（浅色背景装饰） ---------- */
+/* ---------- 云朵 ---------- */
 const clouds = [];
 for(let i = 0; i < 5; i++){
   clouds.push({
@@ -353,7 +599,9 @@ for(let i = 0; i < 5; i++){
 /* ---------- 游戏状态 ---------- */
 let state = 'menu';
 let player, obstacles, particles;
+let currentLevel = LEVELS.endless;
 let speed, distance, score, spawnTimer, scroll, shake, time, submitted;
+let lastHudScore = -1;
 
 function resetGame(){
   player = {
@@ -363,7 +611,7 @@ function resetGame(){
   };
   obstacles  = [];
   particles  = [];
-  speed      = BASE_SPEED;
+  speed      = currentLevel.baseSpeed;
   distance   = 0;
   score      = 0;
   spawnTimer = 1.0;
@@ -371,6 +619,7 @@ function resetGame(){
   shake      = 0;
   time       = 0;
   submitted  = false;
+  lastHudScore = -1;
 }
 
 /* ---------- 粒子 ---------- */
@@ -461,7 +710,7 @@ function update(dt){
   }
   if(state !== 'playing') return;
 
-  speed = Math.min(BASE_SPEED + distance * 0.025, MAX_SPEED);
+  speed = Math.min(currentLevel.baseSpeed + distance * 0.025, currentLevel.maxSpeed);
   distance += speed * dt;
   score = Math.floor(distance / 10);
   scroll += speed * dt;
@@ -493,9 +742,18 @@ function update(dt){
   if(spawnTimer <= 0){
     spawnObstacle();
     const diff = Math.min(distance / 22000, 1);
-    spawnTimer = (1.45 - 0.60 * diff) * (0.90 + Math.random() * 0.60);
+    spawnTimer = (currentLevel.spawnBase - currentLevel.spawnDiff * diff) * (0.90 + Math.random() * 0.60);
   }
 
+  updateHud();
+
+  /* 通关判断（关卡模式） */
+  if(currentLevel.target > 0 && score >= currentLevel.target){
+    gameOver('clear');
+    return;
+  }
+
+  /* 碰撞判断 */
   const pb = {
     x: player.x + 6,
     y: player.y + 7,
@@ -503,22 +761,53 @@ function update(dt){
     h: player.h - 12
   };
   for(const o of obstacles){
-    if(hitTest(pb, o)){ gameOver(); break; }
+    if(hitTest(pb, o)){ gameOver('fail'); break; }
+  }
+}
+
+/* ---------- HUD 更新 ---------- */
+function updateHud(){
+  if(score === lastHudScore) return;
+  lastHudScore = score;
+
+  document.getElementById('hudScore').textContent = String(score).padStart(4, '0');
+
+  if(currentLevel.target > 0){
+    const pct = Math.min(100, score / currentLevel.target * 100);
+    document.getElementById('hudProgressFill').style.width = pct + '%';
+    document.getElementById('hudProgressText').textContent = `${score} / ${currentLevel.target}`;
   }
 }
 
 /* ---------- 开始 / 结束 ---------- */
-function startGame(){
+function startGame(levelId){
+  if(levelId && LEVELS[levelId]){
+    currentLevel = LEVELS[levelId];
+  }
   resetGame();
   state = 'playing';
   menuEl.classList.add('hidden');
   overEl.classList.add('hidden');
+  hudEl.classList.remove('hidden');
+
+  /* 设置 HUD */
+  document.getElementById('hudMode').textContent = currentLevel.name;
+  document.getElementById('hudScore').textContent = '0000';
+  const progWrap = document.getElementById('hudProgressWrap');
+  if(currentLevel.target > 0){
+    progWrap.style.display = 'block';
+    document.getElementById('hudProgressFill').style.width = '0%';
+    document.getElementById('hudProgressText').textContent = `0 / ${currentLevel.target}`;
+  } else {
+    progWrap.style.display = 'none';
+  }
+
   initAudio();
   beep(660, 0.10, 'triangle', 0.045);
   setTimeout(() => beep(880, 0.12, 'triangle', 0.04), 90);
 }
 
-function gameOver(){
+function gameOver(result){
   state = 'gameover';
   shake = 16;
   spawnDust(player.x + player.w/2, player.y + player.h/2, 28, '#d9534f', 1.4);
@@ -526,25 +815,66 @@ function gameOver(){
   beep(180, 0.30, 'sawtooth', 0.07);
   setTimeout(() => beep(110, 0.45, 'sawtooth', 0.06), 110);
 
+  hudEl.classList.add('hidden');
+
+  const isClear = result === 'clear';
+  const isEndless = currentLevel.id === 'endless';
+
+  document.getElementById('overTitle').textContent = isClear ? '🎉 关卡通过' : '游戏结束';
+
   finalScEl.textContent = score;
 
-  const lb = getLB();
-  const isNew = !lb.length || score > lb[0].score;
-  finalTipEl.textContent = isNew ? '★ 新纪录 ★' : 'SCORE';
-  finalTipEl.style.color = isNew ? '#b8860b' : '#6b7a8a';
-
-  if(currentUser){
-    userLine.textContent = '👤 ' + currentUser.name;
-    userLine.classList.remove('hidden');
-    saveRow.classList.remove('hidden');
+  if(isEndless){
+    const lb = getLB();
+    const isNew = !lb.length || score > lb[0].score;
+    finalTipEl.textContent = isNew ? '★ 新纪录 ★' : 'SCORE';
+    finalTipEl.style.color = isNew ? '#b8860b' : '#6b7a8a';
+    finalTipEl.style.letterSpacing = '0.35em';
   } else {
-    userLine.textContent = '未登录，无法保存成绩';
-    userLine.style.color = '#d9534f';
-    userLine.classList.remove('hidden');
-    saveRow.classList.add('hidden');
+    const target = currentLevel.target;
+    finalTipEl.textContent = isClear ? `已达成目标 ${target} 分` : `目标 ${target} 分 · 未达成`;
+    finalTipEl.style.color = isClear ? '#2a5a8e' : '#d9534f';
+    finalTipEl.style.letterSpacing = '0.05em';
   }
 
-  renderLB(lbOverEl, 5, -1);
+  /* 用户行 */
+  if(currentUser){
+    userLine.textContent = '👤 ' + currentUser.name;
+    userLine.style.color = '#1a3c6e';
+    userLine.classList.remove('hidden');
+  } else {
+    userLine.textContent = '未登录，成绩无法保存';
+    userLine.style.color = '#d9534f';
+    userLine.classList.remove('hidden');
+  }
+
+  /* 保存按钮 + 排行榜 */
+  if(isEndless){
+    if(currentUser){
+      saveRow.classList.remove('hidden');
+    } else {
+      saveRow.classList.add('hidden');
+    }
+    document.getElementById('overBoard').style.display = 'block';
+    renderLB(lbOverEl, 5, -1);
+  } else {
+    saveRow.classList.add('hidden');
+    document.getElementById('overBoard').style.display = 'none';
+    /* 关卡模式自动保存进度 */
+    if(currentUser){
+      setLevelResult(currentLevel.id, score, isClear);
+    }
+  }
+
+  /* 下一关按钮 */
+  const nextBtn = document.getElementById('btnNext');
+  const idx = LEVEL_ORDER.indexOf(currentLevel.id);
+  if(isClear && idx >= 0 && idx < LEVEL_ORDER.length - 1){
+    nextBtn.style.display = 'inline-block';
+    nextBtn.dataset.next = LEVEL_ORDER[idx + 1];
+  } else {
+    nextBtn.style.display = 'none';
+  }
 
   setTimeout(() => {
     overEl.classList.remove('hidden');
@@ -560,7 +890,6 @@ function drawSky(){
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, GROUND_Y + 2);
 
-  /* 柔和云朵 */
   const sOff = scroll * 0.02;
   for(const c of clouds){
     const x = ((c.x - sOff * c.speed * 40) % (W + 300) + W + 300) % (W + 300) - 150;
@@ -595,11 +924,9 @@ function drawCityLayer(parallax, gap, baseH, range, color, seed){
     rr(ctx, x, GROUND_Y - h, w, h, 6);
     ctx.fill();
 
-    /* 顶部高光 */
     ctx.fillStyle = 'rgba(255,255,255,0.5)';
     ctx.fillRect(x + 4, GROUND_Y - h + 4, w - 8, 2);
 
-    /* 窗户 */
     if(parallax > 0.25 && r1 > 0.35){
       ctx.fillStyle = 'rgba(255,255,255,0.45)';
       const cols = Math.max(1, Math.floor(w / 16));
@@ -616,14 +943,12 @@ function drawCityLayer(parallax, gap, baseH, range, color, seed){
 }
 
 function drawGround(){
-  /* 地面底色（浅色） */
   const g = ctx.createLinearGradient(0, GROUND_Y, 0, H);
   g.addColorStop(0, '#d8e2ed');
   g.addColorStop(1, '#b8c4d4');
   ctx.fillStyle = g;
   ctx.fillRect(0, GROUND_Y, W, H - GROUND_Y);
 
-  /* 地面透视线 */
   ctx.save();
   ctx.strokeStyle = 'rgba(26,60,110,0.08)';
   ctx.lineWidth = 1;
@@ -647,7 +972,6 @@ function drawGround(){
   ctx.globalAlpha = 1;
   ctx.restore();
 
-  /* 蓝色地平线 */
   ctx.save();
   ctx.shadowColor = 'rgba(26,60,110,0.35)';
   ctx.shadowBlur = 12;
@@ -659,7 +983,6 @@ function drawGround(){
   ctx.stroke();
   ctx.restore();
 
-  /* 跑道虚线 */
   ctx.save();
   const dashOff = (scroll * 1.2) % 90;
   ctx.fillStyle = 'rgba(26,60,110,0.22)';
@@ -684,12 +1007,10 @@ function drawObstacles(){
     ctx.fill();
     ctx.restore();
 
-    /* 顶部高光 */
     ctx.fillStyle = 'rgba(255,255,255,0.4)';
     rr(ctx, o.x + 7, o.y + 7, Math.max(4, o.w - 14), 4, 2);
     ctx.fill();
 
-    /* 底部阴影 */
     ctx.fillStyle = 'rgba(0,0,0,0.15)';
     rr(ctx, o.x + 7, o.y + o.h - 10, Math.max(4, o.w - 14), 5, 2);
     ctx.fill();
@@ -707,7 +1028,6 @@ function drawPlayer(){
 
   const w = player.w, h = player.h;
 
-  /* 外发光（蓝色） */
   ctx.save();
   ctx.shadowColor = 'rgba(26,60,110,0.4)';
   ctx.shadowBlur = 18;
@@ -721,12 +1041,10 @@ function drawPlayer(){
   ctx.fill();
   ctx.restore();
 
-  /* 顶部高光 */
   ctx.fillStyle = 'rgba(255,255,255,0.35)';
   rr(ctx, 5, 5, w - 10, 6, 3);
   ctx.fill();
 
-  /* 眼睛（白色） */
   ctx.fillStyle = '#ffffff';
   const eyeY = h * 0.34;
   ctx.beginPath();
@@ -734,14 +1052,12 @@ function drawPlayer(){
   ctx.arc(w * 0.70, eyeY, 3.5, 0, Math.PI * 2);
   ctx.fill();
 
-  /* 瞳孔（深蓝） */
   ctx.fillStyle = '#0a1a2e';
   ctx.beginPath();
   ctx.arc(w * 0.33, eyeY, 1.6, 0, Math.PI * 2);
   ctx.arc(w * 0.71, eyeY, 1.6, 0, Math.PI * 2);
   ctx.fill();
 
-  /* 嘴巴 */
   ctx.strokeStyle = 'rgba(255,255,255,0.7)';
   ctx.lineWidth = 1.6;
   ctx.beginPath();
@@ -751,7 +1067,6 @@ function drawPlayer(){
 
   ctx.restore();
 
-  /* 落地时的地面光圈 */
   if(player.onGround){
     ctx.save();
     ctx.globalAlpha = 0.25;
@@ -775,42 +1090,7 @@ function drawParticles(){
   ctx.globalAlpha = 1;
 }
 
-function drawHUD(){
-  if(state === 'menu') return;
-
-  ctx.save();
-  ctx.textAlign = 'left';
-  ctx.textBaseline = 'top';
-
-  /* 分数（深蓝色） */
-  ctx.font = `900 44px ${FONT}`;
-  ctx.shadowColor = 'rgba(255,255,255,0.9)';
-  ctx.shadowBlur = 8;
-  ctx.fillStyle = '#1a3c6e';
-  ctx.fillText(String(score).padStart(4, '0'), 34, 26);
-
-  ctx.shadowBlur = 0;
-  ctx.font = `700 14px ${FONT}`;
-  ctx.fillStyle = 'rgba(26,60,110,0.55)';
-  ctx.fillText('S C O R E', 37, 78);
-
-  /* 速度条 */
-  const pct = (speed - BASE_SPEED) / (MAX_SPEED - BASE_SPEED);
-  ctx.fillStyle = 'rgba(26,60,110,0.12)';
-  rr(ctx, 34, 104, 160, 6, 3);
-  ctx.fill();
-  const sg = ctx.createLinearGradient(34, 0, 194, 0);
-  sg.addColorStop(0, '#4a7bb5');
-  sg.addColorStop(1, '#1a3c6e');
-  ctx.fillStyle = sg;
-  rr(ctx, 34, 104, Math.max(6, 160 * pct), 6, 3);
-  ctx.fill();
-
-  ctx.restore();
-}
-
 function drawVignette(){
-  /* 浅色背景下的柔和边角暗化 */
   const g = ctx.createRadialGradient(W/2, H/2, H*0.45, W/2, H/2, H*1.05);
   g.addColorStop(0, 'rgba(0,0,0,0)');
   g.addColorStop(1, 'rgba(26,60,110,0.10)');
@@ -837,7 +1117,6 @@ function render(){
   if(player) drawPlayer();
   drawParticles();
   drawVignette();
-  drawHUD();
 
   ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
 }
@@ -865,32 +1144,38 @@ window.addEventListener('keydown', e => {
   if(e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Enter'){
     e.preventDefault();
     if(state === 'playing') doJump();
-    else if(state === 'menu') startGame();
   }
 }, { passive: false });
 
 cvs.addEventListener('pointerdown', e => {
   e.preventDefault();
   if(state === 'playing') doJump();
-  else if(state === 'menu') startGame();
 }, { passive: false });
 
 cvs.addEventListener('contextmenu', e => e.preventDefault());
 
 /* ---------- 按钮绑定 ---------- */
-document.getElementById('btnStart').addEventListener('click', startGame);
-
 document.getElementById('btnRestart').addEventListener('click', () => {
   overEl.classList.add('hidden');
-  startGame();
+  startGame(currentLevel.id);
+});
+
+document.getElementById('btnNext').addEventListener('click', () => {
+  const next = document.getElementById('btnNext').dataset.next;
+  if(next && LEVELS[next]){
+    overEl.classList.add('hidden');
+    startGame(next);
+  }
 });
 
 document.getElementById('btnMenu').addEventListener('click', () => {
   overEl.classList.add('hidden');
   menuEl.classList.remove('hidden');
   state = 'menu';
+  hudEl.classList.add('hidden');
   resetGame();
-  renderLB(lbMenuEl, 10, -1);
+  renderLB(lbMenuEl, 5, -1);
+  renderModeGrid();
 });
 
 document.getElementById('btnSave').addEventListener('click', () => {
@@ -910,7 +1195,8 @@ document.getElementById('btnSave').addEventListener('click', () => {
 
 /* ---------- 初始化 ---------- */
 resetGame();
-renderLB(lbMenuEl, 10, -1);
+renderLB(lbMenuEl, 5, -1);
+renderModeGrid();
 fetchCurrentUser();
 requestAnimationFrame(loop);
 </script>
